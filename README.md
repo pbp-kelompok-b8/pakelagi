@@ -103,29 +103,78 @@ Satu akun member berperan sekaligus sebagai penjual dan pencari barang — **tid
 
 ## 6. Tautan Deployment PWS
 
-> ⚠️ **Belum tersedia.** Target: PostgreSQL di PWS, dijadwalkan pada Checkpoint 2 (28 September – 2 Oktober 2026). URL ditambahkan ke README setelah deployment pertama berhasil.
-
 ```
-PWS: (belum diisi)
+PWS: http://david-liman-pakelagi.pws.cs.ui.ac.id
 ```
 
 ---
 
 ## 7. Tautan Desain Figma
 
-> ⚠️ **Belum tersedia.** Wajib diisi sebelum pengumpulan.
+```
+Figma: https://www.figma.com/design/dCekkdFnlpwdcTY6vaXyrX/Web-Design?m=auto&t=WEkEhoembXHyU27W-1
+```
 
+---
+
+## 8. Cara Menjalankan Project
+
+### Prasyarat
+
+- Python 3.11+ (lingkungan pengembangan memakai 3.14)
+- `pip`
+
+### Instalasi lokal
+
+```bash
+# 1. Clone repository
+git clone https://github.com/pbp-kelompok-b8/pakelagi.git
+cd pakelagi
+
+# 2. Buat dan aktifkan virtual environment
+python -m venv env
+
+# Windows (Git Bash)
+source env/Scripts/activate
+# Windows (PowerShell)
+env\Scripts\Activate.ps1
+# macOS/Linux
+source env/bin/activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Salin file environment lalu sesuaikan nilainya
+cp .env.example .env   # buat .env.example jika belum ada
+
+# 5. Jalankan migration
+python manage.py migrate
+
+# 6. (Opsional) buat superuser untuk akses admin/moderasi
+python manage.py createsuperuser
+
+# 7. Jalankan development server
+python manage.py runserver
 ```
-Figma: (belum diisi)
+
+Aplikasi berjalan di `http://127.0.0.1:8000/`.
+
+Secara default (`PRODUCTION` tidak diset atau `false`), project memakai **SQLite** (`db.sqlite3`) agar mudah dijalankan lokal tanpa setup PostgreSQL. Di production/PWS, set `PRODUCTION=true` beserta `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` pada `.env` agar aplikasi memakai **PostgreSQL**.
+
+### Seed data
+
+```bash
+python manage.py loaddata fixtures/seed_listings.json
 ```
+
+> ⚠️ Fixture seed data (`fixtures/seed_listings.json`, minimal 50 listing sesuai §14 spesifikasi) **belum dibuat** — akan ditambahkan bertahap seiring modul masing-masing anggota selesai. Update perintah di atas begitu path fixture final tersedia.
 
 ---
 
 ## Informasi Tambahan
 
-- **Repository Git:** _(belum diisi)_
+- **Repository Git:** [github.com/pbp-kelompok-b8/pakelagi](https://github.com/pbp-kelompok-b8/pakelagi)
 - **Target deployment:** PWS dengan PostgreSQL
-- **Design system:** Bootstrap via CDN; palet — Forest green `#315C4B`, Terracotta `#B9674E`, Warm cream `#F7F2EA`, Charcoal `#25312D`, Muted sage `#DCE7DE`
 - **Seed data:** minimal 50 listing (10 per kategori) pada deployment pertama
 - **Target test coverage:** 80%, fokus pada permission dan alur CRUD
 
