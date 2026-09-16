@@ -30,15 +30,13 @@ Pembayaran/checkout/keranjang, pemesanan dan status transaksi, integrasi kurir, 
 
 ## 2. Anggota Kelompok
 
-> ⚠️ **Belum diisi.** Dokumen spesifikasi masih memakai placeholder `[Nama, NPM]` (§18).
-
-| No | Nama | NPM | Modul |
-|---|---|---|---|
-| 1 | _(belum diisi)_ | _(belum diisi)_ | Clothing Listings |
-| 2 | _(belum diisi)_ | _(belum diisi)_ | User Profiles |
-| 3 | _(belum diisi)_ | _(belum diisi)_ | Saved Favorites |
-| 4 | _(belum diisi)_ | _(belum diisi)_ | Sustainable Guides |
-| 5 | _(belum diisi)_ | _(belum diisi)_ | Reports & Moderation |
+| No | Nama                                     | NPM            | Modul                |
+| -- | ---------------------------------------- | -------------- | -------------------- |
+| 1  | _Nugraha Kautsarrizqi Caksana_         | `2506541250` | Clothing Listings    |
+| 2  | _Victoriano Iman Santosa_              | `2506544353` | User Profiles        |
+| 3  | _David Liman_                          | `2506601956` | Saved Favorites      |
+| 4  | _Muhammad Raihan Al Qadri Kusumaputra_ | `2506602334` | Sustainable Guides   |
+| 5  | _Clevraldo Limuel_                     | `2506656583` | Reports & Moderation |
 
 ---
 
@@ -74,10 +72,10 @@ Model `Report`. Member melaporkan listing bermasalah (`Counterfeit`, `Misleading
 
 **Nominatim (OpenStreetMap) — Search API**
 
-| Item | Tautan |
-|---|---|
-| Dokumentasi API | https://nominatim.org/release-docs/latest/api/Search/ |
-| Usage Policy | https://operations.osmfoundation.org/policies/nominatim/ |
+| Item            | Tautan                                                   |
+| --------------- | -------------------------------------------------------- |
+| Dokumentasi API | https://nominatim.org/release-docs/latest/api/Search/    |
+| Usage Policy    | https://operations.osmfoundation.org/policies/nominatim/ |
 
 **Cara pakai.** Pada form listing, seller mengetik kota atau area pickup umum. Server Django mengirim query ke Search API dengan `format=jsonv2` dan `countrycodes=id` (dibatasi Indonesia) serta jumlah hasil kecil. Seller memilih hasil yang sesuai, lalu aplikasi menyimpan **nama area, latitude, dan longitude** pada listing. Katalog memakai field kota untuk filter; koordinat tidak dipakai untuk menunjukkan alamat presisi.
 
@@ -93,11 +91,11 @@ Model `Report`. Member melaporkan listing bermasalah (`Counterfeit`, `Misleading
 
 ## 5. Jenis / Peran Pengguna
 
-| Peran | Kebutuhan | Akses utama |
-|---|---|---|
-| **Guest** | Menemukan pakaian dan membaca informasi slow fashion | Melihat listing berstatus `Available`, membaca guide yang dipublikasikan, dan membuka halaman detail. **Tidak** dapat melihat kontak penjual. |
-| **Member** | Menjual pakaian, menyimpan pilihan, melaporkan masalah | Semua akses guest; CRUD listing miliknya, profile, favorite, dan report; dapat melihat kontak penjual |
-| **Admin** | Menjaga kualitas dan keamanan konten | Mengelola semua listing, guide, report, dan user melalui halaman moderasi |
+| Peran            | Kebutuhan                                              | Akses utama                                                                                                                                          |
+| ---------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Guest**  | Menemukan pakaian dan membaca informasi slow fashion   | Melihat listing berstatus`Available`, membaca guide yang dipublikasikan, dan membuka halaman detail. **Tidak** dapat melihat kontak penjual. |
+| **Member** | Menjual pakaian, menyimpan pilihan, melaporkan masalah | Semua akses guest; CRUD listing miliknya, profile, favorite, dan report; dapat melihat kontak penjual                                                |
+| **Admin**  | Menjaga kualitas dan keamanan konten                   | Mengelola semua listing, guide, report, dan user melalui halaman moderasi                                                                            |
 
 Satu akun member berperan sekaligus sebagai penjual dan pencari barang — **tidak ada** akun buyer dan seller yang terpisah.
 
@@ -133,10 +131,10 @@ Figma: (belum diisi)
 
 ### Milestone
 
-| Waktu | Hasil |
-|---|---|
-| Checkpoint 1 — 16 September 2026 | Repository bersama, README awal, ide, peran, modul, API, pembagian anggota |
-| Checkpoint 2 — 28 Sep – 2 Okt 2026 | Template dasar, design system, integrasi awal, deployment pertama ke PWS |
+| Waktu                                | Hasil                                                                                   |
+| ------------------------------------ | --------------------------------------------------------------------------------------- |
+| Checkpoint 1 — 16 September 2026    | Repository bersama, README awal, ide, peran, modul, API, pembagian anggota              |
+| Checkpoint 2 — 28 Sep – 2 Okt 2026 | Template dasar, design system, integrasi awal, deployment pertama ke PWS                |
 | Pengumpulan akhir — 23 Oktober 2026 | Semua modul terintegrasi, ≥50 listing, testing lulus, deployment aktif, README lengkap |
 
 ---
