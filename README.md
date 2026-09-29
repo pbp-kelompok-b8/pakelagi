@@ -24,7 +24,7 @@ Penting untuk dicatat: Pakelagi adalah **platform listing, bukan toko online pen
 
 ### Yang **tidak** termasuk MVP
 
-Pembayaran/checkout/keranjang, pemesanan dan status transaksi, integrasi kurir, chat internal, kalkulator emisi karbon, alamat pickup presisi, dan upload berkas gambar (listing memakai satu URL gambar).
+Pembayaran/checkout/keranjang, pemesanan dan status transaksi, integrasi kurir, chat internal, kalkulator emisi karbon, alamat pickup presisi, dan upload berkas gambar. Listing memakai URL gambar eksternal dengan placeholder lokal jika gambar gagal dimuat.
 
 ---
 
@@ -42,7 +42,7 @@ Pembayaran/checkout/keranjang, pemesanan dan status transaksi, integrasi kurir, 
 
 ## 3. Daftar Modul dan Pembagian Kerja
 
-Setiap modul wajib memiliki Models, Views, Templates, Forms, operasi CRUD lengkap, filter autentikasi, dan **minimal satu interaksi sisi klien** melalui HTMX atau respons parsial.
+Setiap modul wajib memiliki Models, Views, Templates, Forms, operasi yang sesuai dengan hak aksesnya, filter autentikasi, dan **minimal satu interaksi sisi klien** melalui HTMX atau respons parsial.
 
 ### Modul 1 — Clothing Listings (Anggota 1)
 
@@ -50,7 +50,7 @@ Model `Listing`. Inti aplikasi: katalog listing pakaian preloved dengan pencaria
 
 ### Modul 2 — User Profiles (Anggota 2)
 
-Model `Profile` (relasi 1–1 dengan Django `User`). Member mengatur display name, bio singkat, kota umum, serta metode kontak (`email` / `instagram` / `other`). Aturan privasi: contact value **hanya** ditampilkan kepada member yang sudah login, dan tidak boleh berisi alamat rumah.
+Model `Profile` (relasi 1–1 dengan Django `User`). Member mengatur display name, bio singkat, kota umum, serta metode kontak (`email` / `instagram` / `other`). Profil juga menyediakan tab ringkasan listing **Dijual** (status `Available`) dan **Terjual** (status `Sold`) milik pengguna. Ringkasan dapat dilihat publik, tetapi listing berstatus `Hidden` atau yang disembunyikan moderator tidak ditampilkan. Aturan privasi: contact value **hanya** ditampilkan kepada member yang sudah login, dan tidak boleh berisi alamat rumah.
 
 ### Modul 3 — Saved Favorites (Anggota 3)
 
@@ -58,7 +58,7 @@ Model `Favorite`. Member menambah listing ke favorit, melihat daftarnya, menulis
 
 ### Modul 4 — Sustainable Guides (Anggota 4)
 
-Model `Guide`. Admin melakukan CRUD artikel tentang slow fashion, perawatan pakaian, perbaikan, *reuse*, dan *conscious shopping*. Guest dan member dapat membaca guide yang berstatus published (`is_published`).
+Model `Guide`. Member dapat mengirim draf tips perawatan pakaian dan melihat draf yang mereka kirim. Draf berstatus `Pending` dapat diedit atau dihapus oleh pengirim sebelum keputusan moderator. Admin meninjau dan menyetujui atau menolak draf; persetujuan tidak langsung menerbitkan guide—admin tetap menentukan kapan guide dipublikasikan. Admin juga dapat membuat dan mengelola artikel tentang slow fashion, perawatan pakaian, perbaikan, *reuse*, dan *conscious shopping*. Guest dan member dapat membaca guide yang sudah dipublikasikan (`is_published`).
 
 ### Modul 5 — Reports & Moderation (Anggota 5)
 
@@ -79,6 +79,8 @@ Model `Report`. Member melaporkan listing bermasalah (`Counterfeit`, `Misleading
 
 **Cara pakai.** Pada form listing, seller mengetik kota atau area pickup umum. Server Django mengirim query ke Search API dengan `format=jsonv2` dan `countrycodes=id` (dibatasi Indonesia) serta jumlah hasil kecil. Seller memilih hasil yang sesuai, lalu aplikasi menyimpan **nama area, latitude, dan longitude** pada listing. Katalog memakai field kota untuk filter; koordinat tidak dipakai untuk menunjukkan alamat presisi.
 
+Pencarian lokasi menerapkan *debouncing* di sisi klien agar query hanya dikirim setelah pengguna berhenti mengetik sejenak. Integrasi di server menerapkan pembatasan request dan caching. Jika API lambat, tidak tersedia, atau koneksi bermasalah, pengguna tetap dapat mengisi nama kota secara manual sehingga pembuatan listing dan filter katalog tidak terhenti.
+
 **Kepatuhan terhadap Usage Policy:**
 
 - Request dikirim dari server Django dengan User-Agent/Referer yang mengidentifikasi Pakelagi.
@@ -87,15 +89,23 @@ Model `Report`. Member melaporkan listing bermasalah (`Counterfeit`, `Misleading
 - Atribusi OpenStreetMap/Nominatim ditampilkan di UI.
 - **Fallback:** jika Nominatim tidak tersedia, seller tetap bisa mengisi kota secara manual tanpa alamat lengkap. Dalam testing, respons Nominatim di-*mock* agar test tidak bergantung pada internet.
 
+### Gambar listing
+
+Listing menggunakan satu URL gambar eksternal (tidak ada upload gambar pada MVP). Template harus menangani URL yang tidak valid atau gambar yang gagal dimuat dengan menampilkan **placeholder lokal yang relevan**, agar katalog dan halaman detail tetap memiliki tampilan yang utuh. URL gambar pada data demo perlu diperiksa agar dapat diakses.
+
+### Keamanan request HTMX
+
+Template dasar `base.html` harus mengatur header token CSRF untuk request HTMX secara global. Dengan begitu, request yang mengubah data tetap lolos perlindungan CSRF Django, termasuk saat demo di PWS, tanpa perlu mengatur header berulang di setiap komponen.
+
 ---
 
 ## 5. Jenis / Peran Pengguna
 
 | Peran            | Kebutuhan                                              | Akses utama                                                                                                                                          |
 | ---------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
-| **Guest**  | Menemukan pakaian dan membaca informasi slow fashion   | Melihat listing berstatus`Available`, membaca guide yang dipublikasikan, dan membuka halaman detail. **Tidak** dapat melihat kontak penjual. |
-| **Member** | Menjual pakaian, menyimpan pilihan, melaporkan masalah | Semua akses guest; CRUD listing miliknya, profile, favorite, dan report; dapat melihat kontak penjual                                                |
-| **Admin**  | Menjaga kualitas dan keamanan konten                   | Mengelola semua listing, guide, report, dan user melalui halaman moderasi                                                                            |
+| **Guest**  | Menemukan pakaian dan membaca informasi slow fashion   | Melihat listing berstatus `Available`, ringkasan listing publik pada profil, membaca guide yang dipublikasikan, dan membuka halaman detail. **Tidak** dapat melihat kontak penjual. |
+| **Member** | Menjual pakaian, menyimpan pilihan, melaporkan masalah | Semua akses guest; CRUD listing miliknya, profile, favorite, dan report; dapat melihat kontak penjual serta mengirim dan mengelola draf guide miliknya yang masih `Pending`. |
+| **Admin**  | Menjaga kualitas dan keamanan konten                   | Mengelola semua listing, guide dan moderasi draf guide, report, serta user melalui halaman moderasi. |
 
 Satu akun member berperan sekaligus sebagai penjual dan pencari barang — **tidak ada** akun buyer dan seller yang terpisah.
 
