@@ -198,4 +198,4 @@ python manage.py loaddata fixtures/seed_listings.json
 
 ---
 
-_Spesifikasi lengkap: [Pakelagi — Spesifikasi Produk dan Teknis](https://hackmd.io/@xFcOTexpRnub0Hpvz_22tA/rk2xpawYMl)_
+_Spesifikasi lengkap: [Pakelagi — Spesifikasi Produk dan Teknis](docs/pakelagi-specification.md)_
