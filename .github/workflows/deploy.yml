@@ -1,0 +1,29 @@
+name: Deploy to PWS
+
+# A merged PR produces a push to main, so this covers "deploy on PR completion".
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+# Never run two deploys at once; a newer main supersedes an older one.
+concurrency:
+  group: deploy-pws
+  cancel-in-progress: true
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Push main to PWS
+        env:
+          PWS_USERNAME: ${{ secrets.PWS_USERNAME }}
+          PWS_PASSWORD: ${{ secrets.PWS_PASSWORD }}
+          PWS_REPO: pws.cs.ui.ac.id/david.liman/pakelagi
+        run: |
+          git remote add pws "https://${PWS_USERNAME}:${PWS_PASSWORD}@${PWS_REPO}"
+          git push pws HEAD:master
