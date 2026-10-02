@@ -1,0 +1,83 @@
+{# Header bersama. Isinya menyesuaikan peran: guest (belum login), member (sudah login), admin (is_staff). #}
+{% comment %}
+    TODO tiap modul: ganti href="#" dengan tag url setelah URL-nya dibuat, contoh:
+    Katalog -> listings, Jurnal -> guides, Favorit -> favorites, Akun saya -> profile, Masuk/Daftar/Keluar -> auth.
+{% endcomment %}
+
+{% with current=request.resolver_match.url_name %}
+<header class="site-header">
+    <div class="container-page flex items-center justify-between gap-4 h-16 md:h-20">
+
+        <!-- Kiri: navigasi utama (desktop) -->
+        <nav class="hidden md:flex items-center gap-9 flex-1" aria-label="Navigasi utama">
+            <a href="#" class="nav-link">Katalog</a>
+            <a href="#" class="nav-link">Jurnal</a>
+            {% if user.is_staff %}
+            <a href="#" class="nav-link">Moderasi</a>
+            {% endif %}
+        </nav>
+
+        <!-- Tengah: logo -->
+        <a href="{% url 'main:show_main' %}" class="brand"
+           {% if current == 'show_main' %}aria-current="page"{% endif %}>Pakelagi</a>
+
+        <!-- Kanan: aksi sesuai peran (desktop) -->
+        <div class="hidden md:flex items-center justify-end gap-7 flex-1">
+            {% if user.is_authenticated %}
+                <a href="#" class="nav-link">Favorit</a>
+                <a href="#" class="nav-link">{{ user.username }}</a>
+                <a href="#" class="nav-link">Keluar</a>
+                <a href="#" class="btn btn-secondary btn-sm">Posting barang</a>
+            {% else %}
+                <a href="#" class="nav-link">Masuk</a>
+                <a href="#" class="btn btn-secondary btn-sm">Daftar</a>
+            {% endif %}
+        </div>
+
+        <!-- Tombol hamburger (HP) -->
+        <button class="nav-toggle md:hidden" type="button"
+                aria-label="Buka menu" aria-expanded="false" aria-controls="mobileNav">
+            <span></span>
+            <span></span>
+            <span></span>
+        </button>
+    </div>
+
+    <!-- Menu HP -->
+    <nav id="mobileNav" class="mobile-nav md:hidden" aria-label="Navigasi utama (HP)">
+        <div class="container-page pb-6">
+            <a href="#" class="nav-link">Katalog</a>
+            <a href="#" class="nav-link">Jurnal</a>
+            {% if user.is_staff %}
+            <a href="#" class="nav-link">Moderasi</a>
+            {% endif %}
+
+            {% if user.is_authenticated %}
+                <a href="#" class="nav-link">Favorit</a>
+                <a href="#" class="nav-link">Akun saya ({{ user.username }})</a>
+                <a href="#" class="nav-link">Keluar</a>
+                <a href="#" class="btn btn-primary btn-block mt-6">Posting barang</a>
+            {% else %}
+                <a href="#" class="nav-link">Masuk</a>
+                <a href="#" class="btn btn-primary btn-block mt-6">Daftar</a>
+            {% endif %}
+        </div>
+    </nav>
+</header>
+{% endwith %}
+
+<script>
+    // Navbar hamburger
+    (function () {
+        const navToggle = document.querySelector('.nav-toggle');
+        const mobileNav = document.getElementById('mobileNav');
+        if (!navToggle || !mobileNav) return;
+
+        navToggle.addEventListener('click', () => {
+            const isActive = mobileNav.classList.toggle('active');
+            navToggle.classList.toggle('active');
+            navToggle.setAttribute('aria-expanded', isActive);
+            navToggle.setAttribute('aria-label', isActive ? 'Tutup menu' : 'Buka menu');
+        });
+    })();
+</script>
