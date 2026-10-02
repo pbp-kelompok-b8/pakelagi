@@ -1,0 +1,83 @@
+{# Kerangka semua halaman. Halaman lain cukup {% extends "base.html" %} lalu isi block-nya. #}
+
+{% load static %}
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="{% block meta_description %}Pakelagi — pakaian preloved pilihan dari lemari orang-orang di sekitarmu.{% endblock %}">
+    <title>{% block title %}Beranda{% endblock %} — Pakelagi</title>
+
+    <!-- Font: Cormorant Garamond (judul) dan Jost (UI) -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,500;0,600;1,500&family=Jost:wght@400;500;600&display=swap" rel="stylesheet">
+
+    <!-- Tailwind CSS (framework CSS). Warna & font Pakelagi didaftarkan agar bisa dipakai sebagai class. -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    colors: {
+                        ivory: 'var(--ivory)',
+                        sand: 'var(--sand)',
+                        line: 'var(--line)',
+                        stone: { DEFAULT: 'var(--stone)', soft: 'var(--stone-soft)' },
+                        ink: { DEFAULT: 'var(--ink)', soft: 'var(--ink-soft)' },
+                        terracotta: { DEFAULT: 'var(--terracotta)', dark: 'var(--terracotta-dark)', soft: 'var(--terracotta-soft)' },
+                        bottle: { DEFAULT: 'var(--bottle)', soft: 'var(--bottle-soft)' },
+                        sage: 'var(--sage)',
+                        ochre: 'var(--ochre)',
+                        error: 'var(--error)',
+                    },
+                    fontFamily: {
+                        display: ['"Cormorant Garamond"', 'Georgia', 'serif'],
+                        sans: ['Jost', 'system-ui', 'sans-serif'],
+                    },
+                    aspectRatio: {
+                        photo: '4 / 5',   /* rasio foto listing */
+                    },
+                },
+            },
+        };
+    </script>
+
+    <!-- Token, header, footer, dan komponen bersama (tombol, input, tag) -->
+    <link rel="stylesheet" href="{% static 'css/base.css' %}">
+
+    <!-- HTMX untuk interaksi tanpa reload halaman -->
+    <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
+
+    <!-- Untuk mengantisipasi jika ada tambahan CSS per halaman -->
+    {% block extra_css %}{% endblock %}
+</head>
+
+<!-- hx-headers: token CSRF ikut terkirim di semua request HTMX, jadi tidak perlu diatur ulang per komponen -->
+<body class="min-h-screen flex flex-col" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    <a href="#konten" class="skip-link">Lompat ke konten</a>
+
+    {% block header %}
+        {% include "components/header.html" %}
+    {% endblock %}
+
+    <main id="konten" class="flex-1">
+        {% if messages %}
+        <div class="container-page pt-6 space-y-2">
+            {% for message in messages %}
+            <p class="flash{% if message.tags %} flash--{{ message.tags }}{% endif %}" role="status">{{ message }}</p>
+            {% endfor %}
+        </div>
+        {% endif %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    {% block footer %}
+        {% include "components/footer.html" %}
+    {% endblock %}
+
+    {% block extra_js %}{% endblock %}
+</body>
+</html>

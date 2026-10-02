@@ -24,27 +24,25 @@ Penting untuk dicatat: Pakelagi adalah **platform listing, bukan toko online pen
 
 ### Yang **tidak** termasuk MVP
 
-Pembayaran/checkout/keranjang, pemesanan dan status transaksi, integrasi kurir, chat internal, kalkulator emisi karbon, alamat pickup presisi, dan upload berkas gambar (listing memakai satu URL gambar).
+Pembayaran/checkout/keranjang, pemesanan dan status transaksi, integrasi kurir, chat internal, kalkulator emisi karbon, alamat pickup presisi, dan upload berkas gambar. Listing memakai URL gambar eksternal dengan placeholder lokal jika gambar gagal dimuat.
 
 ---
 
 ## 2. Anggota Kelompok
 
-> ⚠️ **Belum diisi.** Dokumen spesifikasi masih memakai placeholder `[Nama, NPM]` (§18).
-
-| No | Nama | NPM | Modul |
-|---|---|---|---|
-| 1 | _(belum diisi)_ | _(belum diisi)_ | Clothing Listings |
-| 2 | _(belum diisi)_ | _(belum diisi)_ | User Profiles |
-| 3 | _(belum diisi)_ | _(belum diisi)_ | Saved Favorites |
-| 4 | _(belum diisi)_ | _(belum diisi)_ | Sustainable Guides |
-| 5 | _(belum diisi)_ | _(belum diisi)_ | Reports & Moderation |
+| No | Nama                                     | NPM            | Modul                |
+| -- | ---------------------------------------- | -------------- | -------------------- |
+| 1  | _Nugraha Kautsarrizqi Caksana_         | `2506541250` | Clothing Listings    |
+| 2  | _Victoriano Iman Santosa_              | `2506544353` | User Profiles        |
+| 3  | _David Liman_                          | `2506601956` | Saved Favorites      |
+| 4  | _Muhammad Raihan Al Qadri Kusumaputra_ | `2506602334` | Sustainable Guides   |
+| 5  | _Clevraldo Limuel_                     | `2506656583` | Reports & Moderation |
 
 ---
 
 ## 3. Daftar Modul dan Pembagian Kerja
 
-Setiap modul wajib memiliki Models, Views, Templates, Forms, operasi CRUD lengkap, filter autentikasi, dan **minimal satu interaksi sisi klien** melalui HTMX atau respons parsial.
+Setiap modul wajib memiliki Models, Views, Templates, Forms, operasi yang sesuai dengan hak aksesnya, filter autentikasi, dan **minimal satu interaksi sisi klien** melalui HTMX atau respons parsial.
 
 ### Modul 1 — Clothing Listings (Anggota 1)
 
@@ -52,7 +50,7 @@ Model `Listing`. Inti aplikasi: katalog listing pakaian preloved dengan pencaria
 
 ### Modul 2 — User Profiles (Anggota 2)
 
-Model `Profile` (relasi 1–1 dengan Django `User`). Member mengatur display name, bio singkat, kota umum, serta metode kontak (`email` / `instagram` / `other`). Aturan privasi: contact value **hanya** ditampilkan kepada member yang sudah login, dan tidak boleh berisi alamat rumah.
+Model `Profile` (relasi 1–1 dengan Django `User`). Member mengatur display name, bio singkat, kota umum, serta metode kontak (`email` / `instagram` / `other`). Profil juga menyediakan tab ringkasan listing **Dijual** (status `Available`) dan **Terjual** (status `Sold`) milik pengguna. Ringkasan dapat dilihat publik, tetapi listing berstatus `Hidden` atau yang disembunyikan moderator tidak ditampilkan. Aturan privasi: contact value **hanya** ditampilkan kepada member yang sudah login, dan tidak boleh berisi alamat rumah.
 
 ### Modul 3 — Saved Favorites (Anggota 3)
 
@@ -60,7 +58,7 @@ Model `Favorite`. Member menambah listing ke favorit, melihat daftarnya, menulis
 
 ### Modul 4 — Sustainable Guides (Anggota 4)
 
-Model `Guide`. Admin melakukan CRUD artikel tentang slow fashion, perawatan pakaian, perbaikan, *reuse*, dan *conscious shopping*. Guest dan member dapat membaca guide yang berstatus published (`is_published`).
+Model `Guide`. Member dapat mengirim draf tips perawatan pakaian dan melihat draf yang mereka kirim. Draf berstatus `Pending` dapat diedit atau dihapus oleh pengirim sebelum keputusan moderator. Admin meninjau dan menyetujui atau menolak draf; persetujuan tidak langsung menerbitkan guide—admin tetap menentukan kapan guide dipublikasikan. Admin juga dapat membuat dan mengelola artikel tentang slow fashion, perawatan pakaian, perbaikan, *reuse*, dan *conscious shopping*. Guest dan member dapat membaca guide yang sudah dipublikasikan (`is_published`).
 
 ### Modul 5 — Reports & Moderation (Anggota 5)
 
@@ -74,12 +72,14 @@ Model `Report`. Member melaporkan listing bermasalah (`Counterfeit`, `Misleading
 
 **Nominatim (OpenStreetMap) — Search API**
 
-| Item | Tautan |
-|---|---|
-| Dokumentasi API | https://nominatim.org/release-docs/latest/api/Search/ |
-| Usage Policy | https://operations.osmfoundation.org/policies/nominatim/ |
+| Item            | Tautan                                                   |
+| --------------- | -------------------------------------------------------- |
+| Dokumentasi API | https://nominatim.org/release-docs/latest/api/Search/    |
+| Usage Policy    | https://operations.osmfoundation.org/policies/nominatim/ |
 
 **Cara pakai.** Pada form listing, seller mengetik kota atau area pickup umum. Server Django mengirim query ke Search API dengan `format=jsonv2` dan `countrycodes=id` (dibatasi Indonesia) serta jumlah hasil kecil. Seller memilih hasil yang sesuai, lalu aplikasi menyimpan **nama area, latitude, dan longitude** pada listing. Katalog memakai field kota untuk filter; koordinat tidak dipakai untuk menunjukkan alamat presisi.
+
+Pencarian lokasi menerapkan *debouncing* di sisi klien agar query hanya dikirim setelah pengguna berhenti mengetik sejenak. Integrasi di server menerapkan pembatasan request dan caching. Jika API lambat, tidak tersedia, atau koneksi bermasalah, pengguna tetap dapat mengisi nama kota secara manual sehingga pembuatan listing dan filter katalog tidak terhenti.
 
 **Kepatuhan terhadap Usage Policy:**
 
@@ -89,15 +89,23 @@ Model `Report`. Member melaporkan listing bermasalah (`Counterfeit`, `Misleading
 - Atribusi OpenStreetMap/Nominatim ditampilkan di UI.
 - **Fallback:** jika Nominatim tidak tersedia, seller tetap bisa mengisi kota secara manual tanpa alamat lengkap. Dalam testing, respons Nominatim di-*mock* agar test tidak bergantung pada internet.
 
+### Gambar listing
+
+Listing menggunakan satu URL gambar eksternal (tidak ada upload gambar pada MVP). Template harus menangani URL yang tidak valid atau gambar yang gagal dimuat dengan menampilkan **placeholder lokal yang relevan**, agar katalog dan halaman detail tetap memiliki tampilan yang utuh. URL gambar pada data demo perlu diperiksa agar dapat diakses.
+
+### Keamanan request HTMX
+
+Template dasar `base.html` harus mengatur header token CSRF untuk request HTMX secara global. Dengan begitu, request yang mengubah data tetap lolos perlindungan CSRF Django, termasuk saat demo di PWS, tanpa perlu mengatur header berulang di setiap komponen.
+
 ---
 
 ## 5. Jenis / Peran Pengguna
 
-| Peran | Kebutuhan | Akses utama |
-|---|---|---|
-| **Guest** | Menemukan pakaian dan membaca informasi slow fashion | Melihat listing berstatus `Available`, membaca guide yang dipublikasikan, dan membuka halaman detail. **Tidak** dapat melihat kontak penjual. |
-| **Member** | Menjual pakaian, menyimpan pilihan, melaporkan masalah | Semua akses guest; CRUD listing miliknya, profile, favorite, dan report; dapat melihat kontak penjual |
-| **Admin** | Menjaga kualitas dan keamanan konten | Mengelola semua listing, guide, report, dan user melalui halaman moderasi |
+| Peran            | Kebutuhan                                              | Akses utama                                                                                                                                          |
+| ---------------- | ------------------------------------------------------ | ---------------------------------------------------------------------------------------------------------------------------------------------------- |
+| **Guest**  | Menemukan pakaian dan membaca informasi slow fashion   | Melihat listing berstatus `Available`, ringkasan listing publik pada profil, membaca guide yang dipublikasikan, dan membuka halaman detail. **Tidak** dapat melihat kontak penjual. |
+| **Member** | Menjual pakaian, menyimpan pilihan, melaporkan masalah | Semua akses guest; CRUD listing miliknya, profile, favorite, dan report; dapat melihat kontak penjual serta mengirim dan mengelola draf guide miliknya yang masih `Pending`. |
+| **Admin**  | Menjaga kualitas dan keamanan konten                   | Mengelola semua listing, guide dan moderasi draf guide, report, serta user melalui halaman moderasi. |
 
 Satu akun member berperan sekaligus sebagai penjual dan pencari barang — **tidak ada** akun buyer dan seller yang terpisah.
 
@@ -105,40 +113,89 @@ Satu akun member berperan sekaligus sebagai penjual dan pencari barang — **tid
 
 ## 6. Tautan Deployment PWS
 
-> ⚠️ **Belum tersedia.** Target: PostgreSQL di PWS, dijadwalkan pada Checkpoint 2 (28 September – 2 Oktober 2026). URL ditambahkan ke README setelah deployment pertama berhasil.
-
 ```
-PWS: (belum diisi)
+PWS: http://david-liman-pakelagi.pws.cs.ui.ac.id
 ```
 
 ---
 
 ## 7. Tautan Desain Figma
 
-> ⚠️ **Belum tersedia.** Wajib diisi sebelum pengumpulan.
+```
+Figma: https://www.figma.com/design/dCekkdFnlpwdcTY6vaXyrX/Web-Design?m=auto&t=WEkEhoembXHyU27W-1
+```
 
+---
+
+## 8. Cara Menjalankan Project
+
+### Prasyarat
+
+- Python 3.11+ (lingkungan pengembangan memakai 3.14)
+- `pip`
+
+### Instalasi lokal
+
+```bash
+# 1. Clone repository
+git clone https://github.com/pbp-kelompok-b8/pakelagi.git
+cd pakelagi
+
+# 2. Buat dan aktifkan virtual environment
+python -m venv env
+
+# Windows (Git Bash)
+source env/Scripts/activate
+# Windows (PowerShell)
+env\Scripts\Activate.ps1
+# macOS/Linux
+source env/bin/activate
+
+# 3. Install dependencies
+pip install -r requirements.txt
+
+# 4. Salin file environment lalu sesuaikan nilainya
+cp .env.example .env   # buat .env.example jika belum ada
+
+# 5. Jalankan migration
+python manage.py migrate
+
+# 6. (Opsional) buat superuser untuk akses admin/moderasi
+python manage.py createsuperuser
+
+# 7. Jalankan development server
+python manage.py runserver
 ```
-Figma: (belum diisi)
+
+Aplikasi berjalan di `http://127.0.0.1:8000/`.
+
+Secara default (`PRODUCTION` tidak diset atau `false`), project memakai **SQLite** (`db.sqlite3`) agar mudah dijalankan lokal tanpa setup PostgreSQL. Di production/PWS, set `PRODUCTION=true` beserta `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` pada `.env` agar aplikasi memakai **PostgreSQL**.
+
+### Seed data
+
+```bash
+python manage.py loaddata fixtures/seed_listings.json
 ```
+
+> ⚠️ Fixture seed data (`fixtures/seed_listings.json`, minimal 50 listing sesuai §14 spesifikasi) **belum dibuat** — akan ditambahkan bertahap seiring modul masing-masing anggota selesai. Update perintah di atas begitu path fixture final tersedia.
 
 ---
 
 ## Informasi Tambahan
 
-- **Repository Git:** _(belum diisi)_
+- **Repository Git:** [github.com/pbp-kelompok-b8/pakelagi](https://github.com/pbp-kelompok-b8/pakelagi)
 - **Target deployment:** PWS dengan PostgreSQL
-- **Design system:** Bootstrap via CDN; palet — Forest green `#315C4B`, Terracotta `#B9674E`, Warm cream `#F7F2EA`, Charcoal `#25312D`, Muted sage `#DCE7DE`
 - **Seed data:** minimal 50 listing (10 per kategori) pada deployment pertama
 - **Target test coverage:** 80%, fokus pada permission dan alur CRUD
 
 ### Milestone
 
-| Waktu | Hasil |
-|---|---|
-| Checkpoint 1 — 16 September 2026 | Repository bersama, README awal, ide, peran, modul, API, pembagian anggota |
-| Checkpoint 2 — 28 Sep – 2 Okt 2026 | Template dasar, design system, integrasi awal, deployment pertama ke PWS |
+| Waktu                                | Hasil                                                                                   |
+| ------------------------------------ | --------------------------------------------------------------------------------------- |
+| Checkpoint 1 — 16 September 2026    | Repository bersama, README awal, ide, peran, modul, API, pembagian anggota              |
+| Checkpoint 2 — 28 Sep – 2 Okt 2026 | Template dasar, design system, integrasi awal, deployment pertama ke PWS                |
 | Pengumpulan akhir — 23 Oktober 2026 | Semua modul terintegrasi, ≥50 listing, testing lulus, deployment aktif, README lengkap |
 
 ---
 
-_Spesifikasi lengkap: [Pakelagi — Spesifikasi Produk dan Teknis](https://hackmd.io/@xFcOTexpRnub0Hpvz_22tA/rk2xpawYMl)_
+_Spesifikasi lengkap: [Pakelagi — Spesifikasi Produk dan Teknis](docs/pakelagi-specification.md)_
