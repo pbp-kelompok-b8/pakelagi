@@ -50,7 +50,7 @@ Model `Listing`. Inti aplikasi: katalog listing pakaian preloved dengan pencaria
 
 ### Modul 2 — User Profiles (Anggota 2)
 
-Model `Profile` (relasi 1–1 dengan Django `User`). Member mengatur display name, bio singkat, kota umum, serta metode kontak (`email` / `instagram` / `other`). Profil juga menyediakan tab ringkasan listing **Dijual** (status `Available`) dan **Terjual** (status `Sold`) milik pengguna. Ringkasan dapat dilihat publik, tetapi listing berstatus `Hidden` atau yang disembunyikan moderator tidak ditampilkan. Aturan privasi: contact value **hanya** ditampilkan kepada member yang sudah login, dan tidak boleh berisi alamat rumah.
+Model `Profile` (relasi 1–1 dengan Django `User`). Member membuat profil jika belum ada, membaca dan mengubah display name, bio singkat, kota umum, serta metode kontak (`email` / `instagram` / `other`), dan dapat menghapus data profilnya tanpa menghapus akun atau listing. Profil juga menyediakan tab ringkasan listing **Dijual** (status `Available`) dan **Terjual** (status `Sold`) milik pengguna. Ringkasan dapat dilihat publik, tetapi listing berstatus `Hidden` atau yang disembunyikan moderator tidak ditampilkan. Aturan privasi: contact value **hanya** ditampilkan kepada member yang sudah login, dan tidak boleh berisi alamat rumah.
 
 ### Modul 3 — Saved Favorites (Anggota 3)
 
@@ -63,6 +63,20 @@ Model `Guide`. Member dapat mengirim draf tips perawatan pakaian dan melihat dra
 ### Modul 5 — Reports & Moderation (Anggota 5)
 
 Model `Report`. Member melaporkan listing bermasalah (`Counterfeit`, `Misleading`, `Offensive`, `Prohibited Item`, `Other`), melihat report miliknya, serta memperbarui/menghapus report yang masih terbuka. Admin membaca semua report, memperbarui status (`Open` → `Reviewing` → `Resolved`/`Rejected`), menambahkan catatan moderasi privat, dan mengambil tindakan pada listing terkait.
+
+### Pemetaan operasi CRUD per modul
+
+Tabel ini menjelaskan aksi Create, Read, Update, dan Delete beserta letak/alur UI-nya. Path di bawah adalah URL yang direncanakan untuk implementasi; detail route dan batas akses dicatat juga di [spesifikasi bagian 8](docs/pakelagi-specification.md#8-halaman-dan-url-yang-direncanakan).
+
+| Modul/data | Create — membuat | Read — melihat | Update — mengubah | Delete — menghapus |
+|---|---|---|---|---|
+| **Clothing Listings** (`Listing`) | Member mengisi form `/listings/create/`. | Publik melihat katalog `/listings/` dan detail `/listings/<id>/`; pemilik melihat semua listing miliknya melalui `/listings/mine/`. | Pemilik mengedit melalui `/listings/<id>/edit/` atau mengubah status `Available`/`Sold`; admin dapat mengubah status menjadi `Hidden` melalui moderasi. | Pemilik atau admin menghapus melalui `/listings/<id>/delete/`. |
+| **User Profiles** (`Profile`) | Member membuat profil melalui `/profile/create/` (bila belum memiliki profil). | Member membaca profil sendiri di `/profile/`; publik membaca profil dan ringkasan listing melalui `/profile/<user_id>/`. Contact value hanya terlihat oleh member login. | Pemilik mengubah display name, bio, kota, dan kontak melalui `/profile/edit/`. | Pemilik menghapus data profilnya melalui `/profile/delete/`. Akun dan listing tidak ikut dihapus; profil publik tidak menampilkan informasi profil yang sudah dihapus. |
+| **Saved Favorites** (`Favorite`) | Member menambahkan listing dari halaman detail atau katalog dengan tombol favorite HTMX (POST). | Member melihat daftar privat melalui `/favorites/`. | Pemilik mengubah catatan pribadi melalui `/favorites/<id>/edit/`. | Pemilik menghapus favorite melalui aksi hapus di `/favorites/` atau endpoint `/favorites/<id>/delete/`. |
+| **Sustainable Guides** (`Guide`) | Member mengirim draf di `/guides/submit/`; admin membuat guide dari `/moderation/guides/create/`. | Pengirim melihat drafnya melalui `/guides/my-submissions/`; admin membaca semua guide/draf di `/moderation/guides/`; publik membaca guide terbit di `/guides/` dan `/guides/<slug>/`. | Pengirim mengubah draf hanya saat `Pending` melalui `/guides/submissions/<id>/edit/`; admin meninjau status draf dan mengedit konten/publikasi melalui halaman moderasi. | Pengirim menghapus drafnya hanya saat `Pending`; admin menghapus guide melalui `/moderation/guides/<id>/delete/`. |
+| **Reports & Moderation** (`Report`) | Member membuat report pada listing melalui `/reports/create/<listing_id>/`. | Member membaca report sendiri di `/reports/`; admin membaca semua report di `/moderation/reports/`. | Pelapor mengubah report selama `Open` di `/reports/<id>/edit/`; admin mengubah status dan catatan moderasi melalui `/moderation/reports/<id>/`. | Pelapor menghapus report selama `Open` melalui `/reports/<id>/delete/`. Admin menangani report dengan status, bukan menghapus jejak moderasi. |
+
+**Catatan profil:** penghapusan profil menghapus data `Profile` saja, bukan akun Django atau data listing/favorite/report. Profil dapat dibuat kembali. Untuk `Favorite`, tombol toggle yang sama dapat membuat favorite jika belum ada dan menghapusnya jika sudah ada; operasi tersebut tetap tunduk pada aturan unik user-listing.
 
 > Kategori, ukuran, kondisi, status, alasan report, dan tag keberlanjutan memakai pilihan terkontrol (*choices*) pada model/form — tidak perlu modul terpisah.
 
