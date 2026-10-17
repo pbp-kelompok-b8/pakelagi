@@ -267,15 +267,15 @@ Template implementasi mengikuti `base.html`, komponen header/footer, token dan f
 
 ### Onboarding dan profil
 
-- [ ] Setelah registrasi, user diarahkan ke onboarding profil.
-- [ ] `display_name` wajib untuk menyelesaikan onboarding; bio, kota, metode/nilai kontak, dan email akun opsional.
-- [ ] User tanpa profil lengkap tidak dapat mengakses aksi member, termasuk jika mencoba URL langsung; setelah lengkap akses diberikan.
-- [ ] Halaman publik tetap dapat dibuka dan redirect onboarding tidak menghasilkan loop.
-- [ ] User dapat melihat dan mengubah profil sendiri, tetapi tidak dapat mengubah profil user lain.
-- [ ] Email akun tersimpan sebagai field Django User, tetap opsional, tidak terverifikasi, dan bukan kontak publik otomatis.
-- [ ] Kontak publik tidak terlihat guest dan tidak boleh berisi alamat rumah.
-- [ ] Menghapus profil tidak menghapus akun, listing, favorite, atau report; penghapusan profil dapat diikuti pembuatan ulang.
-- [ ] Penghapusan akun massal beserta listing tidak tersedia dalam MVP.
+- [X] Setelah registrasi, user diarahkan ke onboarding profil.
+- [X] `display_name` wajib untuk menyelesaikan onboarding; bio, kota, metode/nilai kontak, dan email akun opsional.
+- [ ] User tanpa profil lengkap tidak dapat mengakses semua aksi member, termasuk jika mencoba URL langsung; setelah lengkap akses diberikan. Pemeriksaan saat ini diterapkan pada route profil yang ada, belum diverifikasi untuk semua fitur member.
+- [X] Halaman publik tetap dapat dibuka dan redirect onboarding tidak menghasilkan loop.
+- [X] User dapat melihat dan mengubah profil sendiri, tetapi tidak dapat mengubah profil user lain.
+- [X] Email akun tersimpan sebagai field Django User, tetap opsional, tidak terverifikasi, dan bukan kontak publik otomatis.
+- [ ] Kontak publik tidak terlihat guest dan tidak boleh berisi alamat rumah. Pembatasan visibilitas sudah diterapkan; validasi alamat hanya berbasis pola dan belum mencakup semua kemungkinan alamat.
+- [ ] Menghapus profil tidak menghapus akun, listing, favorite, atau report; penghapusan profil dapat diikuti pembuatan ulang. Fitur hapus profil belum tersedia.
+- [X] Penghapusan akun massal beserta listing tidak tersedia dalam MVP.
 
 ### Halaman 404
 
