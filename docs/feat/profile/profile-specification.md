@@ -279,10 +279,10 @@ Template implementasi mengikuti `base.html`, komponen header/footer, token dan f
 
 ### Halaman 404
 
-- [ ] URL yang tidak ditemukan menampilkan halaman 404 Pakelagi.
-- [ ] Tersedia navigasi kembali ke beranda/katalog.
-- [ ] Halaman tidak membocorkan detail internal dan tidak mensyaratkan rekomendasi listing tersedia.
-- [ ] Halaman mengikuti kerangka UI bersama dan berfungsi pada layar kecil.
+- [X] URL yang tidak ditemukan menampilkan halaman 404 Pakelagi saat `DEBUG=False`; sudah diuji untuk URL dan resource profil yang tidak ditemukan.
+- [X] Tersedia navigasi kembali ke beranda, dan test memastikan tautan beranda berfungsi.
+- [ ] Halaman tidak membocorkan detail internal dan tidak mensyaratkan rekomendasi listing tersedia. Template generik tidak menampilkan rekomendasi dan test memeriksa kebocoran detail, tetapi pengaturan saat ini menetapkan `DEBUG=True`, sehingga perilaku production 404 aman belum diverifikasi.
+- [X] Halaman memakai kerangka UI bersama (`base.html`, header, dan footer) serta kelas responsif untuk layar kecil.
 
 ### Etalase, gambar, kontak, dan integrasi listing
 
