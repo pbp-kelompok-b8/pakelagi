@@ -162,13 +162,13 @@ Template implementasi mengikuti `base.html`, komponen header/footer, token dan f
 
 ### Registrasi dan autentikasi
 
-- [ ] Guest dapat membuat akun dengan username, password, dan konfirmasi password yang valid.
-- [ ] Username duplikat ditolak dengan pesan yang dapat dipahami.
-- [ ] Password yang tidak memenuhi validator Django atau konfirmasi yang tidak sama ditolak.
-- [ ] Password tersimpan melalui hashing Django; tidak pernah disimpan plaintext.
-- [ ] Email akun boleh kosong atau diisi; tidak ada klaim bahwa email telah diverifikasi.
-- [ ] Guest dapat login dan member dapat logout.
-- [ ] Respons login gagal tidak membedakan username yang tidak ada dari password yang salah.
+- [X] Guest dapat membuat akun dengan username, password, dan konfirmasi password yang valid.
+- [X] Username duplikat ditolak dengan pesan yang dapat dipahami.
+- [X] Password yang tidak memenuhi validator Django atau konfirmasi yang tidak sama ditolak.
+- [X] Password tersimpan melalui hashing Django; tidak pernah disimpan plaintext.
+- [X] Email akun boleh kosong atau diisi; tidak ada klaim bahwa email telah diverifikasi.
+- [X] Guest dapat login dan member dapat logout.
+- [X] Respons login gagal tidak membedakan username yang tidak ada dari password yang salah.
 
 ### Onboarding dan profil
 
