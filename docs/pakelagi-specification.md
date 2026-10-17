@@ -100,6 +100,10 @@ Admin dapat menyembunyikan listing yang melanggar aturan. Listing berstatus `Hid
 
 Member membuat profil setelah registrasi akun dan wajib melengkapi profil sebelum menggunakan fitur yang memerlukan status member. `display_name` adalah satu-satunya field profil wajib untuk menyelesaikan onboarding; bio singkat, kota umum, metode kontak, dan nilai kontak dapat dilengkapi atau diubah kemudian. Member dapat membaca dan mengubah profilnya. Penghapusan profil termasuk lingkup MVP, tetapi tidak menghapus akun Django, listing, favorite, atau report; penghapusan profil bukan penghapusan akun. Contact value hanya ditampilkan kepada member yang sudah login dan tidak boleh berisi alamat rumah. Halaman profil publik menampilkan ringkasan listing pemilik berstatus `Available` (Dijual) dan `Sold` (Terjual); listing `Hidden` maupun listing yang disembunyikan moderator tidak ditampilkan.
 
+Rincian etalase dan kriteria penerimaan mengikuti [spesifikasi profil](feat/profile/profile-specification.md). Avatar dan sampul opsional memakai `avatar_url`/`cover_url` HTTPS eksternal; tidak ada upload file atau pemrosesan gambar di server. Nomor telepon opsional merupakan kontak tambahan tanpa verifikasi, hanya terlihat pemilik/member lengkap. Gambar publik dari layanan eksternal dapat mengungkap alamat IP pengunjung kepada layanan tersebut. Profil sendiri dan publik memakai etalase sama; edit melalui menu akun ke `/profile/edit/`, email akun tetap di area privat.
+
+Etalase memakai tab Dijual default dan Terjual, masing-masing 8 barang per pemuatan, urutan Terbaru/Harga terendah/Harga tertinggi, serta URL yang mempertahankan tab, urutan, dan posisi pemuatan. Tab Dijual memiliki cuplikan maksimal empat Sold terbaru berdasarkan waktu transisi Sold dan tautan ke tab Terjual. Hitungan hanya mencakup listing publik per status; Hidden/moderasi dikecualikan juga bagi pemilik di etalase. URL publik profil tidak ada/belum lengkap menghasilkan 404; etalase valid tanpa listing memiliki empty state.
+
 ### 4.6 Autentikasi dan onboarding member
 
 - Autentikasi menggunakan Django Authentication dan model `User` bawaan.
@@ -114,7 +118,7 @@ Halaman 404 Not Found bermerek Pakelagi adalah deliverable MVP. Halaman ini memb
 
 ### 4.8 Favorite
 
-Member dapat menambahkan listing ke favorite, melihat daftar favorite, mengubah catatan pribadi, dan menghapus favorite. Favorite milik satu member bersifat privat.
+Member dapat menambahkan listing Available milik orang lain ke favorite dari katalog, detail, atau etalase profil; melihat daftar favorite; mengubah catatan pribadi; dan menghapus favorite. Favorite milik satu member bersifat privat. Jangan sediakan aksi tambah pada Sold atau listing sendiri. Perubahan listing menjadi Sold tidak menghapus favorite lama; pemilik favorite tetap dapat menghapusnya. Setiap request tambah memeriksa ulang status publik/Available dan izin di server; Hidden/moderasi tidak boleh ditambahkan. Guest diarahkan login dan user login tanpa profil lengkap diarahkan onboarding.
 
 ### 4.9 Sustainable guide
 
@@ -156,7 +160,7 @@ Path berikut adalah URL yang direncanakan untuk menjelaskan lokasi setiap operas
 |---|---|---|---|---|
 | **Clothing Listings** (`Listing`) | Member membuat listing di `/listings/create/`. | Publik membuka `/listings/` dan `/listings/<id>/`; pemilik melihat seluruh listing miliknya, termasuk `Sold` dan `Hidden`, di `/listings/mine/`. | Pemilik mengubah data di `/listings/<id>/edit/` dan status `Available`/`Sold`; admin dapat menyembunyikan listing melalui moderasi. | Pemilik atau admin menghapus melalui `/listings/<id>/delete/`. |
 | **User Profiles** (`Profile`) | Member tanpa profil membuat profil di `/profile/create/`. | Pemilik membaca profil sendiri di `/profile/`; publik membaca profil dan ringkasan listing di `/profile/<user_id>/`. Kontak hanya terlihat oleh member login. | Pemilik mengubah profil melalui `/profile/edit/`. | Pemilik menghapus hanya record profil melalui `/profile/delete/`; akun dan listing terkait tidak terhapus. Profil dapat dibuat ulang. |
-| **Saved Favorites** (`Favorite`) | Member membuat favorite dari katalog/detail melalui tombol favorite (HTMX POST). | Member membaca daftar privat di `/favorites/`. | Pemilik memperbarui catatan di `/favorites/<id>/edit/`. | Pemilik menghapus favorite dari daftarnya atau melalui `/favorites/<id>/delete/`. Tombol toggle dapat melakukan create atau delete sesuai kondisi favorite. |
+| **Saved Favorites** (`Favorite`) | Member membuat favorite untuk Available milik orang lain dari katalog/detail/etalase profil melalui tombol favorite (HTMX POST). | Member membaca daftar privat di `/favorites/`. | Pemilik memperbarui catatan di `/favorites/<id>/edit/`. | Pemilik menghapus favorite dari daftarnya atau melalui `/favorites/<id>/delete/`. Tombol toggle dapat melakukan create atau delete sesuai kondisi favorite. |
 | **Sustainable Guides** (`Guide`) | Member mengirim draf di `/guides/submit/`; admin membuat artikel di `/moderation/guides/create/`. | Pengirim membaca draf miliknya di `/guides/my-submissions/`; admin membaca semua guide/draf di `/moderation/guides/`; publik membaca guide terbit di `/guides/` dan `/guides/<slug>/`. | Pengirim mengubah draf hanya selama `Pending` di `/guides/submissions/<id>/edit/`; admin mengubah konten, keputusan moderasi, dan publikasi di halaman moderasi. | Pengirim menghapus draf hanya selama `Pending`; admin dapat menghapus guide melalui `/moderation/guides/<id>/delete/`. |
 | **Reports & Moderation** (`Report`) | Member membuat report pada listing melalui `/reports/create/<listing_id>/`. | Pelapor membaca report miliknya di `/reports/`; admin membaca semua report di `/moderation/reports/`. | Pelapor mengubah report hanya saat `Open` melalui `/reports/<id>/edit/`; admin memperbarui status dan catatan privat melalui `/moderation/reports/<id>/`. | Pelapor menghapus report hanya saat `Open` melalui `/reports/<id>/delete/`. Admin mempertahankan jejak moderasi dan tidak menghapus report sebagai alur moderasi normal. |
 
@@ -183,11 +187,13 @@ Admin User ── memoderasi ── Listing dan Report
 | Field | Tipe/aturan |
 |---|---|
 | `user` | One-to-one ke Django `User`, wajib unik |
-| `display_name` | teks pendek, wajib |
-| `bio` | teks pendek/panjang, opsional |
-| `city` | teks pendek, opsional |
-| `contact_type` | `email`, `instagram`, atau `other` |
-| `contact_value` | teks/URL kontak, opsional |
+| `display_name` | wajib, maksimal 150 karakter, bukan hanya whitespace |
+| `bio` | opsional, maksimal 500 karakter |
+| `city` | opsional, maksimal 100 karakter, kota/area umum |
+| `contact_type` | opsional; `email`, `instagram`, atau `other`; berpasangan dengan nilai |
+| `contact_value` | opsional, maksimal 254 karakter; kosong bersama jenis atau terisi bersama jenis |
+| `phone_number` | opsional, format internasional `+` dan maksimal 15 digit; `08…` dinormalisasi ke `+628…`; tidak terverifikasi, hanya pemilik/member lengkap |
+| `avatar_url`, `cover_url` | opsional, URL HTTPS gambar eksternal; dapat diganti/dikosongkan terpisah; fallback jika kosong/gagal dimuat |
 | `created_at`, `updated_at` | timestamp |
 
 Satu user dapat belum memiliki profil sebelum melengkapi profilnya, lalu memiliki paling banyak satu profil. Create dilakukan melalui form pembuatan profil; Delete hanya menghapus data `Profile`, bukan akun Django atau listing, favorite, dan report milik user. Setelah delete, profil dapat dibuat kembali.
@@ -214,7 +220,10 @@ Email akun opsional disimpan pada field email milik Django `User`, bukan sebagai
 | `is_locally_available` | boolean tag, default true |
 | `extends_clothing_life` | boolean tag, default true |
 | `status` | `Available`, `Sold`, `Hidden` |
+| `sold_at` | waktu transisi terakhir ke Sold, untuk urutan cuplikan profil; tidak memakai waktu edit umum |
 | `created_at`, `updated_at` | timestamp |
+
+Untuk pengurutan profil, waktu publikasi harus tersedia; pada MVP publikasi saat create dapat memakai `created_at`. Setiap transisi kembali ke Sold memperbarui `sold_at`. Rincian pagination dan pembeda urutan deterministik mengikuti spesifikasi profil.
 
 Constraint penting:
 
@@ -404,7 +413,9 @@ Tag keberlanjutan harus ditampilkan sebagai fakta yang dipilih seller, bukan seb
 - Terapkan ownership check pada setiap update/delete; jangan hanya mengandalkan ID dari URL.
 - Gunakan CSRF protection pada seluruh form POST.
 - Validasi semua input melalui Django Forms.
-- Validasi URL gambar dan kontak agar hanya HTTP/HTTPS.
+- URL gambar listing hanya HTTP/HTTPS; avatar/sampul profil hanya HTTPS. Server tidak mengambil gambar profil eksternal. URL kosong/gagal dimuat menggunakan fallback.
+- Kontak Instagram dinormalisasi menjadi handle, email kontak divalidasi sebagai email, dan other di-escape sebagai teks; hanya URL HTTP/HTTPS valid yang dijadikan tautan (email memakai `mailto:`).
+- Jangan mengirim nilai kontak atau nomor telepon kepada guest maupun user login yang belum melengkapi profil, termasuk melalui partial dan respons data. Nomor telepon hanya diperiksa formatnya, bukan diverifikasi kepemilikannya.
 - Jangan menaruh password, secret key, atau kredensial database di repository.
 - Jangan menampilkan contact value kepada guest.
 - Jangan menyimpan atau menampilkan alamat rumah.
