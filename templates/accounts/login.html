@@ -1,0 +1,18 @@
+{% extends "accounts/layout.html" %}
+
+{% block title %}Masuk{% endblock %}
+{% block panel %}
+<h2 class="font-display text-4xl lg:text-5xl">Lemarimu penuh cerita.</h2>
+<p class="leading-relaxed">Temukan pilihan preloved dan beri kesempatan kedua pada pakaian yang kamu cintai.</p>
+{% endblock %}
+{% block form_heading %}
+<div class="space-y-3">
+    <h1 id="auth-title" class="font-display text-4xl lg:text-5xl">Selamat datang <span class="text-terracotta">kembali.</span></h1>
+    <p class="text-stone">Masuk untuk melihat kontak penjual, menyimpan favorit, dan memposting barang setelah melengkapi profil.</p>
+</div>
+{% endblock %}
+{% block hidden_fields %}<input type="hidden" name="next" value="{{ next }}">{% endblock %}
+{% block submit_label %}Masuk{% endblock %}
+{% block alternate_link %}
+<p class="text-sm text-stone text-center">Belum punya akun? <a href="{% url 'main:register' %}" class="underline text-ink">Daftar sebagai member</a></p>
+{% endblock %}

@@ -1,0 +1,23 @@
+{% extends "accounts/layout.html" %}
+
+{% block title %}Daftar{% endblock %}
+{% block panel_color %}bg-terracotta text-white{% endblock %}
+{% block panel %}
+<h2 class="font-display text-4xl lg:text-5xl">Dipakai lagi, dicintai lagi.</h2>
+<p>Lengkapi profilmu untuk menikmati manfaat member:</p>
+<ul class="space-y-4 list-disc pl-5">
+    <li>Lihat kontak penjual dan hubungi langsung</li>
+    <li>Posting barang gratis, tanpa komisi</li>
+    <li>Simpan favorit dengan catatan pribadi</li>
+</ul>
+{% endblock %}
+{% block form_heading %}
+<div class="space-y-3">
+    <h1 id="auth-title" class="font-display text-4xl lg:text-5xl">Mulai cerita <span class="text-terracotta">barumu.</span></h1>
+    <p class="text-stone">Buat akun Pakelagi dengan username dan kata sandi. Email akun boleh dikosongkan.</p>
+</div>
+{% endblock %}
+{% block submit_label %}Buat akun{% endblock %}
+{% block alternate_link %}
+<p class="text-sm text-stone text-center">Sudah punya akun? <a href="{% url 'main:login' %}" class="underline text-ink">Masuk di sini</a></p>
+{% endblock %}
