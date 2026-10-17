@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}Profil · Pakelagi{% endblock %}
+{% block content %}
+<section class="container-page py-8 md:py-14" aria-labelledby="profile-title">
+    <div class="max-w-2xl mx-auto space-y-6 border border-line p-6 sm:p-10">
+        <h1 id="profile-title" class="text-3xl font-display">{{ profile.display_name }}</h1>
+        {% if profile.city %}<p>{{ profile.city }}</p>{% endif %}
+        {% if profile.bio %}<div class="whitespace-pre-line break-words">{{ profile.bio }}</div>{% endif %}
+        {% if show_contact and profile.contact_value %}<p class="break-words">{{ profile.get_contact_type_display }}: {{ profile.contact_value }}</p>{% endif %}
+        {% if is_owner %}
+        <p>Email akun (privat, belum diverifikasi): {{ user.email|default:"Belum diisi" }}</p>
+        <a class="btn btn-primary" href="{% url 'main:profile_edit' %}">Edit profil</a>
+        {% endif %}
+    </div>
+</section>
+{% endblock %}

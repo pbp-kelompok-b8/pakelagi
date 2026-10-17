@@ -25,7 +25,7 @@
         <div class="hidden md:flex items-center justify-end gap-7 flex-1">
             {% if user.is_authenticated %}
                 <a href="#" class="nav-link">Favorit</a>
-                <a href="#" class="nav-link">{{ user.username }}</a>
+                <a href="{% url 'main:profile' %}" class="nav-link">{{ user.username }}</a>
                 <form method="post" action="{% url 'main:logout' %}">
                     {% csrf_token %}
                     <button type="submit" class="nav-link">Keluar</button>
@@ -57,7 +57,7 @@
 
             {% if user.is_authenticated %}
                 <a href="#" class="nav-link">Favorit</a>
-                <a href="#" class="nav-link">Akun saya ({{ user.username }})</a>
+                <a href="{% url 'main:profile' %}" class="nav-link">Akun saya ({{ user.username }})</a>
                 <form method="post" action="{% url 'main:logout' %}">
                     {% csrf_token %}
                     <button type="submit" class="nav-link">Keluar</button>

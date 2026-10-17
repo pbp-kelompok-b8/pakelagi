@@ -1,0 +1,6 @@
+{% extends "accounts/layout.html" %}
+{% block title %}Profil · Pakelagi{% endblock %}
+{% block panel %}<h1 id="auth-title" class="text-3xl font-display">Kenalkan dirimu.</h1><p>Nama tampilan saja cukup untuk memulai. Jangan cantumkan alamat rumah pada kota atau kontak publik.</p>{% endblock %}
+{% block form_heading %}<h2 class="text-2xl font-display">Lengkapi profil</h2>{% endblock %}
+{% block hidden_fields %}<input type="hidden" name="next" value="{{ next }}">{% endblock %}
+{% block submit_label %}Simpan profil{% endblock %}

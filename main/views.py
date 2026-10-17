@@ -1,10 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth import login
+from django.contrib.auth.decorators import login_required
 from django.contrib.auth.views import LoginView, LogoutView
-from django.shortcuts import redirect, render
+from django.shortcuts import get_object_or_404, redirect, render
 from django.views.decorators.http import require_http_methods
 
-from main.forms import LoginForm, RegistrationForm
+from main.forms import LoginForm, ProfileForm, RegistrationForm
+from main.models import Profile
+from main.access import has_complete_profile, member_required, onboarding_url, safe_profile_next
 
 
 def show_main(request):
@@ -21,16 +24,68 @@ def register(request):
         user = form.save()
         login(request, user)
         messages.success(request, "Akun berhasil dibuat. Selamat datang di Pakelagi!")
-        # Onboarding profil belum termasuk tahap implementasi autentikasi ini.
-        return redirect("main:show_main")
+        return redirect("main:profile_create")
 
     return render(request, "accounts/register.html", {"form": form})
+
+
+@login_required
+@require_http_methods(["GET", "POST"])
+def profile_create(request):
+    profile = Profile.objects.filter(user=request.user).first()
+    if profile and profile.display_name.strip():
+        return redirect("main:profile")
+    return profile_form(request, profile)
+
+
+def profile_form(request, profile):
+    form = ProfileForm(
+        request.POST if request.method == "POST" else None,
+        instance=profile, user=request.user,
+    )
+    target = safe_profile_next(request, request.POST.get("next") or request.GET.get("next"))
+    if request.method == "POST" and form.is_valid():
+        form.save()
+        return redirect(target or "main:profile")
+    return render(request, "profiles/form.html", {"form": form, "next": target})
+
+
+@member_required
+@require_http_methods(["GET"])
+def profile_detail(request):
+    return render(request, "profiles/detail.html", {
+        "profile": request.user.profile, "is_owner": True, "show_contact": True,
+    })
+
+
+@require_http_methods(["GET"])
+def profile_public(request, user_id):
+    profile = get_object_or_404(Profile, user_id=user_id)
+    if not profile.display_name.strip():
+        from django.http import Http404
+        raise Http404
+    return render(request, "profiles/detail.html", {
+        "profile": profile, "show_contact": has_complete_profile(request.user),
+        "is_owner": request.user.pk == user_id,
+    })
+
+
+@member_required
+@require_http_methods(["GET", "POST"])
+def profile_edit(request):
+    return profile_form(request, request.user.profile)
 
 
 class AccountLoginView(LoginView):
     template_name = "accounts/login.html"
     authentication_form = LoginForm
     redirect_authenticated_user = True
+
+    def get_success_url(self):
+        if not has_complete_profile(self.request.user):
+            target = safe_profile_next(self.request, self.get_redirect_url())
+            return onboarding_url(target)
+        return super().get_success_url()
 
 
 class AccountLogoutView(LogoutView):
