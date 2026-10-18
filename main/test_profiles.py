@@ -40,7 +40,7 @@ class ProfileTests(TestCase):
             "contact_type": "instagram", "contact_value": "@nina.public",
         })
         path = f"/profile/{self.user.pk}/"
-        self.assertContains(self.client.get("/profile/"), "private@example.com")
+        self.assertNotContains(self.client.get("/profile/"), "private@example.com")
         self.client.logout()
         response = self.client.get(path)
         self.assertContains(response, "&lt;script&gt;Nina&lt;/script&gt;")
@@ -86,7 +86,8 @@ class ProfileTests(TestCase):
             "contact_value": "public@example.com",
         }, follow=True)
         self.assertContains(response, "Nina Baru")
-        self.assertContains(response, "nina@example.com")
+        self.assertNotContains(response, "nina@example.com")
+        self.assertContains(self.client.get("/profile/edit/"), "nina@example.com")
         self.assertContains(response, "public@example.com")
         self.assertEqual(other.profile.display_name, "Other")
         other.refresh_from_db()
