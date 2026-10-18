@@ -25,7 +25,13 @@
         <div class="hidden md:flex items-center justify-end gap-7 flex-1">
             {% if user.is_authenticated %}
                 <a href="#" class="nav-link">Favorit</a>
-                <a href="{% url 'main:profile' %}" class="nav-link">{{ user.username }}</a>
+                <details class="relative">
+                    <summary class="nav-link cursor-pointer">Akun saya ({{ user.username }})</summary>
+                    <div class="absolute right-0 z-20 bg-ivory border border-line p-4 min-w-40 space-y-3">
+                        <a href="{% url 'main:profile' %}" class="nav-link block">Etalase saya</a>
+                        <a href="{% url 'main:profile_edit' %}" class="nav-link block">Edit profil</a>
+                    </div>
+                </details>
                 <form method="post" action="{% url 'main:logout' %}">
                     {% csrf_token %}
                     <button type="submit" class="nav-link">Keluar</button>
@@ -57,7 +63,8 @@
 
             {% if user.is_authenticated %}
                 <a href="#" class="nav-link">Favorit</a>
-                <a href="{% url 'main:profile' %}" class="nav-link">Akun saya ({{ user.username }})</a>
+                <a href="{% url 'main:profile' %}" class="nav-link">Etalase saya ({{ user.username }})</a>
+                <a href="{% url 'main:profile_edit' %}" class="nav-link">Edit profil</a>
                 <form method="post" action="{% url 'main:logout' %}">
                     {% csrf_token %}
                     <button type="submit" class="nav-link">Keluar</button>

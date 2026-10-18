@@ -1,6 +1,85 @@
-{% extends "accounts/layout.html" %}
-{% block title %}Profil · Pakelagi{% endblock %}
-{% block panel %}<h1 id="auth-title" class="text-3xl font-display">Kenalkan dirimu.</h1><p>Nama tampilan saja cukup untuk memulai. Jangan cantumkan alamat rumah pada kota atau kontak publik.</p>{% endblock %}
-{% block form_heading %}<h2 class="text-2xl font-display">Lengkapi profil</h2>{% endblock %}
-{% block hidden_fields %}<input type="hidden" name="next" value="{{ next }}">{% endblock %}
-{% block submit_label %}Simpan profil{% endblock %}
+{% extends "base.html" %}
+{% load static %}
+{% block title %}{% if form.instance.pk %}Edit profil{% else %}Lengkapi profil{% endif %} · Pakelagi{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/profile-edit.css' %}">{% endblock %}
+{% block content %}
+<section class="container-page profile-editor" aria-labelledby="profile-edit-title">
+    <div class="flex flex-wrap justify-between items-end gap-6 pt-10 md:pt-16 pb-10 md:pb-14">
+        <div>
+            <h1 id="profile-edit-title" class="text-5xl md:text-7xl">{% if form.instance.pk %}Profil{% else %}Lengkapi profil{% endif %}</h1>
+            {% if not form.instance.pk %}<p class="mt-4 text-stone">Kenalkan dirimu. Nama tampilan saja cukup untuk memulai.</p>{% endif %}
+        </div>
+        {% if form.instance.pk %}<a href="{% url 'main:profile_public' user_id=user.pk %}" class="profile-text-link">Lihat profil publik <span aria-hidden="true">↗</span></a>{% endif %}
+    </div>
+    <div class="profile-edit-layout pb-20 md:pb-32">
+        <aside>
+            <nav aria-label="Akun saya" class="profile-account-nav">
+                <p class="label-caps pb-5">Akun saya</p>
+                <a href="{% if form.instance.pk %}{% url 'main:profile_edit' %}{% else %}{% url 'main:profile_create' %}{% endif %}" aria-current="page">Profil <span aria-hidden="true">→</span></a>
+                {% if form.instance.pk %}<a href="{% url 'main:profile' %}">Etalase saya</a>{% endif %}
+            </nav>
+            <form method="post" action="{% url 'main:logout' %}" class="border-b border-line py-4">{% csrf_token %}<button type="submit" class="text-stone">Keluar</button></form>
+        </aside>
+        <form method="post" id="profile-edit-form" class="min-w-0 space-y-14 md:space-y-16">
+            {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
+            {% if form.errors %}<div role="alert" class="border border-error p-4 text-error"><p>Periksa kembali isian yang ditandai di bawah.</p>{{ form.non_field_errors }}</div>{% endif %}
+            <fieldset class="space-y-7">
+                <legend class="profile-section-title"><span>01</span> Identitas</legend>
+                {% include "profiles/field.html" with field=form.display_name hint="Nama yang terlihat di listing dan profil publik." %}
+                {% include "profiles/field.html" with field=form.bio hint="Maksimal 500 karakter." %}
+                {% include "profiles/field.html" with field=form.city hint="Hanya kota atau area umum — bukan alamat rumah." %}
+            </fieldset>
+            <fieldset class="space-y-7">
+                <legend class="profile-section-title"><span>02</span> Kontak</legend>
+                <fieldset class="profile-contact-method"{% if form.contact_type.errors %} aria-describedby="id_contact_type_error"{% endif %}>
+                    <legend class="label-caps mb-3">Metode kontak</legend>
+                    <div class="flex flex-wrap gap-2">
+                        {% for value, label in form.contact_type.field.choices %}
+                        <label class="profile-method-option"><input type="radio" name="contact_type" value="{{ value }}"{% if form.contact_type.value|default:"" == value %} checked{% endif %}><span>{% if value %}{{ label }}{% else %}Tanpa kontak{% endif %}</span></label>
+                        {% endfor %}
+                    </div>
+                    {% if form.contact_type.errors %}<div role="alert" id="id_contact_type_error">{{ form.contact_type.errors }}</div>{% endif %}
+                </fieldset>
+                {% include "profiles/field.html" with field=form.contact_value hint="Isi email, handle/URL profil Instagram, atau kontak lainnya sesuai metode pilihanmu." %}
+                {% include "profiles/field.html" with field=form.phone_number hint="Opsional. Gunakan awalan 08 atau format internasional +. Nomor hanya diperiksa formatnya, bukan kepemilikannya." %}
+                <p class="bg-sand px-5 py-4 text-xs text-stone">Kontak hanya ditampilkan kepada member yang sudah masuk dan melengkapi profil. Jangan isi alamat rumah. Transaksi berlangsung di luar Pakelagi.</p>
+                <div class="border-t border-line pt-7">{% include "profiles/field.html" with field=form.email %}</div>
+            </fieldset>
+            <fieldset class="space-y-7">
+                <legend class="profile-section-title"><span>03</span> Foto toko</legend>
+                <div class="flex flex-col sm:flex-row gap-6">
+                    <div class="profile-edit-avatar shrink-0" aria-hidden="true">
+                        <span>{{ form.display_name.value|default:"P"|first|upper }}</span>
+                        {% if not form.is_bound and form.instance.avatar_url %}<img src="{{ form.instance.avatar_url }}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">{% endif %}
+                    </div>
+                    <div class="min-w-0 flex-1 space-y-7">
+                        {% include "profiles/field.html" with field=form.avatar_url hint="Foto wajah atau inisial lemarimu. Rasio 1:1, URL HTTPS eksternal." %}
+                        <div class="profile-remove">{{ form.remove_avatar }} {{ form.remove_avatar.label_tag }}</div>
+                        {% include "profiles/field.html" with field=form.cover_url hint="Rak, gantungan, atau sudut lemari. Tampil di atas profil publik." %}
+                        <div class="profile-remove">{{ form.remove_cover }} {{ form.remove_cover.label_tag }}</div>
+                    </div>
+                </div>
+                <p class="text-xs text-stone leading-relaxed">Avatar dan sampul memakai URL HTTPS gambar eksternal, bukan upload ke Pakelagi. Browser pengunjung memuat gambar dari layanan tersebut, sehingga layanan gambar dapat menerima alamat IP pengunjung. Jangan masukkan kontak privat atau token rahasia ke URL gambar publik. Pakelagi tidak mengambil atau menyimpan file gambar; menghapus URL tidak menghapus file eksternal.</p>
+            </fieldset>
+            <div class="flex flex-wrap items-center gap-8">
+                <button type="submit" class="btn btn-primary">{% if form.instance.pk %}Simpan perubahan{% else %}Simpan profil{% endif %}</button>
+                <a href="{% if form.instance.pk %}{% url 'main:profile' %}{% else %}{% url 'main:show_main' %}{% endif %}" class="profile-text-link">Batal</a>
+            </div>
+        </form>
+        <aside aria-label="Pratinjau profil publik" class="min-w-0">
+            <p class="label-caps mb-5">Pratinjau · dilihat pengunjung</p>
+            <div class="border border-line bg-white p-6 xl:p-8 space-y-5">
+                <div class="h-36 bg-sand overflow-hidden" aria-hidden="true">{% if not form.is_bound and form.instance.cover_url %}<img src="{{ form.instance.cover_url }}" alt="" class="w-full h-full object-cover" referrerpolicy="no-referrer" onerror="this.remove()">{% endif %}</div>
+                <div class="profile-edit-avatar profile-preview-avatar" aria-hidden="true"><span>{{ form.display_name.value|default:"P"|first|upper }}</span>{% if not form.is_bound and form.instance.avatar_url %}<img src="{{ form.instance.avatar_url }}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">{% endif %}</div>
+                <div>
+                    <h2 class="text-2xl break-words">{{ form.display_name.value|default:"Nama tampilanmu" }}</h2>
+                    {% if form.city.value %}<p class="text-xs text-stone mt-2 break-words">{{ form.city.value }}</p>{% endif %}
+                </div>
+                {% if form.bio.value %}<p class="font-display text-xl whitespace-pre-line break-words">{{ form.bio.value }}</p>{% endif %}
+                <p class="border-t border-line pt-5 text-xs text-stone">Masuk untuk menghubungi penjual</p>
+            </div>
+            <p class="text-xs text-stone mt-5">Pengunjung tanpa akun tidak pernah melihat kontakmu.</p>
+        </aside>
+    </div>
+</section>
+{% endblock %}

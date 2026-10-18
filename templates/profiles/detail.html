@@ -1,16 +1,35 @@
 {% extends "base.html" %}
-{% block title %}Profil · Pakelagi{% endblock %}
+{% block title %}{{ profile.display_name }} · Penjual{% endblock %}
 {% block content %}
 <section class="container-page py-8 md:py-14" aria-labelledby="profile-title">
-    <div class="max-w-2xl mx-auto space-y-6 border border-line p-6 sm:p-10">
-        <h1 id="profile-title" class="text-3xl font-display">{{ profile.display_name }}</h1>
-        {% if profile.city %}<p>{{ profile.city }}</p>{% endif %}
-        {% if profile.bio %}<div class="whitespace-pre-line break-words">{{ profile.bio }}</div>{% endif %}
-        {% if show_contact and profile.contact_value %}<p class="break-words">{{ profile.get_contact_type_display }}: {{ profile.contact_value }}</p>{% endif %}
-        {% if is_owner %}
-        <p>Email akun (privat, belum diverifikasi): {{ user.email|default:"Belum diisi" }}</p>
-        <a class="btn btn-primary" href="{% url 'main:profile_edit' %}">Edit profil</a>
-        {% endif %}
+    <nav aria-label="Breadcrumb" class="text-sm mb-8"><a href="{% url 'main:show_main' %}">Beranda</a> / Penjual / <span aria-current="page">{{ profile.display_name }}</span></nav>
+    <div class="bg-sand h-48 md:h-80 overflow-hidden mb-8" aria-hidden="true">
+        {% if profile.cover_url %}<img src="{{ profile.cover_url }}" alt="" class="w-full h-full object-cover" referrerpolicy="no-referrer" onerror="this.remove()">{% endif %}
     </div>
+    <div class="grid gap-8 lg:grid-cols-[auto_1fr_22rem] mb-14">
+        <div class="relative w-32 h-32 md:w-40 md:h-40 bg-sand flex items-center justify-center overflow-hidden">
+            <span class="font-display text-6xl" aria-hidden="true">{{ profile.display_name|first|upper }}</span>
+            {% if profile.avatar_url %}<img src="{{ profile.avatar_url }}" alt="Avatar {{ profile.display_name }}" class="absolute inset-0 w-full h-full object-cover" referrerpolicy="no-referrer" onerror="this.remove()">{% endif %}
+        </div>
+        <div class="min-w-0 space-y-4">
+            <h1 id="profile-title" class="text-4xl md:text-6xl font-display break-words">{{ profile.display_name }}</h1>
+            {% if profile.bio %}<p class="font-display text-2xl whitespace-pre-line break-words">{{ profile.bio }}</p>{% endif %}
+            {% if profile.city %}<p class="break-words">{{ profile.city }}</p>{% endif %}
+            <p class="text-stone">{{ available_count|default:0 }} dijual <span class="ml-5">{{ sold_count|default:0 }} terjual</span></p>
+        </div>
+        <aside class="border border-line bg-white p-6 space-y-4" aria-label="Kontak penjual">
+            <h2 class="font-display text-2xl">Kontak penjual</h2>
+            {% if contact_invite_url %}
+                <a href="{{ contact_invite_url }}" class="btn btn-secondary">{{ contact_invite_label }}</a>
+            {% else %}
+                {% if seller_contact.value %}<p class="break-words">{{ seller_contact.value }}</p>{% endif %}
+                {% if seller_contact.url %}<a href="{{ seller_contact.url }}" {% if profile.contact_type != 'email' %}target="_blank" rel="noopener noreferrer"{% endif %} class="btn btn-secondary">{{ seller_contact.cta }}</a>{% endif %}
+                {% if seller_contact.phone %}<p class="break-words">Telepon: {{ seller_contact.phone }}</p>{% endif %}
+                {% if not seller_contact.value and not seller_contact.phone %}<p>Penjual belum menambahkan kontak.</p>{% endif %}
+            {% endif %}
+            <p class="text-sm text-stone">Kontak hanya terlihat oleh member yang sudah masuk dan melengkapi profil. Transaksi berlangsung di luar Pakelagi.</p>
+        </aside>
+    </div>
+    {% include "profiles/listings.html" %}
 </section>
 {% endblock %}

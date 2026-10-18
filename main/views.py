@@ -46,6 +46,7 @@ def profile_form(request, profile):
     target = safe_profile_next(request, request.POST.get("next") or request.GET.get("next"))
     if request.method == "POST" and form.is_valid():
         form.save()
+        messages.success(request, "Profil berhasil disimpan.")
         return redirect(target or "main:profile")
     return render(request, "profiles/form.html", {"form": form, "next": target})
 
@@ -53,9 +54,7 @@ def profile_form(request, profile):
 @member_required
 @require_http_methods(["GET"])
 def profile_detail(request):
-    return render(request, "profiles/detail.html", {
-        "profile": request.user.profile, "is_owner": True, "show_contact": True,
-    })
+    return render_storefront(request, request.user.profile)
 
 
 @require_http_methods(["GET"])
@@ -64,10 +63,24 @@ def profile_public(request, user_id):
     if not profile.display_name.strip():
         from django.http import Http404
         raise Http404
-    return render(request, "profiles/detail.html", {
-        "profile": profile, "show_contact": has_complete_profile(request.user),
-        "is_owner": request.user.pk == user_id,
-    })
+    return render_storefront(request, profile)
+
+
+def render_storefront(request, profile):
+    from django.utils.cache import patch_vary_headers
+    from main.storefront import listing_context
+    from main.profile_contacts import contact_context
+
+    context = {
+        "profile": profile,
+        **contact_context(request, profile),
+        **listing_context(seller_id=profile.user_id, viewer=request.user, query=request.GET),
+    }
+    partial = request.headers.get("HX-Request") == "true" and request.headers.get("HX-History-Restore-Request") != "true"
+    response = render(request, "profiles/listings.html" if partial else "profiles/detail.html", context)
+    patch_vary_headers(response, ["HX-Request", "HX-History-Restore-Request", "Cookie"])
+    response["Cache-Control"] = "private, no-store"
+    return response
 
 
 @member_required
