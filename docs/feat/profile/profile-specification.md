@@ -281,21 +281,23 @@ Template implementasi mengikuti `base.html`, komponen header/footer, token dan f
 
 - [X] URL yang tidak ditemukan menampilkan halaman 404 Pakelagi saat `DEBUG=False`; sudah diuji untuk URL dan resource profil yang tidak ditemukan.
 - [X] Tersedia navigasi kembali ke beranda, dan test memastikan tautan beranda berfungsi.
-- [ ] Halaman tidak membocorkan detail internal dan tidak mensyaratkan rekomendasi listing tersedia. Template generik tidak menampilkan rekomendasi dan test memeriksa kebocoran detail, tetapi pengaturan saat ini menetapkan `DEBUG=True`, sehingga perilaku production 404 aman belum diverifikasi.
+- [X] Halaman tidak membocorkan detail internal dan tidak mensyaratkan rekomendasi listing tersedia. Template generik tidak menampilkan rekomendasi; test memeriksa kebocoran detail dengan `DEBUG=False`. Catatan: konfigurasi default masih menetapkan `DEBUG=True` dan `SECRET_KEY` hard-coded, sehingga pengaturan production di `pakelagi/settings.py` tetap harus diperbaiki sebelum deploy.
 - [X] Halaman memakai kerangka UI bersama (`base.html`, header, dan footer) serta kelas responsif untuk layar kecil.
 
 ### Etalase, gambar, kontak, dan integrasi listing
 
 Checklist ini adalah target pengujian, bukan klaim bahwa implementasi sudah selesai.
 
-- [ ] Profil sendiri dan publik memakai etalase sama; menu akun mengarah ke edit milik sendiri dan tidak mengekspos email akun di etalase.
-- [ ] Profil tidak ada/belum lengkap menghasilkan 404 generik di URL publik; `/profile/` pemilik tanpa profil lengkap menuju onboarding.
-- [ ] URL avatar/sampul hanya menerima HTTPS; kosong/gagal dimuat memakai fallback. Hapus/ganti URL tidak menghapus file eksternal atau gambar listing.
-- [ ] Server tidak mengambil gambar eksternal; UI edit menjelaskan risiko privasi alamat IP pada layanan gambar eksternal.
-- [ ] Field dan batas panjang, pasangan kontak, normalisasi Instagram serta nomor lokal/internasional tervalidasi di server.
-- [ ] Nomor tampil sebagai “Telepon” tanpa badge verifikasi atau WhatsApp; email kontak tidak diambil otomatis dari email akun.
-- [ ] Guest dan user belum onboarding tidak menerima kontak/telepon di HTML, atribut, partial HTMX, atau respons data. Ajakan login/onboarding mempertahankan tujuan aman.
-- [ ] Instagram/email/other menghasilkan CTA yang sesuai; kontak kosong dan nomor-saja memiliki fallback yang benar.
+Catatan tahap implementasi etalase: modul listing/favorite belum tersedia pada branch ini. Sesuai keputusan cakupan, integrasi sementara menggunakan adapter kosong; kontrak dan pekerjaan lanjutan dicatat pada [`listing-integration.md`](listing-integration.md). Daftar nyata, pagination data, cuplikan Sold, dan favorit belum diimplementasikan dan checklist terkait tetap belum selesai.
+
+- [X] Profil sendiri dan publik memakai etalase sama; menu akun mengarah ke edit milik sendiri dan tidak mengekspos email akun di etalase.
+- [X] Profil tidak ada/belum lengkap menghasilkan 404 generik di URL publik; `/profile/` pemilik tanpa profil lengkap menuju onboarding.
+- [X] URL avatar/sampul hanya menerima HTTPS; kosong/gagal dimuat memakai fallback. Hapus/ganti URL tidak menghapus file eksternal atau gambar listing.
+- [X] Server tidak mengambil gambar eksternal; UI edit menjelaskan risiko privasi alamat IP pada layanan gambar eksternal.
+- [X] Field dan batas panjang, pasangan kontak, normalisasi Instagram serta nomor lokal/internasional tervalidasi di server.
+- [X] Nomor tampil sebagai “Telepon” tanpa badge verifikasi atau WhatsApp; email kontak tidak diambil otomatis dari email akun.
+- [X] Guest dan user belum onboarding tidak menerima kontak/telepon di HTML, atribut, partial HTMX, atau respons data. Ajakan login/onboarding mempertahankan tujuan aman.
+- [X] Instagram/email/other menghasilkan CTA yang sesuai; kontak kosong dan nomor-saja memiliki fallback yang benar.
 - [ ] Semua permukaan etalase mengecualikan Hidden/moderasi, termasuk hitungan dan cuplikan serta ketika pemilik membukanya.
 - [ ] Dijual default, Terjual terpisah; hitungan total sesuai status, bukan jumlah kartu termuat.
 - [ ] Kedua tab memuat 8 barang, label sisa tepat, serta tombol hilang pada akhir daftar; uji 0, 1, 8, 9, dan lebih dari 16 hasil.
