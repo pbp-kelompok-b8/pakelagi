@@ -31,7 +31,7 @@ class ProfileTests(TestCase):
                 })
                 expected = target if target == "/?source=onboarding" else "/profile/"
                 self.assertRedirects(response, expected)
-                from main.models import Profile
+                from profiles.models import Profile
                 Profile.objects.filter(user=self.user).delete()
 
     def test_public_profile_keeps_account_email_private_and_contact_member_only(self):
@@ -77,7 +77,7 @@ class ProfileTests(TestCase):
 
     def test_edit_is_owner_scoped_and_create_cannot_duplicate_profile(self):
         other = User.objects.create_user("other", email="other@example.com")
-        from main.models import Profile
+        from profiles.models import Profile
         Profile.objects.create(user=other, display_name="Other")
         self.client.post("/profile/create/", {"display_name": "Nina"})
         response = self.client.post("/profile/edit/", {

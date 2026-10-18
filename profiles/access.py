@@ -6,7 +6,7 @@ from django.shortcuts import redirect
 from django.urls import reverse
 from django.utils.http import url_has_allowed_host_and_scheme
 
-from main.models import Profile
+from profiles.models import Profile
 
 
 def has_complete_profile(user):
@@ -17,7 +17,7 @@ def has_complete_profile(user):
 
 
 def onboarding_url(target=""):
-    url = reverse("main:profile_create")
+    url = reverse("profiles:profile_create")
     return url + "?" + urlencode({"next": target}, safe="/") if target else url
 
 
@@ -29,8 +29,8 @@ def safe_profile_next(request, target):
     # Auth/onboarding destinations cannot be useful return targets and may loop.
     from urllib.parse import urlsplit
     path = urlsplit(target).path
-    if path in {reverse("main:profile_create"), reverse("main:login"),
-                reverse("main:register"), reverse("main:logout")}:
+    if path in {reverse("profiles:profile_create"), reverse("accounts:login"),
+                reverse("accounts:register"), reverse("accounts:logout")}:
         return ""
     return target
 

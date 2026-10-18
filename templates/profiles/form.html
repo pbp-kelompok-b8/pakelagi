@@ -9,16 +9,16 @@
             <h1 id="profile-edit-title" class="text-5xl md:text-7xl">{% if form.instance.pk %}Profil{% else %}Lengkapi profil{% endif %}</h1>
             {% if not form.instance.pk %}<p class="mt-4 text-stone">Kenalkan dirimu. Nama tampilan saja cukup untuk memulai.</p>{% endif %}
         </div>
-        {% if form.instance.pk %}<a href="{% url 'main:profile_public' user_id=user.pk %}" class="profile-text-link">Lihat profil publik <span aria-hidden="true">↗</span></a>{% endif %}
+        {% if form.instance.pk %}<a href="{% url 'profiles:profile_public' user_id=user.pk %}" class="profile-text-link">Lihat profil publik <span aria-hidden="true">↗</span></a>{% endif %}
     </div>
     <div class="profile-edit-layout pb-20 md:pb-32">
         <aside>
             <nav aria-label="Akun saya" class="profile-account-nav">
                 <p class="label-caps pb-5">Akun saya</p>
-                <a href="{% if form.instance.pk %}{% url 'main:profile_edit' %}{% else %}{% url 'main:profile_create' %}{% endif %}" aria-current="page">Profil <span aria-hidden="true">→</span></a>
-                {% if form.instance.pk %}<a href="{% url 'main:profile' %}">Etalase saya</a>{% endif %}
+                <a href="{% if form.instance.pk %}{% url 'profiles:profile_edit' %}{% else %}{% url 'profiles:profile_create' %}{% endif %}" aria-current="page">Profil <span aria-hidden="true">→</span></a>
+                {% if form.instance.pk %}<a href="{% url 'profiles:profile' %}">Etalase saya</a>{% endif %}
             </nav>
-            <form method="post" action="{% url 'main:logout' %}" class="border-b border-line py-4">{% csrf_token %}<button type="submit" class="text-stone">Keluar</button></form>
+            <form method="post" action="{% url 'accounts:logout' %}" class="border-b border-line py-4">{% csrf_token %}<button type="submit" class="text-stone">Keluar</button></form>
         </aside>
         <form method="post" id="profile-edit-form" class="min-w-0 space-y-14 md:space-y-16">
             {% csrf_token %}<input type="hidden" name="next" value="{{ next }}">
@@ -63,7 +63,7 @@
             </fieldset>
             <div class="flex flex-wrap items-center gap-8">
                 <button type="submit" class="btn btn-primary">{% if form.instance.pk %}Simpan perubahan{% else %}Simpan profil{% endif %}</button>
-                <a href="{% if form.instance.pk %}{% url 'main:profile' %}{% else %}{% url 'main:show_main' %}{% endif %}" class="profile-text-link">Batal</a>
+                <a href="{% if form.instance.pk %}{% url 'profiles:profile' %}{% else %}{% url 'main:show_main' %}{% endif %}" class="profile-text-link">Batal</a>
             </div>
         </form>
         <aside aria-label="Pratinjau profil publik" class="min-w-0">

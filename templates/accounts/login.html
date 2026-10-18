@@ -14,5 +14,5 @@
 {% block hidden_fields %}<input type="hidden" name="next" value="{{ next }}">{% endblock %}
 {% block submit_label %}Masuk{% endblock %}
 {% block alternate_link %}
-<p class="text-sm text-stone text-center">Belum punya akun? <a href="{% url 'main:register' %}" class="underline text-ink">Daftar sebagai member</a></p>
+<p class="text-sm text-stone text-center">Belum punya akun? <a href="{% url 'accounts:register' %}" class="underline text-ink">Daftar sebagai member</a></p>
 {% endblock %}

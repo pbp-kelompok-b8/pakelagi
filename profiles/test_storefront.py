@@ -1,7 +1,7 @@
 from django.contrib.auth.models import User
 from django.test import TestCase
 
-from main.models import Profile
+from profiles.models import Profile
 
 
 class StorefrontTests(TestCase):

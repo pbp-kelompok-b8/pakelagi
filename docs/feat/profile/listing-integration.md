@@ -6,7 +6,7 @@ Pada branch implementasi ini belum ada modul Listing/Favorite. Sesuai keputusan 
 
 ## Seam yang tersedia
 
-`main/storefront.py` menyediakan `listing_context(seller_id, viewer, query)` (argumen keyword-only). View profil sendiri dan publik memanggil interface yang sama. `StorefrontSelection` menormalisasi GET `tab=dijual|terjual`, `sort=terbaru|harga_terendah|harga_tertinggi`, dan `page` positif. Pilihan tidak valid kembali ke default. Pergantian tab/urutan menghilangkan posisi pemuatan sebelumnya.
+`profiles/storefront.py` menyediakan `listing_context(seller_id, viewer, query)` (argumen keyword-only). View profil sendiri dan publik memanggil interface yang sama. `StorefrontSelection` menormalisasi GET `tab=dijual|terjual`, `sort=terbaru|harga_terendah|harga_tertinggi`, dan `page` positif. Pilihan tidak valid kembali ke default. Pergantian tab/urutan menghilangkan posisi pemuatan sebelumnya.
 
 `EmptyListingAdapter.for_profile(seller_id, viewer, selection)` mengembalikan `available_count`, `sold_count`, `listings`, dan `sold_preview`. Saat ini jumlah selalu nol dan koleksi kosong secara eksplisit. Tidak ada data contoh atau query ke model yang belum ada. `templates/profiles/listings.html` hanya merender keadaan kosong: **mengganti adapter saja belum cukup untuk menampilkan kartu**.
 

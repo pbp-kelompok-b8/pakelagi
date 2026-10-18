@@ -2,7 +2,17 @@
 
 ## Status dokumen
 
-Dokumen ini adalah spesifikasi dan checklist perencanaan refactor. **Dokumen ini tidak mengimplementasikan perubahan kode.** Semua item checklist berstatus belum dikerjakan; centang hanya setelah perubahan benar-benar dilakukan dan diverifikasi.
+Dokumen ini mencatat spesifikasi dan checklist refactor. Implementasi telah dilakukan pada app `accounts` dan `profiles`; centang hanya menyatakan pekerjaan yang sudah dilakukan dan diverifikasi. Checklist deployment yang belum disepakati tetap terbuka.
+
+### Hasil verifikasi implementasi
+
+- Baseline sebelum refactor: 60 tes lulus.
+- Sesudah refactor: 64 tes lulus, termasuk kontrak URL, upgrade migrasi dengan fixture terkontrol, dan rollback edit profil/email melalui HTTP.
+- `manage.py check`: tidak ada masalah; `manage.py makemigrations --check --dry-run`: tidak ada perubahan model yang belum tercakup.
+- Database tes dibuat dari nol saat menjalankan suite; migrasi upgrade diuji menggunakan state `main` 0004 dengan User, Profile, content type, serta permission yang ditautkan ke user.
+- Database lokal/persisten tidak dimigrasikan dalam pekerjaan ini. Jumlah record/content type database deployment belum diaudit.
+- Peringatan bawaan WhiteNoise tentang direktori `staticfiles/` yang belum tersedia tetap muncul saat tes; bukan kegagalan tes.
+- Tidak ada konfigurasi typechecker di repo; pemeriksaan menggunakan Django system checks dan test suite.
 
 ## Tujuan
 
@@ -77,89 +87,99 @@ ID pada URL profil publik adalah primary key `User`, bukan primary key model `Pr
 
 ### Fase 0 — Baseline dan pengamanan kontrak
 
-- [ ] Catat hasil test suite sebelum perubahan untuk dipakai sebagai baseline.
-- [ ] Catat nama route, path, dan hasil redirect yang sudah ada, termasuk redirect registrasi ke onboarding.
+- [x] Catat hasil test suite sebelum perubahan untuk dipakai sebagai baseline.
+- [x] Catat nama route, path, dan hasil redirect yang sudah ada, termasuk redirect registrasi ke onboarding.
 - [ ] Catat state migrasi saat ini (`main` 0001–0004), nama tabel `main_profile`, content type, dan jumlah/data contoh Profile pada database pengujian yang dapat dipulihkan.
-- [ ] Pastikan tersedia salinan database atau fixture terkontrol untuk menguji upgrade dengan data yang sudah ada; jangan memakai data produksi untuk eksperimen.
-- [ ] Identifikasi semua reverse URL `main:` dan import `main.*` yang terkait akun/profil sebelum dipindahkan.
+- [x] Pastikan tersedia salinan database atau fixture terkontrol untuk menguji upgrade dengan data yang sudah ada; jangan memakai data produksi untuk eksperimen.
+- [x] Identifikasi semua reverse URL `main:` dan import `main.*` yang terkait akun/profil sebelum dipindahkan.
 - [ ] Sepakati urutan deployment/migrasi untuk lingkungan yang menyimpan database persisten.
 
 ### Fase 1 — Buat batas app dan konfigurasi URL
 
-- [ ] Buat app Django `accounts` dengan app config yang eksplisit.
-- [ ] Buat app Django `profiles` dengan app config yang eksplisit.
-- [ ] Daftarkan kedua app pada `INSTALLED_APPS` tanpa mengubah konfigurasi lain yang tidak terkait.
-- [ ] Pisahkan URLconf untuk `accounts` dan `profiles`, lalu sertakan keduanya dari konfigurasi URL project.
-- [ ] Pertahankan seluruh path publik yang tercantum pada tabel URL.
-- [ ] Pertahankan route beranda di `main` dan tentukan pola include agar route root tidak mengambil alih path app lain.
-- [ ] Ubah konfigurasi login/redirect serta seluruh reverse URL internal ke namespace pemilik baru.
-- [ ] Tambahkan tes resolusi URL untuk semua path dan nama route yang dipertahankan.
+- [x] Buat app Django `accounts` dengan app config yang eksplisit.
+- [x] Buat app Django `profiles` dengan app config yang eksplisit.
+- [x] Daftarkan kedua app pada `INSTALLED_APPS` tanpa mengubah konfigurasi lain yang tidak terkait.
+- [x] Pisahkan URLconf untuk `accounts` dan `profiles`, lalu sertakan keduanya dari konfigurasi URL project.
+- [x] Pertahankan seluruh path publik yang tercantum pada tabel URL.
+- [x] Pertahankan route beranda di `main` dan tentukan pola include agar route root tidak mengambil alih path app lain.
+- [x] Ubah konfigurasi login/redirect serta seluruh reverse URL internal ke namespace pemilik baru.
+- [x] Tambahkan tes resolusi URL untuk semua path dan nama route yang dipertahankan.
 
 ### Fase 2 — Pindahkan autentikasi ke `accounts`
 
-- [ ] Pindahkan form registrasi dan login ke `accounts/forms.py`.
-- [ ] Pindahkan view registrasi, login, dan logout ke `accounts/views.py`.
-- [ ] Pertahankan penggunaan Django `User` bawaan; jangan menambah custom user model.
-- [ ] Pertahankan hashing password Django, validasi password, penanganan user nonaktif, pesan login generik, CSRF, dan logout POST-only.
-- [ ] Pertahankan redirect registrasi ke onboarding dan perilaku `next` yang aman untuk login.
-- [ ] Pertahankan template `layout.html`, `login.html`, dan `register.html` di `templates/accounts/`; jangan memindahkannya ke dalam app.
-- [ ] Pastikan referensi template akun tetap valid tanpa mengubah nama template yang dipanggil oleh view.
-- [ ] Pindahkan tes registrasi dan autentikasi ke area tes `accounts` atau struktur yang konsisten dengan repo.
-- [ ] Pertahankan tes integrasi yang menguji batas registrasi/login menuju onboarding profil.
-- [ ] Pastikan helper tes yang digunakan bersama tidak menimbulkan import silang antar modul tes yang rapuh.
+- [x] Pindahkan form registrasi dan login ke `accounts/forms.py`.
+- [x] Pindahkan view registrasi, login, dan logout ke `accounts/views.py`.
+- [x] Pertahankan penggunaan Django `User` bawaan; jangan menambah custom user model.
+- [x] Pertahankan hashing password Django, validasi password, penanganan user nonaktif, pesan login generik, CSRF, dan logout POST-only.
+- [x] Pertahankan redirect registrasi ke onboarding dan perilaku `next` yang aman untuk login.
+- [x] Pertahankan template `layout.html`, `login.html`, dan `register.html` di `templates/accounts/`; jangan memindahkannya ke dalam app.
+- [x] Pastikan referensi template akun tetap valid tanpa mengubah nama template yang dipanggil oleh view.
+- [x] Pindahkan tes registrasi dan autentikasi ke area tes `accounts` atau struktur yang konsisten dengan repo.
+- [x] Pertahankan tes integrasi yang menguji batas registrasi/login menuju onboarding profil.
+- [x] Pastikan helper tes yang digunakan bersama tidak menimbulkan import silang antar modul tes yang rapuh.
 
 ### Fase 3 — Pindahkan profil dan integrasi etalase
 
-- [ ] Pindahkan model `Profile` menjadi model yang dimiliki app `profiles`.
-- [ ] Pertahankan semua field, validasi, relasi one-to-one ke `settings.AUTH_USER_MODEL`, cascade user-ke-profil, dan reverse relation `user.profile`.
-- [ ] Pertahankan tabel `main_profile`; jangan membuat tabel baru atau kehilangan/menduplikasi record saat upgrade.
-- [ ] Rancang migrasi yang mentransfer kepemilikan migration state model secara eksplisit dan aman. Tinjau perubahan app label, tabel, content type, permission, dan urutan dependency sebelum menerapkannya.
-- [ ] Jangan sekadar memindahkan/menghapus file migrasi historis atau menghasilkan operasi delete/create yang dapat menghapus data.
-- [ ] Pertahankan jalur import `main.validators.validate_external_https_url` agar migrasi lama tetap dapat dimuat; implementasi validator boleh dimiliki `profiles`.
-- [ ] Pindahkan `ProfileForm`, view profil, kontak, storefront, dan aturan akses ke modul `profiles` sesuai tabel kepemilikan.
-- [ ] Pertahankan penyimpanan profil dan email akun yang atomik, serta jangan menjadikan email akun sebagai kontak penjual otomatis.
-- [ ] Pertahankan `detail.html`, `field.html`, `form.html`, dan `listings.html` di `templates/profiles/`; jangan memindahkannya ke dalam app.
-- [ ] Pastikan referensi template profil tetap valid.
-- [ ] Pertahankan struktur etalase, akses kontak, status empty adapter, dukungan HTMX/history, dan header cache sesuai perilaku saat ini.
-- [ ] Pindahkan tes profil, field, edit, dan storefront mengikuti app `profiles`; pertahankan uji integrasi accounts/profiles.
+- [x] Pindahkan model `Profile` menjadi model yang dimiliki app `profiles`.
+- [x] Pertahankan semua field, validasi, relasi one-to-one ke `settings.AUTH_USER_MODEL`, cascade user-ke-profil, dan reverse relation `user.profile`.
+- [x] Pertahankan tabel `main_profile`; jangan membuat tabel baru atau kehilangan/menduplikasi record saat upgrade.
+- [x] Rancang migrasi yang mentransfer kepemilikan migration state model secara eksplisit dan aman. Tinjau perubahan app label, tabel, content type, permission, dan urutan dependency sebelum menerapkannya.
+- [x] Jangan sekadar memindahkan/menghapus file migrasi historis atau menghasilkan operasi delete/create yang dapat menghapus data.
+- [x] Pertahankan jalur import `main.validators.validate_external_https_url` agar migrasi lama tetap dapat dimuat; implementasi validator boleh dimiliki `profiles`.
+- [x] Pindahkan `ProfileForm`, view profil, kontak, storefront, dan aturan akses ke modul `profiles` sesuai tabel kepemilikan.
+- [x] Pertahankan penyimpanan profil dan email akun yang atomik, serta jangan menjadikan email akun sebagai kontak penjual otomatis.
+- [x] Pertahankan `detail.html`, `field.html`, `form.html`, dan `listings.html` di `templates/profiles/`; jangan memindahkannya ke dalam app.
+- [x] Pastikan referensi template profil tetap valid.
+- [x] Pertahankan struktur etalase, akses kontak, status empty adapter, dukungan HTMX/history, dan header cache sesuai perilaku saat ini.
+- [x] Pindahkan tes profil, field, edit, dan storefront mengikuti app `profiles`; pertahankan uji integrasi accounts/profiles.
 
 ### Fase 4 — Rapikan integrasi `main` dan shared UI
 
-- [ ] Pastikan `main` hanya mempertahankan beranda serta tanggung jawab bersama yang memang lintas domain.
-- [ ] Hapus implementasi akun/profil dari `main` hanya setelah seluruh pemanggil dan tes berpindah; jangan meninggalkan duplikasi aktif.
-- [ ] Pertahankan handler/halaman 404 dan tesnya di area shared/main.
-- [ ] Perbarui namespace pada header, footer, base/shared templates, halaman 404, dan setiap komponen yang menautkan akun/profil.
-- [ ] Periksa tidak ada template yang masih menggunakan reverse route `main:login`, `main:register`, `main:logout`, atau route profil lama.
-- [ ] Periksa tidak ada import runtime yang masih mengandalkan modul akun/profil lama, selain shim kompatibilitas migrasi yang disengaja.
-- [ ] Pastikan `profiles.access` menjadi API aturan kelengkapan/member tanpa siklus import dengan `accounts`.
+- [x] Pastikan `main` hanya mempertahankan beranda serta tanggung jawab bersama yang memang lintas domain.
+- [x] Hapus implementasi akun/profil dari `main` hanya setelah seluruh pemanggil dan tes berpindah; jangan meninggalkan duplikasi aktif.
+- [x] Pertahankan handler/halaman 404 dan tesnya di area shared/main.
+- [x] Perbarui namespace pada header, footer, base/shared templates, halaman 404, dan setiap komponen yang menautkan akun/profil.
+- [x] Periksa tidak ada template yang masih menggunakan reverse route `main:login`, `main:register`, `main:logout`, atau route profil lama.
+- [x] Periksa tidak ada import runtime yang masih mengandalkan modul akun/profil lama, selain shim kompatibilitas migrasi yang disengaja.
+- [x] Pastikan `profiles.access` menjadi API aturan kelengkapan/member tanpa siklus import dengan `accounts`.
 
 ### Fase 5 — Verifikasi migrasi, regresi, dan penerimaan
 
-- [ ] Jalankan pemeriksaan migrasi Django dan pastikan tidak ada perubahan model yang belum tercakup.
-- [ ] Uji upgrade dari database lama yang memiliki record profil; pastikan record, field, relasi User, dan akses ke `user.profile` tetap benar.
-- [ ] Uji migrasi instalasi baru dari database kosong hingga semua migrasi selesai.
-- [ ] Pastikan tidak ada kehilangan tabel, profil duplikat, perubahan ID, atau perpindahan tabel tak disengaja.
-- [ ] Pastikan content type dan permission `Profile` tidak menjadi duplikat/kehilangan keterkaitan tanpa rencana yang ditinjau.
-- [ ] Jalankan seluruh tes project, termasuk autentikasi, profil, validasi, 404, dan tes integrasi lintas app.
-- [ ] Verifikasi path URL dan redirect tetap sama; nama route internal baru berfungsi pada seluruh template, view, dan settings.
-- [ ] Verifikasi akses guest, user login yang belum onboarding, member, dan pemilik tetap sama.
-- [ ] Verifikasi email akun dan kontak penjual tidak bocor pada halaman/response yang tidak berhak melihatnya.
-- [ ] Verifikasi logout tetap POST + CSRF, operasi tulis tetap terlindungi CSRF, dan form invalid mempertahankan input yang aman.
-- [ ] Verifikasi adapter listing tetap kosong dan tidak ada model, route, kartu, atau aksi favorite baru yang masuk tanpa spesifikasi terpisah.
-- [ ] Tinjau diff untuk memastikan perubahan hanya mencakup refactor yang disepakati dan dokumen ini.
+- [x] Jalankan pemeriksaan migrasi Django dan pastikan tidak ada perubahan model yang belum tercakup.
+- [x] Uji upgrade dari database lama yang memiliki record profil; pastikan record, field, relasi User, dan akses ke `user.profile` tetap benar.
+- [x] Uji migrasi instalasi baru dari database kosong hingga semua migrasi selesai.
+- [x] Pastikan tidak ada kehilangan tabel, profil duplikat, perubahan ID, atau perpindahan tabel tak disengaja.
+- [x] Pastikan content type dan permission `Profile` tidak menjadi duplikat/kehilangan keterkaitan tanpa rencana yang ditinjau.
+- [x] Jalankan seluruh tes project, termasuk autentikasi, profil, validasi, 404, dan tes integrasi lintas app.
+- [x] Verifikasi path URL dan redirect tetap sama; nama route internal baru berfungsi pada seluruh template, view, dan settings.
+- [x] Verifikasi akses guest, user login yang belum onboarding, member, dan pemilik tetap sama.
+- [x] Verifikasi email akun dan kontak penjual tidak bocor pada halaman/response yang tidak berhak melihatnya.
+- [x] Verifikasi logout tetap POST + CSRF, operasi tulis tetap terlindungi CSRF, dan form invalid mempertahankan input yang aman.
+- [x] Verifikasi adapter listing tetap kosong dan tidak ada model, route, kartu, atau aksi favorite baru yang masuk tanpa spesifikasi terpisah.
+- [x] Tinjau diff untuk memastikan perubahan hanya mencakup refactor yang disepakati dan dokumen ini.
 
 ## Kriteria selesai
 
 Refactor dapat dianggap selesai hanya jika seluruh kondisi berikut terpenuhi:
 
-- [ ] Kepemilikan file dan tes mengikuti batas `accounts`, `profiles`, dan `main` yang disepakati.
-- [ ] Path dan perilaku eksternal tidak berubah; namespace internal sudah konsisten dengan app pemilik.
-- [ ] Template akun/profil tetap berada di `templates/accounts/` dan `templates/profiles/`, serta berhasil dirender dengan konfigurasi template project.
-- [ ] Data dan histori database aman pada skenario upgrade maupun instalasi baru; tabel `main_profile` dan relasi yang disepakati tetap terjaga.
-- [ ] Semua tes yang relevan lulus dan cakupan keamanan/privasi sebelumnya tetap ada.
-- [ ] Tidak ada implementasi ganda yang aktif atau import silang yang menciptakan siklus.
-- [ ] `main` tetap menjalankan beranda dan integrasi bersama tanpa menjadi pemilik fitur akun/profil.
-- [ ] Tidak ada perubahan produk di luar refactor yang disepakati.
+- [x] Kepemilikan file dan tes mengikuti batas `accounts`, `profiles`, dan `main` yang disepakati.
+- [x] Path dan perilaku eksternal tidak berubah; namespace internal sudah konsisten dengan app pemilik.
+- [x] Template akun/profil tetap berada di `templates/accounts/` dan `templates/profiles/`, serta berhasil dirender dengan konfigurasi template project.
+- [x] Data dan histori database aman pada skenario upgrade maupun instalasi baru; tabel `main_profile` dan relasi yang disepakati tetap terjaga.
+- [x] Semua tes yang relevan lulus dan cakupan keamanan/privasi sebelumnya tetap ada.
+- [x] Tidak ada implementasi ganda yang aktif atau import silang yang menciptakan siklus.
+- [x] `main` tetap menjalankan beranda dan integrasi bersama tanpa menjadi pemilik fitur akun/profil.
+- [x] Tidak ada perubahan produk di luar refactor yang disepakati.
+
+## Runbook deployment yang diusulkan (belum disepakati untuk lingkungan persisten)
+
+1. Cadangkan database dan hentikan sementara proses aplikasi lama/penulisan data selama perpindahan kepemilikan model.
+2. Audit jumlah Profile, content type `main.profile`/`profiles.profile`, permission, dan referensi terkait pada salinan database lingkungan tujuan.
+3. Deploy kode beserta seluruh migrasi dalam satu rilis. Jalankan `manage.py migrate` sampai selesai, bukan berhenti di `profiles.0001_initial`.
+4. Migrasi hanya memindahkan state model dan app label content type; tabel `main_profile` serta primary key content type lama dipertahankan. Permission dan referensi lain tetap menunjuk identitas yang sama.
+5. Jika kedua content type sudah ada, migrasi berhenti tanpa merge/delete otomatis. Tinjau dan rekonsiliasi seluruh referensi secara eksplisit sebelum mencoba lagi; jangan menghapus content type secara sembarang.
+6. Periksa jumlah/data profil, akses `user.profile`, permission user/grup, login/onboarding, dan halaman profil setelah migrasi; baru hidupkan kembali proses aplikasi.
+7. Rollback harus terkoordinasi dengan kode lama dan backup. Reverse migrasi mendukung pemindahan kembali app label, tetapi juga menolak collision content type. Uji prosedur ini pada salinan database tujuan terlebih dahulu.
 
 ## Risiko dan perhatian khusus
 

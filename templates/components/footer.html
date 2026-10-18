@@ -23,7 +23,7 @@
                 <p class="label-caps !text-white">Akun</p>
                 <ul class="mt-5 space-y-3">
                     {% if user.is_authenticated %}
-                    <li><a href="{% url 'main:profile' %}">Akun saya</a></li>
+                    <li><a href="{% url 'profiles:profile' %}">Akun saya</a></li>
                     <li><a href="#">Favorit</a></li>
                     <li><a href="#">Posting barang</a></li>
                     {% else %}

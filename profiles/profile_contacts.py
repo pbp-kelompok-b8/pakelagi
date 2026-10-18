@@ -5,14 +5,14 @@ from django.core.exceptions import ValidationError
 from django.core.validators import URLValidator
 from django.urls import reverse
 
-from main.access import has_complete_profile, onboarding_url, safe_profile_next
+from profiles.access import has_complete_profile, onboarding_url, safe_profile_next
 
 
 def contact_context(request, profile):
     if not has_complete_profile(request.user):
         target = safe_profile_next(request, request.get_full_path())
         return {
-            "contact_invite_url": onboarding_url(target) if request.user.is_authenticated else reverse("main:login") + "?" + urlencode({"next": target}),
+            "contact_invite_url": onboarding_url(target) if request.user.is_authenticated else reverse("accounts:login") + "?" + urlencode({"next": target}),
             "contact_invite_label": "Lengkapi profil untuk melihat kontak" if request.user.is_authenticated else "Masuk untuk melihat kontak",
         }
     value = profile.contact_value
@@ -20,7 +20,7 @@ def contact_context(request, profile):
     url = ""
     cta = ""
     if value and profile.contact_type == "instagram":
-        from main.validators import normalize_instagram_contact
+        from profiles.validators import normalize_instagram_contact
         try:
             handle = normalize_instagram_contact(value)
             label, url, cta = "@" + handle, "https://www.instagram.com/" + handle + "/", "Hubungi via Instagram"

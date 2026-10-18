@@ -5,24 +5,14 @@ from django.test import TestCase
 from django.urls import reverse
 
 
-PASSWORD = "Preloved!Strong9382"
-
-
-def registration_data(**overrides):
-    data = {
-        "username": "nina.arum",
-        "password1": PASSWORD,
-        "password2": PASSWORD,
-    }
-    data.update(overrides)
-    return data
+from accounts.testing import PASSWORD, registration_data
 
 
 class RegistrationTests(TestCase):
     """Spesifikasi 4.1, 5.1 langkah 1-4, dan 11: registrasi akun."""
 
     def setUp(self):
-        self.url = reverse("main:register")
+        self.url = reverse("accounts:register")
 
     def assert_registration_rejected(self, data, field, code):
         response = self.client.post(self.url, data)

@@ -3,8 +3,8 @@ from django.contrib.auth.models import User
 from django.test import Client, TestCase
 from django.urls import reverse
 
-from main.models import Profile
-from main.test_registration import PASSWORD, registration_data
+from profiles.models import Profile
+from accounts.testing import PASSWORD, registration_data
 
 
 class LoginLogoutTests(TestCase):
@@ -18,8 +18,8 @@ class LoginLogoutTests(TestCase):
         Profile.objects.create(user=cls.user, display_name="Nina")
 
     def setUp(self):
-        self.login_url = reverse("main:login")
-        self.logout_url = reverse("main:logout")
+        self.login_url = reverse("accounts:login")
+        self.logout_url = reverse("accounts:logout")
         self.credentials = {"username": self.user.username, "password": PASSWORD}
 
     def test_guest_can_open_login_form(self):
@@ -121,7 +121,7 @@ class LoginLogoutTests(TestCase):
     def test_guest_header_links_to_login_and_registration_without_private_email(self):
         response = self.client.get(reverse("main:show_main"))
         self.assertContains(response, f'href="{self.login_url}"')
-        self.assertContains(response, f'href="{reverse("main:register")}"')
+        self.assertContains(response, f'href="{reverse("accounts:register")}"')
         self.assertNotContains(response, self.user.email)
 
     def test_authenticated_header_uses_post_logout_forms(self):
@@ -145,7 +145,7 @@ class AuthenticationCsrfTests(TestCase):
 
     def test_registration_without_csrf_is_rejected_without_creating_account(self):
         response = self.client.post(
-            reverse("main:register"), registration_data(username="new-user")
+            reverse("accounts:register"), registration_data(username="new-user")
         )
         self.assertEqual(response.status_code, 403)
         self.assertEqual(User.objects.count(), 1)
@@ -153,7 +153,7 @@ class AuthenticationCsrfTests(TestCase):
 
     def test_login_without_csrf_is_rejected_without_starting_session(self):
         response = self.client.post(
-            reverse("main:login"),
+            reverse("accounts:login"),
             {"username": self.user.username, "password": PASSWORD},
         )
         self.assertEqual(response.status_code, 403)
@@ -161,37 +161,37 @@ class AuthenticationCsrfTests(TestCase):
 
     def test_logout_without_csrf_is_rejected_and_keeps_session(self):
         self.client.force_login(self.user)
-        response = self.client.post(reverse("main:logout"))
+        response = self.client.post(reverse("accounts:logout"))
         self.assertEqual(response.status_code, 403)
         self.assertEqual(self.client.session[SESSION_KEY], str(self.user.pk))
 
     def test_registration_login_and_logout_accept_valid_csrf_tokens(self):
-        self.client.get(reverse("main:register"))
+        self.client.get(reverse("accounts:register"))
         response = self.client.post(
-            reverse("main:register"),
+            reverse("accounts:register"),
             {
                 **registration_data(username="new-user"),
                 "csrfmiddlewaretoken": self.client.cookies["csrftoken"].value,
             },
         )
-        self.assertRedirects(response, reverse("main:profile_create"))
+        self.assertRedirects(response, reverse("profiles:profile_create"))
         new_user = User.objects.get(username="new-user")
         self.assertEqual(self.client.session[SESSION_KEY], str(new_user.pk))
         # Django merotasi CSRF token saat login; selalu gunakan token terbaru.
         response = self.client.post(
-            reverse("main:logout"),
+            reverse("accounts:logout"),
             {"csrfmiddlewaretoken": self.client.cookies["csrftoken"].value},
         )
         self.assertRedirects(response, reverse("main:show_main"))
         self.assertNotIn(SESSION_KEY, self.client.session)
-        self.client.get(reverse("main:login"))
+        self.client.get(reverse("accounts:login"))
         response = self.client.post(
-            reverse("main:login"),
+            reverse("accounts:login"),
             {
                 "username": new_user.username,
                 "password": PASSWORD,
                 "csrfmiddlewaretoken": self.client.cookies["csrftoken"].value,
             },
         )
-        self.assertRedirects(response, reverse("main:profile_create"))
+        self.assertRedirects(response, reverse("profiles:profile_create"))
         self.assertEqual(self.client.session[SESSION_KEY], str(new_user.pk))
