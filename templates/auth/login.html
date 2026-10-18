@@ -1,0 +1,46 @@
+{% extends "base.html" %}
+{% block title %}Login{% endblock %}
+{% block content %}
+<section class="container-page flex justify-center py-2 md:py-20">
+    <div class="panel w-full max-w-xl">
+        <h1 class="text-3xl md:text-4xl font-display font-medium text-center mb-2">Masuk</h1>
+        <form method="POST" action="{% url "main:login" %}" class="space-y-5">
+            {% csrf_token %}
+
+            {% for field in form  %}
+            <div class="field !gap-1 md:!gap-2 {% if field.errors %}has-error{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+
+                {% if field.help_text %}
+                <div class="field-help mt-2
+                            [&_li]:!text-[11px] md:[&_li]:!text-[13px]
+                            [&_li]:leading-tight [&_li]:mb-1">
+                    {{ field.help_text|safe }}
+                </div>
+                {% endif %}
+
+                {% for error in field.errors %}
+                <p class="field-error">{{ error }}</p>
+                {% endfor %}
+
+            </div>
+            {% endfor %}
+
+            {% if form.non_field_errors %}
+            <div class="mt-2 p-3 bg-terracotta-soft text-error text-[13px] border border-error">
+                {% for error in form.non_field_errors  %}
+                <p>{{ error }}</p>
+                {% endfor %}
+            </div>
+            {% endif %}
+
+            <button type="submit" class="btn btn-primary btn-block mt-8">Masuk</button>
+        </form>
+
+        <p class="text-center text-[13px] text-stone mt-6">
+            Belum punya akun? <a href="{% url 'main:register' %}" class="text-terracotta hover:underline font-semibold">Daftar di sini</a>
+        </p>
+    </div>
+</section>
+{% endblock content %}
