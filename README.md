@@ -1,5 +1,21 @@
 # Pakelagi
 
+## Pengujian intro di browser
+
+Aktifkan virtual environment Python dan pasang `requirements.txt` terlebih dahulu.
+Suite browser memakai Node.js 20+ dan Chromium Playwright, terpisah dari dependensi runtime Django:
+
+```sh
+npm ci
+npx playwright install chromium
+python manage.py migrate
+npm test
+```
+
+Di Linux/CI, gunakan `npx playwright install --with-deps chromium` bila dependensi sistem belum tersedia.
+Playwright menjalankan server Django lokal pada port 8765 dengan perintah `python` dari environment aktif.
+Test memakai halaman login publik dan tidak membuat akun. Jalankan test backend dengan `python manage.py test`.
+
 Platform web listing pakaian preloved untuk komunitas Indonesia — Proyek Tengah Semester PBP 2026.
 
 ---
