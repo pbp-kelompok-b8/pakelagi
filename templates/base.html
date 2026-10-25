@@ -46,6 +46,7 @@
 
     <!-- Token, header, footer, dan komponen bersama (tombol, input, tag) -->
     <link rel="stylesheet" href="{% static 'css/base.css' %}">
+    <link rel="stylesheet" href="{% static 'css/intro.css' %}">
 
     <!-- HTMX untuk interaksi tanpa reload halaman -->
     <script src="https://unpkg.com/htmx.org@2.0.4" defer></script>
@@ -56,6 +57,8 @@
 
 <!-- hx-headers: token CSRF ikut terkirim di semua request HTMX, jadi tidak perlu diatur ulang per komponen -->
 <body class="min-h-screen flex flex-col" hx-headers='{"X-CSRFToken": "{{ csrf_token }}"}'>
+    {% include "components/intro.html" %}
+    <script src="{% static 'js/intro.js' %}"></script>
     <a href="#konten" class="skip-link">Lompat ke konten</a>
 
     {% block header %}

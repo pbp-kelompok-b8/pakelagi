@@ -1,0 +1,20 @@
+{% load static %}
+<div id="site-intro" class="intro" role="dialog" aria-label="Intro Pakelagi" hidden>
+    <div class="intro__photos">
+        <span class="intro__wordmark">Pakelagi</span>
+        <div class="intro__progress" role="progressbar" aria-label="Progres intro" aria-valuemin="0" aria-valuemax="100" aria-valuenow="8">
+            <span class="intro__counter" aria-hidden="true">[ 08 ]</span>
+            <div class="intro__bar"></div>
+        </div>
+        <div class="intro__frame" data-progress="8" hidden><img src="{% static 'intro/Intro — 01/Photo — back.png' %}" alt=""><img src="{% static 'intro/Intro — 01/Photo — front.png' %}" alt=""></div>
+        <div class="intro__frame" data-progress="21" hidden><img src="{% static 'intro/Intro — 02/Photo — back.jpeg' %}" alt=""><img src="{% static 'intro/Intro — 02/Photo — front.png' %}" alt=""></div>
+        <div class="intro__frame" data-progress="34" hidden><img src="{% static 'intro/Intro — 03/Photo — back.png' %}" alt=""><img src="{% static 'intro/Intro — 03/Photo — front.png' %}" alt=""></div>
+        <div class="intro__frame" data-progress="47" hidden><img src="{% static 'intro/Intro — 04/Photo — back.png' %}" alt=""><img src="{% static 'intro/Intro — 04/Photo — front.png' %}" alt=""></div>
+        <div class="intro__frame" data-progress="63" hidden><img src="{% static 'intro/Intro — 05/Photo — back.png' %}" alt=""><img src="{% static 'intro/Intro — 05/Photo — front.png' %}" alt=""></div>
+        <div class="intro__frame" data-progress="78" hidden><img src="{% static 'intro/Intro — 06/Photo — back.png' %}" alt=""><img src="{% static 'intro/Intro — 06/Photo — front.png' %}" alt=""></div>
+        <div class="intro__frame" data-progress="91" hidden><img src="{% static 'intro/Intro — 07/Photo — back.png' %}" alt=""><img src="{% static 'intro/Intro — 07/Photo — front.png' %}" alt=""></div>
+        <div class="intro__frame" data-progress="100" hidden><img src="{% static 'intro/Intro — 08/Photo — back.png' %}" alt=""><img src="{% static 'intro/Intro — 08/Photo — front.png' %}" alt=""></div>
+    </div>
+    <div class="intro__end" hidden><div><span>Pakelagi</span><p>Dipakai lagi, dicintai lagi.</p></div></div>
+    <button type="button" class="intro__skip">Lewati intro</button>
+</div>
