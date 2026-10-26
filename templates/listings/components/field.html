@@ -1,0 +1,7 @@
+{# Satu kolom form listing: label, input, petunjuk, dan error. Variabel: field, hint (opsional). #}
+<div class="field{% if field.errors %} has-error{% endif %}">
+    {{ field.label_tag }}
+    {{ field }}
+    {% if hint %}<p class="field-help" id="{{ field.auto_id }}_hint">{{ hint }}</p>{% endif %}
+    {% if field.errors %}<div role="alert">{{ field.errors }}</div>{% endif %}
+</div>

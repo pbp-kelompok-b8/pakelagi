@@ -14,9 +14,9 @@
         <div class="flex flex-col sm:flex-row sm:items-center gap-5 sm:gap-8 mt-10">
             <a href="{% url 'listings:list' %}" class="btn btn-primary">Jelajahi katalog</a>
             {% if user.is_authenticated %}
-            <a href="#" class="btn btn-text self-start sm:self-auto">Posting barang &rarr;</a>
+            <a href="{% url 'listings:create' %}" class="btn btn-text self-start sm:self-auto">Posting barang &rarr;</a>
             {% else %}
-            <a href="#" class="btn btn-text self-start sm:self-auto">Daftar untuk posting barang &rarr;</a>
+            <a href="{% url 'accounts:register' %}" class="btn btn-text self-start sm:self-auto">Daftar untuk posting barang &rarr;</a>
             {% endif %}
         </div>
     </div>

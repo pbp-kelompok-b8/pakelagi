@@ -1,16 +1,18 @@
 from django.conf import settings
-from django.core.validators import MinLengthValidator
+from django.core.validators import MaxValueValidator, MinLengthValidator
 from django.db import models
 from django.utils import timezone
 
 from listings.validators import validate_http_url
 
+MAX_PRICE = 100_000_000
+
 
 class Listing(models.Model):
     # Kategori barang
     class Category(models.TextChoices):
-        TOP = "Top", "Atasan"
-        BOTTOM = "Bottom", "Bawahan"
+        TOP = "Top", "Top"
+        BOTTOM = "Bottom", "Bottom"
         DRESS = "Dress", "Dress"
         OUTERWEAR = "Outerwear", "Outerwear"
         MODEST_WEAR = "Modest Wear", "Modest Wear"
@@ -45,7 +47,11 @@ class Listing(models.Model):
     brand = models.CharField("Brand", max_length=80, blank=True)
     size = models.CharField("Ukuran", max_length=10, choices=Size.choices)
     condition = models.CharField("Kondisi", max_length=20, choices=Condition.choices)
-    price = models.PositiveIntegerField("Harga (Rp)")
+    # Batas atas menjaga nilai tetap muat di kolom integer 32-bit PostgreSQL (SQLite tidak mengeluh, PostgreSQL error).
+    price = models.PositiveIntegerField(
+        "Harga (Rp)",
+        validators=[MaxValueValidator(MAX_PRICE, message="Harga maksimal Rp 100.000.000.")],
+    )
     image_url = models.URLField("URL gambar", max_length=2048, validators=[validate_http_url])
     city = models.CharField("Kota/area umum", max_length=100)
     latitude = models.DecimalField(max_digits=9, decimal_places=6, null=True, blank=True)
