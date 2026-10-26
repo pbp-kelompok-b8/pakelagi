@@ -298,11 +298,11 @@ Catatan tahap implementasi etalase: modul listing/favorite belum tersedia pada b
 - [X] Nomor tampil sebagai “Telepon” tanpa badge verifikasi atau WhatsApp; email kontak tidak diambil otomatis dari email akun.
 - [X] Guest dan user belum onboarding tidak menerima kontak/telepon di HTML, atribut, partial HTMX, atau respons data. Ajakan login/onboarding mempertahankan tujuan aman.
 - [X] Instagram/email/other menghasilkan CTA yang sesuai; kontak kosong dan nomor-saja memiliki fallback yang benar.
-- [ ] Semua permukaan etalase mengecualikan Hidden/moderasi, termasuk hitungan dan cuplikan serta ketika pemilik membukanya.
-- [ ] Dijual default, Terjual terpisah; hitungan total sesuai status, bukan jumlah kartu termuat.
-- [ ] Kedua tab memuat 8 barang, label sisa tepat, serta tombol hilang pada akhir daftar; uji 0, 1, 8, 9, dan lebih dari 16 hasil.
-- [ ] Urutan terbaru/harga deterministik; tab, urutan, dan posisi pemuatan dapat dipulihkan lewat URL/riwayat dan bekerja tanpa JavaScript.
-- [ ] Cuplikan maksimal empat Sold berdasarkan waktu transisi Sold, hanya pada tab Dijual; tautan menuju tab Terjual.
+- [X] Semua permukaan etalase mengecualikan Hidden/moderasi, termasuk hitungan dan cuplikan serta ketika pemilik membukanya.
+- [X] Dijual default, Terjual terpisah; hitungan total sesuai status, bukan jumlah kartu termuat.
+- [X] Kedua tab memuat 8 barang, label sisa tepat, serta tombol hilang pada akhir daftar; uji 0, 1, 8, 9, dan lebih dari 16 hasil.
+- [X] Urutan terbaru/harga deterministik; tab, urutan, dan posisi pemuatan dapat dipulihkan lewat URL/riwayat dan bekerja tanpa JavaScript.
+- [X] Cuplikan maksimal empat Sold berdasarkan waktu transisi Sold, hanya pada tab Dijual; tautan menuju tab Terjual.
 - [ ] Favorit hanya dapat ditambahkan untuk Available milik orang lain; request langsung tetap diperiksa dan favorite tidak duplikat.
 - [ ] Favorite lama pada Sold tetap ada dan dapat dihapus pemilik; tidak ada aksi tambah pada Sold/listing sendiri.
 - [ ] Perubahan status bersamaan diperiksa ulang pada daftar dan aksi; kegagalan pemuatan mempertahankan kartu dan dapat dicoba ulang.

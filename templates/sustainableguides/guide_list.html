@@ -1,0 +1,135 @@
+{% extends "base.html" %}
+
+{% block content %}
+<!-- Hero Section -->
+<div class="w-full bg-[#1F3D33] inline-flex flex-col md:flex-row justify-start items-center overflow-hidden">
+    <div class="flex-1 py-12 px-6 md:pl-12 md:pr-20 inline-flex flex-col justify-start items-start gap-8 overflow-hidden">
+        <div class="justify-start">
+            <span class="text-stone-100 text-5xl md:text-8xl font-medium font-['Cormorant_Garamond'] leading-tight md:leading-[100px]">Merawat,<br/></span>
+            <span class="text-orange-400 text-5xl md:text-8xl font-medium font-['Cormorant_Garamond'] leading-tight md:leading-[100px] italic">bukan mengganti.</span>
+        </div>
+        <div class="w-full md:w-[520px] justify-start text-stone-100/80 text-base font-normal font-['Jost'] leading-7">
+            Panduan perawatan, perbaikan, dan belanja yang lebih sadar — supaya pakaian yang baik bertahan lebih dari satu lemari.
+        </div>
+    </div>
+    <img class="w-full md:size-[640px] object-cover relative" src="https://images.unsplash.com/photo-1512436991641-6745cdb1723f?q=80&w=640&auto=format&fit=crop" alt="Hero Jurnal" />
+</div>
+
+<!-- Topic Selection Filter (Styling Radio Button Figma) -->
+<div class="w-full px-6 md:px-12 pt-12 inline-flex flex-wrap justify-start items-center gap-2 overflow-hidden" id="category-filters">
+    
+    <!-- Tombol SEMUA (Default) -->
+    <button data-category="" class="filter-btn px-4 py-2.5 outline outline-1 outline-offset-[-1px] inline-flex justify-start items-start overflow-hidden transition-colors {% if active_category == 'SEMUA' %}bg-zinc-900 outline-zinc-900{% else %}outline-stone-300 hover:bg-stone-200{% endif %}">
+        <div class="justify-start text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider {% if active_category == 'SEMUA' %}text-white{% else %}text-zinc-900{% endif %}">Semua</div>
+    </button>
+    
+    <!-- Tombol PERAWATAN -->
+    <button data-category="PERAWATAN" class="filter-btn px-4 py-2.5 outline outline-1 outline-offset-[-1px] inline-flex justify-start items-start overflow-hidden transition-colors {% if active_category == 'PERAWATAN' %}bg-zinc-900 outline-zinc-900{% else %}outline-stone-300 hover:bg-stone-200{% endif %}">
+        <div class="justify-start text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider {% if active_category == 'PERAWATAN' %}text-white{% else %}text-zinc-900{% endif %}">Perawatan</div>
+    </button>
+
+    <!-- Tombol PERBAIKAN -->
+    <button data-category="PERBAIKAN" class="filter-btn px-4 py-2.5 outline outline-1 outline-offset-[-1px] inline-flex justify-start items-start overflow-hidden transition-colors {% if active_category == 'PERBAIKAN' %}bg-zinc-900 outline-zinc-900{% else %}outline-stone-300 hover:bg-stone-200{% endif %}">
+        <div class="justify-start text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider {% if active_category == 'PERBAIKAN' %}text-white{% else %}text-zinc-900{% endif %}">Perbaikan</div>
+    </button>
+
+    <!-- Tombol REUSE -->
+    <button data-category="REUSE" class="filter-btn px-4 py-2.5 outline outline-1 outline-offset-[-1px] inline-flex justify-start items-start overflow-hidden transition-colors {% if active_category == 'REUSE' %}bg-zinc-900 outline-zinc-900{% else %}outline-stone-300 hover:bg-stone-200{% endif %}">
+        <div class="justify-start text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider {% if active_category == 'REUSE' %}text-white{% else %}text-zinc-900{% endif %}">Reuse</div>
+    </button>
+
+    <!-- Tombol SLOW FASHION -->
+    <button data-category="SLOW_FASHION" class="filter-btn px-4 py-2.5 outline outline-1 outline-offset-[-1px] inline-flex justify-start items-start overflow-hidden transition-colors {% if active_category == 'SLOW_FASHION' %}bg-zinc-900 outline-zinc-900{% else %}outline-stone-300 hover:bg-stone-200{% endif %}">
+        <div class="justify-start text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider {% if active_category == 'SLOW_FASHION' %}text-white{% else %}text-zinc-900{% endif %}">Slow Fashion</div>
+    </button>
+
+    <!-- Tombol CONSCIOUS SHOPPING -->
+    <button data-category="CONSCIOUS_SHOPPING" class="filter-btn px-4 py-2.5 outline outline-1 outline-offset-[-1px] inline-flex justify-start items-start overflow-hidden transition-colors {% if active_category == 'CONSCIOUS_SHOPPING' %}bg-zinc-900 outline-zinc-900{% else %}outline-stone-300 hover:bg-stone-200{% endif %}">
+        <div class="justify-start text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider {% if active_category == 'CONSCIOUS_SHOPPING' %}text-white{% else %}text-zinc-900{% endif %}">Conscious Shopping</div>
+    </button>
+</div>
+
+<!-- Featured Article -->
+{% if featured_guide and active_category == 'SEMUA' %}
+<div class="w-full px-6 md:px-12 pt-16 pb-24 flex flex-col md:flex-row justify-start items-center gap-10 md:gap-20 overflow-hidden">
+    {% if featured_guide.image_url %}
+        <img class="w-full md:w-[600px] h-[400px] md:h-[750px] object-cover relative" src="{{ featured_guide.image_url }}" alt="{{ featured_guide.title }}" />
+    {% else %}
+        <img class="w-full md:w-[600px] h-[400px] md:h-[750px] object-cover relative" src="https://placehold.co/600x750?text=Featured" alt="Placeholder" />
+    {% endif %}
+    
+    <div class="flex-1 inline-flex flex-col justify-start items-start gap-7 overflow-hidden">
+        <div class="self-stretch justify-start">
+            <span class="text-zinc-900 text-5xl md:text-7xl font-medium font-['Cormorant_Garamond'] leading-tight md:leading-[76px]">{{ featured_guide.title }}</span>
+        </div>
+        <div class="w-full md:w-[520px] justify-start text-stone-600 text-base font-normal font-['Jost'] leading-7">
+            {{ featured_guide.ringkasan }}
+        </div>
+        <div class="justify-start text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight">
+            Oleh {{ featured_guide.author_name }} &nbsp;·&nbsp; {{ featured_guide.reading_time }} menit baca &nbsp;·&nbsp; {{ featured_guide.date_published|date:"j F Y" }}
+        </div>
+        <div class="pt-3 flex flex-col justify-start items-start overflow-hidden">
+            <a href="{% url 'sustainableguides:detail' featured_guide.id %}" class="px-9 py-4 bg-amber-700 hover:bg-amber-800 transition-colors inline-flex justify-center items-center gap-3">
+                <div class="justify-start text-white text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-widest">Baca panduan</div>
+            </a>
+        </div>
+    </div>
+</div>
+{% endif %}
+
+<!-- All Guides Grid -->
+<div class="w-full px-6 md:px-12 pt-24 pb-32 border-t border-stone-300 inline-flex flex-col justify-start items-start gap-14 overflow-hidden">
+    <div class="self-stretch flex flex-col md:flex-row justify-between items-start md:items-end gap-4 overflow-hidden">
+        <div class="inline-flex flex-col justify-start items-start gap-3 overflow-hidden">
+            <div class="justify-start text-zinc-900 text-4xl md:text-5xl font-medium font-['Cormorant_Garamond'] leading-[56px]">
+                {% if active_category == 'SEMUA' %}Terbaru di Jurnal{% else %}Jurnal Kategori Ini{% endif %}
+            </div>
+        </div>
+        <div class="justify-start text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight">
+            {{ guides.count }} panduan terbit
+        </div>
+    </div>
+    
+    <!-- CSS Grid untuk merender kartu -->
+    <div class="self-stretch grid grid-cols-1 md:grid-cols-3 gap-8 overflow-hidden">
+        {% for guide in guides %}
+            {% include 'sustainableguides/components/guide_card.html' with guide=guide %}
+        {% empty %}
+            <div class="col-span-1 md:col-span-3 py-12 text-center text-stone-500 font-['Jost']">
+                Belum ada panduan untuk kategori ini.
+            </div>
+        {% endfor %}
+    </div>
+</div>
+
+<!-- Submit CTA -->
+<div class="w-full px-6 md:px-12 py-28 bg-amber-700 flex flex-col justify-start items-center gap-6 overflow-hidden text-center">
+    <div class="justify-start text-rose-200 text-xl md:text-2xl font-medium font-['Cormorant_Garamond'] leading-8">Dari lemarimu, untuk lemari orang lain.</div>
+    <div class="justify-start text-white text-4xl md:text-5xl font-medium font-['Cormorant_Garamond'] leading-[56px]">Punya cara merawat pakaian?</div>
+    <div class="justify-start text-white/90 text-base font-normal font-['Jost'] leading-6">Member dapat mengirim draf tips. Admin meninjau setiap draf sebelum diterbitkan.</div>
+    <div class="pt-3 flex flex-col justify-start items-center overflow-hidden">
+        <!-- PERBAIKAN 5: Tambah group hover text-amber-700 di button, dan pastikan text default putih -->
+        <a href="{% url 'sustainableguides:drafts' %}" class="group px-9 py-4 outline outline-1 outline-offset-[-1px] outline-white hover:bg-white transition-colors inline-flex justify-center items-center gap-3">
+            <div class="justify-start text-white group-hover:text-amber-700 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-widest transition-colors">Kirim draf panduan</div>
+        </a>
+    </div>
+</div>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const filterButtons = document.querySelectorAll('.filter-btn');
+        filterButtons.forEach(button => {
+            button.addEventListener('click', function() {
+                const category = this.getAttribute('data-category');
+                const url = new URL(window.location.href);
+                if (category) {
+                    url.searchParams.set('category', category);
+                } else {
+                    url.searchParams.delete('category'); // Kembali ke SEMUA
+                }
+                window.location.href = url.toString();
+            });
+        });
+    });
+</script>
+{% endblock %}

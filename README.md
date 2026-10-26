@@ -168,11 +168,11 @@ source env/bin/activate
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Salin file environment lalu sesuaikan nilainya
-cp .env.example .env   # buat .env.example jika belum ada
-
-# 5. Jalankan migration
+# 4. Jalankan migration (lokal tidak butuh file .env, langsung memakai SQLite)
 python manage.py migrate
+
+# 5. Isi data contoh: 5 penjual contoh dengan 50 listing tersedia + 10 terjual (lihat bagian "Seed data")
+python manage.py seed_listings
 
 # 6. (Opsional) buat superuser untuk akses admin/moderasi
 python manage.py createsuperuser
@@ -183,15 +183,42 @@ python manage.py runserver
 
 Aplikasi berjalan di `http://127.0.0.1:8000/`.
 
-Secara default (`PRODUCTION` tidak diset atau `false`), project memakai **SQLite** (`db.sqlite3`) agar mudah dijalankan lokal tanpa setup PostgreSQL. Di production/PWS, set `PRODUCTION=true` beserta `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` pada `.env` agar aplikasi memakai **PostgreSQL**.
+Secara default (`PRODUCTION` tidak diset atau `false`), project memakai **SQLite** (`db.sqlite3`) agar mudah dijalankan lokal tanpa setup PostgreSQL. Di production/PWS, buat file `.env` (dibaca otomatis oleh `settings.py` lewat `python-dotenv`; file ini tidak ikut Git) yang berisi `PRODUCTION=true` beserta `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` agar aplikasi memakai **PostgreSQL**.
 
 ### Seed data
 
 ```bash
-python manage.py loaddata fixtures/seed_listings.json
+python manage.py seed_listings
 ```
 
-> ⚠️ Fixture seed data (`fixtures/seed_listings.json`, minimal 50 listing sesuai §14 spesifikasi) **belum dibuat** — akan ditambahkan bertahap seiring modul masing-masing anggota selesai. Update perintah di atas begitu path fixture final tersedia.
+Perintah ini membuat data contoh untuk deployment pertama (spesifikasi §14):
+
+| Isi | Jumlah |
+|---|---|
+| Akun penjual contoh (`sample_nina`, `sample_raka`, `sample_tika`, `sample_bagas`, `sample_dewi`) beserta profilnya | 5 |
+| Listing **tersedia**, tepat 10 per kategori (Top, Bottom, Dress, Outerwear, Modest Wear) | 50 |
+| Listing **terjual**, untuk mengisi cuplikan "Baru saja terjual" di etalase profil | 10 |
+
+- **Aman dijalankan berulang.** Listing dikenali dari penjual dan judulnya, jadi menjalankannya lagi memperbarui data yang sama, tidak menggandakannya.
+- `python manage.py seed_listings --reset` menghapus dulu semua listing milik akun contoh lalu membuatnya ulang. Listing pengguna asli tidak pernah disentuh.
+- Akun contoh **tidak punya kata sandi** (tidak bisa dipakai login), dan kontaknya memakai `@example.com` (domain yang memang dicadangkan untuk contoh), jadi tidak ada data pribadi anggota kelompok.
+- Data sengaja bervariasi: ukuran XS sampai XXL, keempat kondisi, 12 kota, harga Rp 45.000 sampai Rp 450.000, dan beragam tag keberlanjutan. Koordinat kota sudah dibulatkan sekitar 1 km.
+- Foto memakai URL [Unsplash](https://unsplash.com/license) yang sudah dicek bisa diakses. Kalau suatu saat gagal dimuat, kartu menampilkan placeholder "Foto tidak tersedia".
+- Data dan fotonya didefinisikan di `listings/seed_data.py`.
+
+### Menjalankan test
+
+```bash
+python manage.py test
+```
+
+Test **tidak membutuhkan internet**: respons Nominatim di-mock. Untuk melihat cakupan (target kelompok minimal 80%):
+
+```bash
+pip install coverage
+coverage run manage.py test
+coverage report --include="listings/*,profiles/*,accounts/*" --omit="*/test_*.py,*/tests.py,*/migrations/*"
+```
 
 ---
 

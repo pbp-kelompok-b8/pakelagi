@@ -33,3 +33,30 @@
     {% include "profiles/listings.html" %}
 </section>
 {% endblock %}
+
+{% block extra_js %}
+<script>
+    /* ---------------------------------------------
+       Etalase: pesan kalau "Muat lebih banyak" gagal
+       Barang yang sudah tampil dibiarkan (HTMX tidak mengganti isi kalau server membalas error),
+       dan tombolnya tetap bisa diklik untuk mencoba lagi.
+       --------------------------------------------- */
+    function tampilkanErrorEtalase() {
+        const $error = document.getElementById('storefront-error');
+        if ($error) $error.hidden = false;
+    }
+
+    function sembunyikanErrorEtalase() {
+        const $error = document.getElementById('storefront-error');
+        if ($error) $error.hidden = true;
+    }
+
+    // Listener di body cukup dipasang satu kali, walaupun skrip ini dijalankan ulang (misal saat tombol back)
+    if (!window.etalaseTerpasang) {
+        document.body.addEventListener('htmx:beforeRequest', sembunyikanErrorEtalase);
+        document.body.addEventListener('htmx:responseError', tampilkanErrorEtalase);
+        document.body.addEventListener('htmx:sendError', tampilkanErrorEtalase);
+        window.etalaseTerpasang = true;
+    }
+</script>
+{% endblock %}

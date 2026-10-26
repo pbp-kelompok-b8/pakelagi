@@ -1,19 +1,22 @@
 {# Header bersama. Isinya menyesuaikan peran: guest (belum login), member (sudah login), admin (is_staff). #}
 {% comment %}
-    TODO tiap modul: ganti href="#" dengan tag url setelah URL-nya dibuat, contoh:
-    Katalog -> listings, Jurnal -> guides, Favorit -> favorites, Akun saya -> profile, Masuk/Daftar/Keluar -> auth.
+    Susunan mengikuti Figma: kiri = menu utama, tengah = logo, kanan = cari, favorit, akun, dan tombol.
+    TODO tiap modul: ganti href="#" dengan tag url setelah halamannya dibuat:
+    Penjual -> daftar penjual, Favorit -> favorites.
 {% endcomment %}
 
-{% with current=request.resolver_match.url_name %}
+{% with current=request.resolver_match.url_name app=request.resolver_match.app_name %}
 <header class="site-header">
     <div class="container-page flex items-center justify-between gap-4 h-16 md:h-20">
 
         <!-- Kiri: navigasi utama (desktop) -->
-        <nav class="hidden md:flex items-center gap-9 flex-1" aria-label="Navigasi utama">
-            <a href="#" class="nav-link">Katalog</a>
-            <a href="#" class="nav-link">Jurnal</a>
+        <nav class="hidden xl:flex items-center gap-8 flex-1" aria-label="Navigasi utama">
+            <a href="{% url 'listings:list' %}" class="nav-link"{% if app == 'listings' %} aria-current="page"{% endif %}>Katalog</a>
+            <a href="{% url 'listings:list' %}#kategori" class="nav-link">Kategori</a>
+            <a href="{% url 'sustainableguides:list' %}" class="nav-link"{% if app == 'sustainableguides' %} aria-current="page"{% endif %}>Jurnal</a>
+            <a href="#" class="nav-link">Penjual</a>
             {% if user.is_staff %}
-            <a href="#" class="nav-link">Moderasi</a>
+            <a href="{% url 'moderations:jurnal_list' %}" class="nav-link"{% if app == 'moderations' %} aria-current="page"{% endif %}>Moderasi</a>
             {% endif %}
         </nav>
 
@@ -21,30 +24,41 @@
         <a href="{% url 'main:show_main' %}" class="brand"
            {% if current == 'show_main' %}aria-current="page"{% endif %}>Pakelagi</a>
 
-        <!-- Kanan: aksi sesuai peran (desktop) -->
-        <div class="hidden md:flex items-center justify-end gap-7 flex-1">
+        <!-- Kanan: ikon dan aksi sesuai peran (desktop) -->
+        <div class="hidden xl:flex items-center justify-end gap-6 flex-1">
+            {# inline-flex + items-center: ikon dan teks sejajar dalam satu baris (kelas Tailwind, tidak bergantung pada cache base.css) #}
+            <a href="{% url 'listings:list' %}#catalog-q" class="icon-link inline-flex items-center" aria-label="Cari pakaian">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
+            </a>
+            <a href="#" class="icon-link inline-flex items-center" aria-label="Favorit">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
+            </a>
             {% if user.is_authenticated %}
-                <a href="#" class="nav-link">Favorit</a>
-                <details class="relative">
-                    <summary class="nav-link cursor-pointer">Akun saya ({{ user.username }})</summary>
-                    <div class="absolute right-0 z-20 bg-ivory border border-line p-4 min-w-40 space-y-3">
+                <details class="relative" id="account-menu">
+                    <summary class="nav-link icon-link inline-flex items-center gap-2 cursor-pointer list-none">
+                        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="12" cy="8" r="4"/><path d="M4 21c0-4 3.6-6 8-6s8 2 8 6"/></svg>
+                        <span>Akun saya</span>
+                    </summary>
+                    <div class="absolute right-0 z-20 mt-3 bg-ivory border border-line p-5 min-w-52 space-y-3">
+                        <p class="text-xs text-stone pb-3 border-b border-line">Masuk sebagai <strong class="font-semibold text-ink">{{ user.username }}</strong></p>
                         <a href="{% url 'profiles:profile' %}" class="nav-link block">Etalase saya</a>
+                        <a href="{% url 'listings:mine' %}" class="nav-link block"{% if current == 'mine' %} aria-current="page"{% endif %}>Listing saya</a>
                         <a href="{% url 'profiles:profile_edit' %}" class="nav-link block">Edit profil</a>
+                        <form method="post" action="{% url 'accounts:logout' %}" class="pt-3 border-t border-line">
+                            {% csrf_token %}
+                            <button type="submit" class="nav-link">Keluar</button>
+                        </form>
                     </div>
                 </details>
-                <form method="post" action="{% url 'accounts:logout' %}">
-                    {% csrf_token %}
-                    <button type="submit" class="nav-link">Keluar</button>
-                </form>
-                <a href="#" class="btn btn-secondary btn-sm">Posting barang</a>
+                <a href="{% url 'listings:create' %}" class="btn btn-secondary btn-sm">Posting barang</a>
             {% else %}
                 <a href="{% url 'accounts:login' %}" class="nav-link">Masuk</a>
                 <a href="{% url 'accounts:register' %}" class="btn btn-secondary btn-sm">Daftar</a>
             {% endif %}
         </div>
 
-        <!-- Tombol hamburger (HP) -->
-        <button class="nav-toggle md:hidden" type="button"
+        <!-- Tombol hamburger (HP dan tablet) -->
+        <button class="nav-toggle xl:hidden" type="button"
                 aria-label="Buka menu" aria-expanded="false" aria-controls="mobileNav">
             <span></span>
             <span></span>
@@ -52,25 +66,29 @@
         </button>
     </div>
 
-    <!-- Menu HP -->
-    <nav id="mobileNav" class="mobile-nav md:hidden" aria-label="Navigasi utama (HP)">
+    <!-- Menu HP dan tablet -->
+    <nav id="mobileNav" class="mobile-nav xl:hidden" aria-label="Navigasi utama (HP)">
         <div class="container-page pb-6">
-            <a href="#" class="nav-link">Katalog</a>
-            <a href="#" class="nav-link">Jurnal</a>
+            <a href="{% url 'listings:list' %}" class="nav-link"{% if app == 'listings' %} aria-current="page"{% endif %}>Katalog</a>
+            <a href="{% url 'listings:list' %}#kategori" class="nav-link">Kategori</a>
+            <a href="{% url 'sustainableguides:list' %}" class="nav-link"{% if app == 'sustainableguides' %} aria-current="page"{% endif %}>Jurnal</a>
+            <a href="#" class="nav-link">Penjual</a>
             {% if user.is_staff %}
-            <a href="#" class="nav-link">Moderasi</a>
+            <a href="{% url 'moderations:ringkasan' %}" class="nav-link"{% if app == 'moderations' %} aria-current="page"{% endif %}>Moderasi</a>
             {% endif %}
 
             {% if user.is_authenticated %}
                 <a href="#" class="nav-link">Favorit</a>
                 <a href="{% url 'profiles:profile' %}" class="nav-link">Etalase saya ({{ user.username }})</a>
+                <a href="{% url 'listings:mine' %}" class="nav-link"{% if current == 'mine' %} aria-current="page"{% endif %}>Listing saya</a>
                 <a href="{% url 'profiles:profile_edit' %}" class="nav-link">Edit profil</a>
                 <form method="post" action="{% url 'accounts:logout' %}">
                     {% csrf_token %}
                     <button type="submit" class="nav-link">Keluar</button>
                 </form>
-                <a href="#" class="btn btn-primary btn-block mt-6">Posting barang</a>
+                <a href="{% url 'listings:create' %}" class="btn btn-primary btn-block mt-6">Posting barang</a>
             {% else %}
+                <a href="#" class="nav-link">Favorit</a>
                 <a href="{% url 'accounts:login' %}" class="nav-link">Masuk</a>
                 <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-block mt-6">Daftar</a>
             {% endif %}
@@ -93,4 +111,24 @@
             navToggle.setAttribute('aria-label', isActive ? 'Tutup menu' : 'Buka menu');
         });
     })();
+
+    // Menu "Akun saya" ditutup kalau klik di luar menu atau menekan Esc.
+    // Elemennya dicari saat kejadian terjadi (bukan disimpan di variabel luar), supaya tetap benar setelah
+    // HTMX memulihkan halaman lewat tombol back dan menjalankan ulang skrip ini.
+    function tutupMenuAkunKalauKlikDiLuar(event) {
+        const $menuAkun = document.getElementById('account-menu');
+        if ($menuAkun && !$menuAkun.contains(event.target)) $menuAkun.open = false;
+    }
+
+    function tutupMenuAkunKalauEsc(event) {
+        const $menuAkun = document.getElementById('account-menu');
+        if ($menuAkun && event.key === 'Escape') $menuAkun.open = false;
+    }
+
+    // Listener di document cukup dipasang satu kali
+    if (!window.menuAkunTerpasang) {
+        document.addEventListener('click', tutupMenuAkunKalauKlikDiLuar);
+        document.addEventListener('keydown', tutupMenuAkunKalauEsc);
+        window.menuAkunTerpasang = true;
+    }
 </script>

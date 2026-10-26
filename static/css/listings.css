@@ -1,0 +1,73 @@
+/* Halaman form listing (.listing-editor) dan "Listing saya" (.my-listings). Token warna dari base.css. */
+
+/* Form */
+.listing-editor .field label { display: block; margin-bottom: .5rem; color: var(--stone); font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .09em; }
+.listing-editor .field input[type="url"],
+.listing-editor .field input[type="text"],
+.listing-editor .field input[type="number"] { width: 100%; min-width: 0; padding: .65rem 0 .75rem; background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; font: inherit; }
+.listing-editor .field textarea { width: 100%; min-height: 8rem; padding: 1rem; border: 1px solid var(--line); background: transparent; resize: vertical; font: inherit; }
+.listing-editor .field-help { margin-top: .5rem; color: var(--stone); font-size: .75rem; line-height: 1.65; }
+.listing-editor .has-error input, .listing-editor .has-error textarea { border-color: var(--error); }
+.listing-editor input:focus-visible, .listing-editor textarea:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 3px; }
+.listing-editor .errorlist { margin-top: .5rem; color: var(--error); font-size: .8rem; }
+.form-section-title { display: flex; align-items: center; gap: 1rem; width: 100%; margin-bottom: 1.75rem; font-family: var(--font-display); font-size: 1.6rem; font-weight: 600; }
+.form-section-title span { color: var(--terracotta); font-family: var(--font-sans); font-size: .75rem; font-weight: 600; letter-spacing: .1em; }
+
+/* Chip pilihan (kategori, ukuran): radio asli disembunyikan, tetap bisa difokus keyboard */
+.chip { position: relative; cursor: pointer; }
+.chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
+.chip span { display: block; padding: .65rem 1rem; border: 1px solid var(--line); font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
+.chip input:checked + span { background: var(--ink); border-color: var(--ink); color: white; }
+.chip input:focus-visible + span { outline: 2px solid var(--terracotta); outline-offset: 3px; }
+
+/* Kartu kondisi: indikator empat garis + penjelasan */
+.cond-card { display: grid; grid-template-columns: auto 5rem 7.5rem 1fr; align-items: center; gap: 1rem; padding: 1rem 1.25rem; border: 1px solid var(--line); background: rgba(255,255,255,.4); cursor: pointer; font-size: .8rem; }
+.cond-card:has(input:checked) { background: var(--white); border-color: var(--ink); }
+.cond-card:has(input:focus-visible) { outline: 2px solid var(--terracotta); outline-offset: 3px; }
+.cond-card input { width: 1rem; height: 1rem; accent-color: var(--terracotta); }
+.cond-bar { display: flex; gap: 3px; }
+.cond-bar i { display: block; width: 1rem; height: 2px; background: var(--line); }
+.cond-bar[data-level="4"] i, .cond-bar[data-level="3"] i:nth-child(-n+3), .cond-bar[data-level="2"] i:nth-child(-n+2), .cond-bar[data-level="1"] i:nth-child(1) { background: var(--ink); }
+.cond-card .cond-hint { color: var(--stone); }
+@media (max-width: 640px) { .cond-card { grid-template-columns: auto 1fr; } .cond-card .cond-bar, .cond-card .cond-hint { grid-column: 2; } }
+
+/* Checkbox tag keberlanjutan */
+.check-option { display: flex; align-items: flex-start; gap: .75rem; cursor: pointer; }
+.check-option input { width: 1rem; height: 1rem; margin-top: .2rem; accent-color: var(--terracotta); flex-shrink: 0; }
+
+/* "Listing saya" */
+.account-nav a, .account-nav button { display: flex; justify-content: space-between; width: 100%; padding: 1rem 0; border-top: 1px solid var(--line); color: var(--stone); text-align: left; }
+.account-nav a[aria-current="page"] { color: var(--terracotta-dark); }
+.my-tab { padding-bottom: 1rem; border-bottom: 2px solid transparent; font-size: .7rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--stone); }
+.my-tab[aria-current="page"] { color: var(--ink); border-bottom-color: var(--terracotta); }
+.my-tab small { margin-left: .4rem; font-size: .7rem; letter-spacing: 0; }
+.row-action { padding: 0 0 .15rem; border: 0; border-bottom: 1px solid currentColor; background: none; color: var(--ink); font: inherit; font-size: .6875rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
+.row-action:hover { color: var(--terracotta); }
+.row-action--danger { color: var(--error); }
+
+/* Katalog: pencarian, filter, dan status memuat */
+.catalog-search { width: 100%; padding: .65rem 0 .75rem; background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; font: inherit; }
+.catalog-search:focus-visible, .catalog-input:focus-visible, .catalog-sort:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 3px; }
+.catalog-input { width: 100%; min-width: 0; padding: .5rem 0 .6rem; background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; font: inherit; font-size: .875rem; }
+.catalog-sort { background: transparent; border: 0; font: inherit; font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+.chip-link { padding: .4rem .7rem; border: 1px solid var(--line); font-size: .7rem; letter-spacing: .04em; }
+.chip-link:hover { border-color: var(--ink); }
+.filter-panel > summary { list-style: none; }
+.filter-panel > summary::-webkit-details-marker { display: none; }
+.filter-panel > summary::after { content: "+"; margin-left: auto; padding-left: 1rem; }
+.filter-panel[open] > summary::after { content: "−"; }
+@media (min-width: 1024px) {
+    .filter-panel > summary { pointer-events: none; }
+    .filter-panel > summary a { pointer-events: auto; }
+    .filter-panel > summary::after { content: none !important; }
+}
+/* HTMX menambahkan class htmx-request pada form selama permintaan berjalan */
+.catalog.htmx-request #listing-results { opacity: .5; transition: opacity .15s; }
+
+/* Saran lokasi (Nominatim) di form listing */
+#location-results:empty { display: none; }
+#location-results { position: relative; z-index: 10; margin-top: .25rem; }
+.location-box { background: var(--white); border: 1px solid var(--line); }
+.location-option { display: block; width: 100%; padding: .75rem 1rem; text-align: left; border-bottom: 1px solid var(--line); }
+.location-option:hover, .location-option:focus-visible { background: var(--sand); outline: none; }
+.location-note { padding: .75rem 1rem; background: var(--sand); font-size: .75rem; color: var(--stone); }

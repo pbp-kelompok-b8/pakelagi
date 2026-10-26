@@ -1,0 +1,17 @@
+{% extends "base.html" %}
+
+{% block title %}Hapus listing{% endblock %}
+
+{% block content %}
+<section class="container-page py-16 md:py-24" aria-labelledby="delete-title">
+    <div class="panel max-w-xl mx-auto space-y-6">
+        <h1 id="delete-title" class="font-display text-3xl break-words">Hapus “{{ listing.title }}”?</h1>
+        <p class="text-sm text-stone">Listing dan favorit yang terkait akan hilang. Tindakan ini tidak bisa dibatalkan.</p>
+        <form method="post" class="flex flex-wrap items-center gap-6">
+            {% csrf_token %}
+            <button type="submit" class="btn btn-danger">Ya, hapus</button>
+            <a href="{% url 'listings:mine' %}" class="btn btn-text">Batal</a>
+        </form>
+    </div>
+</section>
+{% endblock %}
