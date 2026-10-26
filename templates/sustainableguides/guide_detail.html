@@ -1,5 +1,188 @@
 {% extends "base.html" %}
 
 {% block content %}
+<!-- Breadcrumbs -->
+<div class="w-full px-6 md:px-12 pt-8 flex justify-start items-start overflow-hidden">
+    <div class="justify-start text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight">
+        <a href="{% url 'main:show_main' %}" class="hover:text-amber-700 transition-colors">Beranda</a> &nbsp;/&nbsp; 
+        <a href="{% url 'sustainableguides:list' %}" class="hover:text-amber-700 transition-colors">Jurnal</a> &nbsp;/&nbsp; 
+        <a href="{% url 'sustainableguides:list' %}?category={{ guide.category }}" class="hover:text-amber-700 transition-colors">{{ guide.get_category_display }}</a> &nbsp;/&nbsp; 
+        <span class="text-zinc-900">{{ guide.title }}</span>
+    </div>
+</div>
+
+<!-- Header Artikel -->
+<div class="w-full px-6 md:px-12 py-12 md:py-16 flex flex-col justify-start items-center gap-7 overflow-hidden">
+    <div class="text-center justify-start max-w-4xl">
+        <h1 class="text-zinc-900 text-5xl md:text-7xl font-medium font-['Cormorant_Garamond'] leading-tight md:leading-[76px]">{{ guide.title }}</h1>
+    </div>
+    <div class="text-center justify-start text-neutral-700 text-xl md:text-2xl font-medium font-['Cormorant_Garamond'] leading-8 max-w-2xl">
+        {{ guide.ringkasan }}
+    </div>
+    <div class="justify-start text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight">
+        Oleh 
+        {% if guide.author.is_superuser %}
+            <span class="font-semibold text-zinc-900">{{ guide.author_name }}</span>
+        {% else %}
+            <a href="{% url 'profiles:profile_public' guide.author.id %}" class="font-semibold text-zinc-900 hover:text-amber-700 transition-colors">{{ guide.author_name }}</a>
+        {% endif %}
+        &nbsp;·&nbsp; Terbit {{ guide.date_published|date:"j F Y" }}
+    </div>
+</div>
+
+<!-- GAMBAR UTAMA (Di atas pembungkus 2 Kolom, membentang lebar) -->
+{% if guide.image_url %}
+<div class="w-full max-w-6xl mx-auto px-6 md:px-12 mb-12">
+    <img src="{{ guide.image_url }}" alt="{{ guide.title }}" class="w-full h-[400px] md:h-[600px] object-cover">
+</div>
+{% endif %}
+
+<!-- Body Artikel (2 Kolom: TOC & Konten) -->
+<div class="w-full px-6 md:px-12 pb-32 flex flex-col md:flex-row justify-between items-start gap-12 md:gap-0 overflow-hidden">
     
+    <!-- Kolom Kiri: Sidebar Table of Contents (Disembunyikan di HP) -->
+    <div class="hidden md:flex w-56 flex-col justify-start items-start gap-3.5 overflow-hidden sticky top-8">
+        <div class="justify-start text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider mb-2">
+            Dalam panduan ini
+        </div>
+        <!-- TOC Hasil Render Markdown -->
+        <div class="toc-wrapper text-stone-600 text-base font-normal font-['Jost'] leading-6 w-full">
+            {{ table_of_contents|safe }}
+        </div>
+    </div>
+
+    <!-- Kolom Utama: Isi Panduan -->
+    <div class="w-full md:w-[680px] flex flex-col justify-start items-start gap-7 overflow-hidden mx-auto md:mx-0">
+        <!-- Konten HTML Renderan Markdown (Gambar sudah dipindah ke atas area ini) -->
+        <div class="markdown-body w-full">
+            {{ content_html|safe }}
+        </div>
+    </div>
+    
+    <!-- Spacer Kosong untuk menyeimbangkan layout agar tulisan tetap di tengah (Kanan) -->
+    <div class="hidden md:block w-56"></div>
+</div>
+
+<!-- Panduan Lainnya -->
+{% if other_guides %}
+<div class="w-full px-6 md:px-12 pt-24 pb-32 border-t border-stone-300 flex flex-col justify-start items-start gap-12 overflow-hidden">
+    <div class="self-stretch flex justify-between items-end overflow-hidden">
+        <div class="inline-flex flex-col justify-start items-start gap-3 overflow-hidden">
+            <h2 class="justify-start text-zinc-900 text-4xl md:text-5xl font-medium font-['Cormorant_Garamond'] leading-tight md:leading-[56px]">Panduan lainnya</h2>
+        </div>
+        <a href="{% url 'sustainableguides:list' %}" class="pb-2 border-b border-zinc-900 flex justify-center items-center gap-3 hover:text-amber-700 hover:border-amber-700 transition-colors group">
+            <span class="justify-start text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-widest">Semua panduan</span>
+            <div class="size-4 relative overflow-hidden transform group-hover:translate-x-1 transition-transform">
+                <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M10.6667 8L6.66667 4V12L10.6667 8Z" fill="currentColor"/>
+                </svg>
+            </div>
+        </a>
+    </div>
+    
+    <!-- Grid Rekomendasi -->
+    <div class="self-stretch grid grid-cols-1 md:grid-cols-3 gap-8 overflow-hidden">
+        {% for other_guide in other_guides %}
+            {% include 'sustainableguides/components/guide_card.html' with guide=other_guide %}
+        {% endfor %}
+    </div>
+</div>
+{% endif %}
+
+<!-- CUSTOM STYLE UNTUK MARKDOWN & TOC -->
+<style>
+    /* Styling Daftar Isi (TOC) di Kiri */
+    .toc-wrapper ul {
+        list-style: none;
+        padding-left: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 0.75rem;
+    }
+    .toc-wrapper ul ul {
+        padding-left: 1rem;
+        margin-top: 0.75rem;
+    }
+    .toc-wrapper a {
+        transition: color 0.2s;
+    }
+    .toc-wrapper a:hover {
+        color: #b45309; /* Tailwind amber-700 */
+    }
+
+    /* Styling Teks Isi Artikel (Meniru Figma) */
+    .markdown-body {
+        color: #404040; /* text-neutral-700 */
+        font-family: 'Jost', sans-serif;
+        font-size: 1rem;
+        line-height: 1.75rem;
+    }
+    .markdown-body h1, 
+    .markdown-body h2, 
+    .markdown-body h3 {
+        color: #18181b; /* text-zinc-900 */
+        font-family: 'Cormorant Garamond', serif;
+        font-weight: 500;
+        margin-bottom: 1rem;
+    }
+    /* Margin top dikurangi khusus untuk h2 pertama agar rata atas dengan TOC */
+    .markdown-body h1 { font-size: 3rem; line-height: 1.1; margin-top: 2.5rem; }
+    .markdown-body h2 { font-size: 2.25rem; line-height: 2.5rem; margin-top: 2rem; }
+    .markdown-body h2:first-of-type { margin-top: 0; }
+    .markdown-body h3 { font-size: 1.5rem; margin-top: 1.5rem; } 
+    
+    .markdown-body p {
+        margin-bottom: 1.5rem;
+    }
+    
+    /* Styling untuk Tabel (Jika admin buat tabel di Markdown) */
+    .markdown-body table {
+        width: 100%;
+        border-collapse: collapse;
+        margin-bottom: 2rem;
+        border: 1px solid #d6d3d1; /* stone-300 */
+    }
+    .markdown-body th, .markdown-body td {
+        padding: 0.75rem 1rem;
+        border-bottom: 1px solid #d6d3d1;
+        text-align: left;
+    }
+    .markdown-body th {
+        background-color: #f5f5f4; /* stone-100 */
+        font-weight: 600;
+    }
+
+    /* Blockquote (Kutipan estetik) */
+    .markdown-body blockquote {
+        padding-left: 2rem;
+        padding-top: 0.5rem;
+        padding-bottom: 0.5rem;
+        margin-top: 2rem;
+        margin-bottom: 2rem;
+        border-left: 2px solid #b45309; /* amber-700 border di kiri */
+        font-family: 'Cormorant Garamond', serif;
+        font-size: 2.25rem; /* text-4xl */
+        line-height: 2.5rem;
+        color: #18181b; /* zinc-900 */
+    }
+    
+    /* List item (ul, ol) */
+    .markdown-body ul {
+        list-style-type: disc;
+        padding-left: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .markdown-body ol {
+        list-style-type: decimal;
+        padding-left: 1.5rem;
+        margin-bottom: 1.5rem;
+    }
+    .markdown-body li {
+        margin-bottom: 0.5rem;
+    }
+    .markdown-body a {
+        color: #b45309;
+        text-decoration: underline;
+    }
+</style>
 {% endblock %}

@@ -49,6 +49,7 @@ INSTALLED_APPS = [
     'profiles.apps.ProfilesConfig',
     'listings.apps.ListingsConfig', 
     'sustainableguides',
+    'moderations',
 ]
 
 MIDDLEWARE = [
