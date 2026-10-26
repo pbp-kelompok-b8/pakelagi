@@ -44,3 +44,22 @@
 .row-action { padding: 0 0 .15rem; border: 0; border-bottom: 1px solid currentColor; background: none; color: var(--ink); font: inherit; font-size: .6875rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
 .row-action:hover { color: var(--terracotta); }
 .row-action--danger { color: var(--error); }
+
+/* Katalog: pencarian, filter, dan status memuat */
+.catalog-search { width: 100%; padding: .65rem 0 .75rem; background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; font: inherit; }
+.catalog-search:focus-visible, .catalog-input:focus-visible, .catalog-sort:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 3px; }
+.catalog-input { width: 100%; min-width: 0; padding: .5rem 0 .6rem; background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; font: inherit; font-size: .875rem; }
+.catalog-sort { background: transparent; border: 0; font: inherit; font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
+.chip-link { padding: .4rem .7rem; border: 1px solid var(--line); font-size: .7rem; letter-spacing: .04em; }
+.chip-link:hover { border-color: var(--ink); }
+.filter-panel > summary { list-style: none; }
+.filter-panel > summary::-webkit-details-marker { display: none; }
+.filter-panel > summary::after { content: "+"; margin-left: auto; padding-left: 1rem; }
+.filter-panel[open] > summary::after { content: "−"; }
+@media (min-width: 1024px) {
+    .filter-panel > summary { pointer-events: none; }
+    .filter-panel > summary a { pointer-events: auto; }
+    .filter-panel > summary::after { content: none !important; }
+}
+/* HTMX menambahkan class htmx-request pada form selama permintaan berjalan */
+.catalog.htmx-request #listing-results { opacity: .5; transition: opacity .15s; }

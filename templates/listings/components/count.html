@@ -1,0 +1,2 @@
+{# Jumlah pakaian di samping judul. Saat respons HTMX, dikirim ulang sebagai oob supaya ikut berganti. #}
+<p id="catalog-count" class="text-stone text-sm pb-2" role="status"{% if oob %} hx-swap-oob="true"{% endif %}>{% if query.is_filtered %}{{ results_count }} dari {{ total_count }} pakaian{% else %}{{ total_count }} pakaian{% endif %}</p>

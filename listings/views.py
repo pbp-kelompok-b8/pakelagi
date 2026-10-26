@@ -3,15 +3,19 @@ from django.core.paginator import Paginator
 from django.db.models import Count, Q
 from django.http import Http404, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
+from django.urls import reverse
+from django.utils.cache import patch_vary_headers
 from django.views.decorators.cache import cache_control
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
+from listings.filters import SORT_LABELS, TAG_LABELS, CatalogQuery
 from listings.forms import ListingForm
-from listings.models import Listing
+from listings.models import MAX_PRICE, Listing
 from profiles.access import member_required
 from profiles.models import Profile
 from profiles.profile_contacts import contact_context
 
+CATALOG_PAGE_SIZE = 12
 MINE_PAGE_SIZE = 6
 
 # Nilai ?status= di halaman "Listing saya" -> status di database.
@@ -22,14 +26,78 @@ MINE_TABS = {
 }
 
 
+def _page_number(request):
+    """Nomor halaman dari ?page=. Bawaan Django melompat ke halaman TERAKHIR untuk 0 atau -1; di sini jadi halaman 1."""
+    try:
+        return max(int(request.GET.get("page", 1)), 1)
+    except (TypeError, ValueError):
+        return 1
+
+
+def _href(querystring=""):
+    url = reverse("listings:list")
+    return f"{url}?{querystring}" if querystring else url
+
+
+def _page_links(query, page):
+    """Nomor halaman (dengan elipsis) yang tiap tautannya mempertahankan pencarian dan filter."""
+    links = []
+    for number in page.paginator.get_elided_page_range(page.number, on_each_side=1, on_ends=1):
+        if number == Paginator.ELLIPSIS:
+            links.append({"ellipsis": True})
+        else:
+            links.append({"number": number, "href": _href(query.querystring(page=number)), "current": number == page.number})
+    return links
+
+
 @require_GET
 def listing_list(request):
+    query = CatalogQuery.from_query(request.GET)
+
     # Katalog publik: hanya Available. Sold dan Hidden tidak pernah tampil di sini.
-    listings = Listing.objects.filter(status=Listing.Status.AVAILABLE)
-    return render(request, "listings/list.html", {
-        "listings": listings,
-        "total_count": listings.count(),
-    })
+    available = Listing.objects.filter(status=Listing.Status.AVAILABLE)
+    page = Paginator(query.apply(available), CATALOG_PAGE_SIZE).get_page(_page_number(request))
+
+    # Kota ditampilkan sekali saja meski penulisannya berbeda huruf besar/kecil.
+    cities = {}
+    for city in available.values_list("city", flat=True).distinct():
+        cities.setdefault(city.casefold(), city)
+
+    context = {
+        "query": query,
+        "page": page,
+        "total_count": available.count(),
+        "results_count": page.paginator.count,
+        "page_links": _page_links(query, page),
+        "prev_href": _href(query.querystring(page=page.previous_page_number())) if page.has_previous() else "",
+        "next_href": _href(query.querystring(page=page.next_page_number())) if page.has_next() else "",
+        "tabs": [
+            {"label": label, "href": _href(query.with_(category=value).querystring()), "active": query.category == value}
+            for value, label in (("", "Semua"), *Listing.Category.choices)
+        ],
+        "chips": [(label, _href(without.querystring())) for label, without in query.chips()],
+        "sort_options": list(SORT_LABELS.items()),
+        "size_choices": Listing.Size.choices,
+        "condition_choices": Listing.Condition.choices,
+        "tag_choices": list(TAG_LABELS.items()),
+        "city_choices": sorted(cities.values(), key=str.casefold),
+        "price_presets": [
+            ("< 100rb", _href(query.with_(price_min=None, price_max=100_000).querystring())),
+            ("100–250rb", _href(query.with_(price_min=100_000, price_max=250_000).querystring())),
+            ("> 250rb", _href(query.with_(price_min=250_000, price_max=None).querystring())),
+        ],
+        "max_price": MAX_PRICE,
+    }
+
+    # HTMX hanya meminta bagian hasilnya. Pemulihan riwayat (tombol back) butuh halaman penuh.
+    is_htmx = request.headers.get("HX-Request") == "true" and request.headers.get("HX-History-Restore-Request") != "true"
+    if is_htmx:
+        response = render(request, "listings/components/results.html", {**context, "partial": True})
+    else:
+        response = render(request, "listings/list.html", context)
+    # URL yang sama menghasilkan HTML berbeda tergantung jenis permintaan: jangan campur di cache.
+    patch_vary_headers(response, ["HX-Request", "HX-History-Restore-Request", "Cookie"])
+    return response
 
 
 # Isi halaman bergantung pada siapa yang melihat (kontak penjual), jadi jangan disimpan cache bersama.
@@ -150,7 +218,7 @@ def listing_mine(request):
         tab = ""
     if tab:
         mine = mine.filter(status=MINE_TABS[tab])
-    page = Paginator(mine.order_by("-updated_at", "-id"), MINE_PAGE_SIZE).get_page(request.GET.get("page"))
+    page = Paginator(mine.order_by("-updated_at", "-id"), MINE_PAGE_SIZE).get_page(_page_number(request))
     return render(request, "listings/mine.html", {
         "page": page,
         "tab": tab,
