@@ -7,6 +7,7 @@ from listings.validators import validate_http_url
 
 
 class Listing(models.Model):
+    # Kategori barang
     class Category(models.TextChoices):
         TOP = "Top", "Atasan"
         BOTTOM = "Bottom", "Bawahan"
@@ -14,6 +15,7 @@ class Listing(models.Model):
         OUTERWEAR = "Outerwear", "Outerwear"
         MODEST_WEAR = "Modest Wear", "Modest Wear"
 
+    # Ukuran barang
     class Size(models.TextChoices):
         XS = "XS", "XS"
         S = "S", "S"
@@ -23,12 +25,14 @@ class Listing(models.Model):
         XXL = "XXL", "XXL"
         FREE_SIZE = "Free Size", "Free Size"
 
+    # Kondisi barang
     class Condition(models.TextChoices):
         LIKE_NEW = "Like New", "Like New"
         GOOD = "Good", "Good"
         FAIR = "Fair", "Fair"
         NEEDS_REPAIR = "Needs Repair", "Needs Repair"
 
+    # Status barang
     class Status(models.TextChoices):
         AVAILABLE = "Available", "Dijual"
         SOLD = "Sold", "Terjual"
