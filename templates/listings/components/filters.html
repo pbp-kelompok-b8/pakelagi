@@ -2,7 +2,7 @@
 <details id="filter-panel" class="filter-panel" open>
     <summary class="flex items-center justify-between py-3 border-b border-line cursor-pointer lg:cursor-default">
         <span class="label-caps">Filter</span>
-        {% if query.is_filtered %}<a href="{% url 'listings:list' %}" class="label-caps !text-terracotta">Reset</a>{% endif %}
+        {% if is_filtered %}<a href="{% url 'listings:list' %}" class="label-caps !text-terracotta">Reset</a>{% endif %}
     </summary>
 
     <div class="space-y-8 pt-6">

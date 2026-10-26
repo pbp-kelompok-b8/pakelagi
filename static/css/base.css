@@ -162,7 +162,17 @@ h2 em {
     color: var(--terracotta);
 }
 
+/* Teks header dibuat sedikit lebih kecil dari teks isi halaman; logo (.brand) tidak ikut diubah */
+.site-header .nav-link {
+    font-size: 0.6875rem;                   /* 11px */
+    letter-spacing: 0.1em;
+}
+
 .site-header .btn {
+    min-height: 36px;
+    padding: 0.5rem 1.125rem;
+    font-size: 0.6875rem;
+    letter-spacing: 0.12em;
     white-space: nowrap;
 }
 

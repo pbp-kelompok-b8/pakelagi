@@ -46,7 +46,7 @@ class ListingFormTests(TestCase):
         self.assertTrue(form.is_valid(), form.errors)
 
     def test_form_does_not_expose_protected_fields(self):
-        for name in ("seller", "status", "sold_at", "latitude", "longitude", "created_at"):
+        for name in ("seller", "status", "sold_at", "created_at"):
             with self.subTest(field=name):
                 self.assertNotIn(name, ListingForm().fields)
 

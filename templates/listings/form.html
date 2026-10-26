@@ -86,7 +86,17 @@
 
             <fieldset class="space-y-7">
                 <legend class="form-section-title"><span>05</span> Lokasi</legend>
-                {% include "listings/components/field.html" with field=form.city hint="Hanya kota atau area umum — jangan alamat rumah." %}
+                <div class="field{% if form.city.errors %} has-error{% endif %}">
+                    {{ form.city.label_tag }}
+                    {{ form.city }}
+                    {{ form.latitude }}{{ form.longitude }}
+                    {# Saran Nominatim muncul di sini (diisi HTMX). Kosong = tersembunyi. #}
+                    <div id="location-results" aria-live="polite"></div>
+                    <p class="field-help" id="{{ form.city.auto_id }}_hint">Ketik nama kota atau area, lalu pilih dari saran. Tidak menemukan? Ketik manual — listing tetap bisa terbit.</p>
+                    {% if form.city.errors %}<div role="alert">{{ form.city.errors }}</div>{% endif %}
+                </div>
+                <p class="bg-sage px-5 py-4 text-xs leading-relaxed" role="note">Hanya kota atau area umum — jangan alamat rumah. Koordinat dari saran dibulatkan sekitar 1 km, jadi tidak pernah menunjuk rumahmu.</p>
+                <p class="text-[11px] text-stone">Data lokasi © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" class="underline">OpenStreetMap contributors</a> · Nominatim</p>
             </fieldset>
 
             <fieldset class="space-y-5">
@@ -122,4 +132,64 @@
         </aside>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /* ---------------------------------------------
+       Saran kota (Nominatim)
+       Memilih saran mengisi kota dan koordinat.
+       Mengetik ulang secara manual membuang koordinat lama.
+       --------------------------------------------- */
+    const $kota = document.getElementById('id_city');
+    const $latitude = document.getElementById('id_latitude');
+    const $longitude = document.getElementById('id_longitude');
+    const $hasilSaran = document.getElementById('location-results');
+
+    // Teks kota yang cocok dengan koordinat yang tersimpan saat ini (kosong kalau belum ada koordinat)
+    let kotaTerpilih = '';
+    if ($latitude && $longitude && $latitude.value && $longitude.value) {
+        kotaTerpilih = $kota.value;
+    }
+
+    function kosongkanSaran() {
+        $hasilSaran.innerHTML = '';
+    }
+
+    // Penjual mengklik salah satu saran
+    function pilihSaran(event) {
+        const $saran = event.target.closest('[data-city]');
+        if (!$saran) return;
+
+        $kota.value = $saran.dataset.city;
+        $latitude.value = $saran.dataset.lat;
+        $longitude.value = $saran.dataset.lon;
+        kotaTerpilih = $kota.value;
+
+        kosongkanSaran();
+        $kota.focus();
+    }
+
+    // Penjual mengetik lagi: kalau teksnya sudah beda dari saran yang dipilih, koordinatnya tidak cocok lagi
+    function cekKotaDiketikUlang() {
+        if ($kota.value !== kotaTerpilih) {
+            $latitude.value = '';
+            $longitude.value = '';
+        }
+    }
+
+    function tutupSaranKalauKlikDiLuar(event) {
+        const klikDiLuar = !$hasilSaran.contains(event.target) && event.target !== $kota;
+        if (klikDiLuar) kosongkanSaran();
+    }
+
+    if ($kota && $latitude && $longitude && $hasilSaran) {
+        $hasilSaran.addEventListener('click', pilihSaran);
+        $kota.addEventListener('input', cekKotaDiketikUlang);
+        $kota.addEventListener('keydown', (event) => {
+            if (event.key === 'Escape') kosongkanSaran();
+        });
+        document.addEventListener('click', tutupSaranKalauKlikDiLuar);
+    }
+</script>
 {% endblock %}

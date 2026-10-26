@@ -1,17 +1,19 @@
 from django.contrib import messages
 from django.core.paginator import Paginator
 from django.db.models import Count, Q
-from django.http import Http404, HttpResponseBadRequest
+from django.http import Http404, HttpResponse, HttpResponseBadRequest
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.utils.cache import patch_vary_headers
 from django.views.decorators.cache import cache_control
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
 
-from listings.filters import SORT_LABELS, TAG_LABELS, CatalogQuery
+from listings import nominatim
+from listings.filters import (SORT_LABELS, TAG_LABELS, build_querystring, change_filter, filter_listings,
+                              get_catalog_filter, get_filter_chips, is_filtered)
 from listings.forms import ListingForm
 from listings.models import MAX_PRICE, Listing
-from profiles.access import member_required
+from profiles.access import has_complete_profile, member_required
 from profiles.models import Profile
 from profiles.profile_contacts import contact_context
 
@@ -26,76 +28,122 @@ MINE_TABS = {
 }
 
 
-def _page_number(request):
-    """Nomor halaman dari ?page=. Bawaan Django melompat ke halaman TERAKHIR untuk 0 atau -1; di sini jadi halaman 1."""
+def get_page_number(request):
+    # Baca ?page= dari URL. Kalau pakai bawaan Django, ?page=0 atau ?page=-1 melompat ke halaman TERAKHIR,
+    # jadi di sini kita buat angka di bawah 1 dianggap halaman 1.
     try:
-        return max(int(request.GET.get("page", 1)), 1)
-    except (TypeError, ValueError):
+        number = int(request.GET.get("page", 1))
+    except ValueError:
         return 1
+    if number < 1:
+        return 1
+    return number
 
 
-def _href(querystring=""):
+def build_href(querystring=""):
+    # Contoh: "/listings/?size=M". Kalau querystring kosong, hasilnya "/listings/" saja.
     url = reverse("listings:list")
-    return f"{url}?{querystring}" if querystring else url
+    if querystring:
+        return url + "?" + querystring
+    return url
 
 
-def _page_links(query, page):
-    """Nomor halaman (dengan elipsis) yang tiap tautannya mempertahankan pencarian dan filter."""
+def build_page_links(catalog_filter, page):
+    # Nomor halaman untuk pagination (dengan "..." kalau halamannya banyak).
+    # Tiap tautan membawa pencarian dan filter yang sedang aktif.
     links = []
-    for number in page.paginator.get_elided_page_range(page.number, on_each_side=1, on_ends=1):
+    page_range = page.paginator.get_elided_page_range(page.number, on_each_side=1, on_ends=1)
+    for number in page_range:
         if number == Paginator.ELLIPSIS:
             links.append({"ellipsis": True})
         else:
-            links.append({"number": number, "href": _href(query.querystring(page=number)), "current": number == page.number})
+            links.append({
+                "number": number,
+                "href": build_href(build_querystring(catalog_filter, page=number)),
+                "current": number == page.number,
+            })
     return links
 
 
 @require_GET
 def listing_list(request):
-    query = CatalogQuery.from_query(request.GET)
+    catalog_filter = get_catalog_filter(request.GET)
 
-    # Katalog publik: hanya Available. Sold dan Hidden tidak pernah tampil di sini.
+    # Katalog publik hanya yang Available. Sold dan Hidden tidak pernah tampil di sini.
     available = Listing.objects.filter(status=Listing.Status.AVAILABLE)
-    page = Paginator(query.apply(available), CATALOG_PAGE_SIZE).get_page(_page_number(request))
+    results = filter_listings(available, catalog_filter)
+    page = Paginator(results, CATALOG_PAGE_SIZE).get_page(get_page_number(request))
 
-    # Kota ditampilkan sekali saja meski penulisannya berbeda huruf besar/kecil.
-    cities = {}
+    # Daftar kota untuk dropdown. Kota yang sama (beda huruf besar-kecil) cukup muncul sekali.
+    cities = []
+    sudah_ada = []
     for city in available.values_list("city", flat=True).distinct():
-        cities.setdefault(city.casefold(), city)
+        if city.casefold() not in sudah_ada:
+            sudah_ada.append(city.casefold())
+            cities.append(city)
+    cities.sort(key=str.casefold)
+
+    # Link halaman sebelum/sesudahnya (kosong kalau tidak ada)
+    prev_href = ""
+    if page.has_previous():
+        prev_href = build_href(build_querystring(catalog_filter, page=page.previous_page_number()))
+    next_href = ""
+    if page.has_next():
+        next_href = build_href(build_querystring(catalog_filter, page=page.next_page_number()))
+
+    # Tab kategori: "Semua" + tiap kategori. Pencarian dan filter lain tetap dibawa.
+    tab_options = [("", "Semua")] + list(Listing.Category.choices)
+    tabs = []
+    for value, label in tab_options:
+        tabs.append({
+            "label": label,
+            "href": build_href(build_querystring(change_filter(catalog_filter, category=value))),
+            "active": catalog_filter["category"] == value,
+        })
+
+    # Chip filter aktif. Tiap chip berisi (label, link untuk menghapus filter itu)
+    chips = []
+    for label, filter_without in get_filter_chips(catalog_filter):
+        chips.append((label, build_href(build_querystring(filter_without))))
+
+    # Tombol cepat rentang harga
+    price_presets = [
+        ("< 100rb", change_filter(catalog_filter, price_min=None, price_max=100000)),
+        ("100–250rb", change_filter(catalog_filter, price_min=100000, price_max=250000)),
+        ("> 250rb", change_filter(catalog_filter, price_min=250000, price_max=None)),
+    ]
+    price_presets = [(label, build_href(build_querystring(f))) for label, f in price_presets]
 
     context = {
-        "query": query,
+        "query": catalog_filter,
+        "is_filtered": is_filtered(catalog_filter),
         "page": page,
         "total_count": available.count(),
         "results_count": page.paginator.count,
-        "page_links": _page_links(query, page),
-        "prev_href": _href(query.querystring(page=page.previous_page_number())) if page.has_previous() else "",
-        "next_href": _href(query.querystring(page=page.next_page_number())) if page.has_next() else "",
-        "tabs": [
-            {"label": label, "href": _href(query.with_(category=value).querystring()), "active": query.category == value}
-            for value, label in (("", "Semua"), *Listing.Category.choices)
-        ],
-        "chips": [(label, _href(without.querystring())) for label, without in query.chips()],
+        "page_links": build_page_links(catalog_filter, page),
+        "prev_href": prev_href,
+        "next_href": next_href,
+        "tabs": tabs,
+        "chips": chips,
         "sort_options": list(SORT_LABELS.items()),
         "size_choices": Listing.Size.choices,
         "condition_choices": Listing.Condition.choices,
         "tag_choices": list(TAG_LABELS.items()),
-        "city_choices": sorted(cities.values(), key=str.casefold),
-        "price_presets": [
-            ("< 100rb", _href(query.with_(price_min=None, price_max=100_000).querystring())),
-            ("100–250rb", _href(query.with_(price_min=100_000, price_max=250_000).querystring())),
-            ("> 250rb", _href(query.with_(price_min=250_000, price_max=None).querystring())),
-        ],
+        "city_choices": cities,
+        "price_presets": price_presets,
         "max_price": MAX_PRICE,
     }
 
-    # HTMX hanya meminta bagian hasilnya. Pemulihan riwayat (tombol back) butuh halaman penuh.
-    is_htmx = request.headers.get("HX-Request") == "true" and request.headers.get("HX-History-Restore-Request") != "true"
-    if is_htmx:
-        response = render(request, "listings/components/results.html", {**context, "partial": True})
+    # HTMX cuma butuh bagian hasilnya. Tombol back browser butuh halaman penuh.
+    is_htmx = request.headers.get("HX-Request") == "true"
+    is_history_restore = request.headers.get("HX-History-Restore-Request") == "true"
+    if is_htmx and not is_history_restore:
+        context["partial"] = True
+        response = render(request, "listings/components/results.html", context)
     else:
         response = render(request, "listings/list.html", context)
-    # URL yang sama menghasilkan HTML berbeda tergantung jenis permintaan: jangan campur di cache.
+
+    # URL yang sama bisa menghasilkan HTML berbeda (penuh atau potongan), jadi cache jangan mencampurnya
     patch_vary_headers(response, ["HX-Request", "HX-History-Restore-Request", "Cookie"])
     return response
 
@@ -133,11 +181,9 @@ def listing_detail(request, pk):
     })
 
 
-def _manageable_listing_or_404(request, pk, *, owner_only=False):
-    """Listing yang boleh diubah user ini: miliknya sendiri, atau siapa pun jika admin.
-
-    Selain itu 404 (bukan 403) supaya orang luar tidak bisa menebak listing mana yang ada.
-    """
+def get_manageable_listing(request, pk, owner_only=False):
+    # Listing yang boleh diubah user ini: miliknya sendiri, atau milik siapa pun kalau dia admin.
+    # Selain itu hasilnya 404 (bukan 403), supaya orang luar tidak bisa menebak listing mana yang ada.
     listing = get_object_or_404(Listing, pk=pk)
     is_owner = listing.seller_id == request.user.pk
     if not is_owner and (owner_only or not request.user.is_staff):
@@ -161,7 +207,7 @@ def listing_create(request):
 @member_required
 @require_http_methods(["GET", "POST"])
 def listing_edit(request, pk):
-    listing = _manageable_listing_or_404(request, pk)
+    listing = get_manageable_listing(request, pk)
     form = ListingForm(request.POST or None, instance=listing)
     if request.method == "POST" and form.is_valid():
         form.save()
@@ -173,7 +219,7 @@ def listing_edit(request, pk):
 @member_required
 @require_http_methods(["GET", "POST"])
 def listing_delete(request, pk):
-    listing = _manageable_listing_or_404(request, pk)
+    listing = get_manageable_listing(request, pk)
     if request.method == "POST":
         title = listing.title
         listing.delete()
@@ -186,7 +232,7 @@ def listing_delete(request, pk):
 @require_POST
 def listing_set_status(request, pk):
     """Penjual menandai listing miliknya Terjual atau Tersedia lagi."""
-    listing = _manageable_listing_or_404(request, pk, owner_only=True)
+    listing = get_manageable_listing(request, pk, owner_only=True)
     new_status = request.POST.get("status")
     if new_status not in (Listing.Status.AVAILABLE, Listing.Status.SOLD):
         return HttpResponseBadRequest("Status tidak valid.")
@@ -218,9 +264,30 @@ def listing_mine(request):
         tab = ""
     if tab:
         mine = mine.filter(status=MINE_TABS[tab])
-    page = Paginator(mine.order_by("-updated_at", "-id"), MINE_PAGE_SIZE).get_page(_page_number(request))
+    page = Paginator(mine.order_by("-updated_at", "-id"), MINE_PAGE_SIZE).get_page(get_page_number(request))
     return render(request, "listings/mine.html", {
         "page": page,
         "tab": tab,
         "counts": counts,
     })
+
+
+@require_GET
+def location_search(request):
+    # Saran kota/area untuk form listing. HTMX memanggil ini saat penjual mengetik di kolom kota.
+    # Hanya member berprofil lengkap yang boleh, karena endpoint ini memicu request keluar ke Nominatim
+    # yang dibatasi 1 request per detik. Kalau terbuka untuk semua orang, jatahnya bisa dihabiskan satu orang.
+    # Kegagalan apa pun tetap membalas 200 dengan pesan, supaya penjual bisa mengetik kotanya sendiri.
+    if not has_complete_profile(request.user):
+        return HttpResponse(status=403)
+    query = " ".join(request.GET.get("city", "").split())[:nominatim.MAX_QUERY_LENGTH]
+    results, status = nominatim.search(query)
+
+    context = {
+        "results": results,
+        "status": status,
+        "query": query,
+    }
+    response = render(request, "listings/components/location_results.html", context)
+    response["Cache-Control"] = "private, no-store"
+    return response

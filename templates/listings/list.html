@@ -40,25 +40,39 @@
 
 {% block extra_js %}
 <script>
-    // Di layar kecil panel filter dilipat; di layar lebar selalu terbuka. Tanpa JavaScript panel tetap terbuka.
-    (function () {
-        const panel = document.getElementById('filter-panel');
-        if (panel && window.matchMedia('(max-width: 1023px)').matches) panel.open = false;
-    })();
+    /* ---------------------------------------------
+       Halaman katalog
+       --------------------------------------------- */
+    const $panelFilter = document.getElementById('filter-panel');
+    const $kolomCari = document.getElementById('catalog-q');
 
-    // Ikon cari di header menautkan ke #catalog-q: langsung fokus ke kolom pencarian.
-    function focusSearchFromHash() {
-        if (location.hash === '#catalog-q') document.getElementById('catalog-q').focus();
+    // Di layar kecil panel filter dilipat, di layar lebar selalu terbuka.
+    // Kalau JavaScript mati, panelnya tetap terbuka.
+    function lipatPanelDiLayarKecil() {
+        const layarKecil = window.matchMedia('(max-width: 1023px)').matches;
+        if ($panelFilter && layarKecil) $panelFilter.open = false;
     }
-    focusSearchFromHash();
-    window.addEventListener('hashchange', focusSearchFromHash);
 
-    // Buang parameter kosong dan urutan bawaan dari permintaan HTMX supaya URL yang dibagikan tetap ringkas.
-    document.body.addEventListener('htmx:configRequest', function (event) {
+    // Ikon cari di header menautkan ke #catalog-q, jadi kolom pencariannya langsung difokuskan
+    function fokusKeKolomCari() {
+        if ($kolomCari && location.hash === '#catalog-q') $kolomCari.focus();
+    }
+
+    // Parameter kosong dan urutan bawaan dibuang dari permintaan HTMX supaya URL yang dibagikan tetap ringkas,
+    // misal "?size=M" dan bukan "?q=&size=M&price_min=&sort=terbaru"
+    function bersihkanParameter(event) {
         const params = event.detail.parameters;
-        Object.keys(params).forEach(function (key) {
-            if (params[key] === '' || (key === 'sort' && params[key] === 'terbaru')) delete params[key];
-        });
-    });
+
+        for (const nama of Object.keys(params)) {
+            const kosong = params[nama] === '';
+            const urutanBawaan = nama === 'sort' && params[nama] === 'terbaru';
+            if (kosong || urutanBawaan) delete params[nama];
+        }
+    }
+
+    lipatPanelDiLayarKecil();
+    fokusKeKolomCari();
+    window.addEventListener('hashchange', fokusKeKolomCari);
+    document.body.addEventListener('htmx:configRequest', bersihkanParameter);
 </script>
 {% endblock %}

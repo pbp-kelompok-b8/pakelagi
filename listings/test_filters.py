@@ -2,82 +2,104 @@ from django.http import QueryDict
 from django.test import SimpleTestCase, TestCase
 from django.urls import reverse
 
-from listings.filters import CatalogQuery
+from listings.filters import (TAG_FIELDS, TAG_LABELS, build_querystring, get_catalog_filter, get_filter_chips,
+                              is_filtered)
 from listings.models import MAX_PRICE, Listing
 from listings.test_detail import create_listing, make_user
 
 
 def parse(qs=""):
-    return CatalogQuery.from_query(QueryDict(qs))
+    return get_catalog_filter(QueryDict(qs))
 
 
-class CatalogQueryParsingTests(SimpleTestCase):
+class CatalogFilterParsingTests(SimpleTestCase):
     def test_empty_query_is_default_and_not_filtered(self):
-        query = parse()
-        self.assertEqual(query, CatalogQuery())
-        self.assertFalse(query.is_filtered)
-        self.assertEqual(query.querystring(), "")
+        catalog_filter = parse()
+        self.assertEqual(catalog_filter, {
+            "q": "", "category": "", "sizes": [], "conditions": [], "price_min": None, "price_max": None,
+            "city": "", "tags": [], "sort": "terbaru",
+        })
+        self.assertFalse(is_filtered(catalog_filter))
+        self.assertEqual(build_querystring(catalog_filter), "")
 
     def test_valid_values_are_parsed(self):
-        query = parse("q=kemeja+flanel&category=Top&size=M&size=L&condition=Good&price_min=50000&price_max=200000"
-                      "&city=Bandung&tag=local&tag=repairable&sort=harga_terendah")
-        self.assertEqual(query.q, "kemeja flanel")
-        self.assertEqual(query.category, "Top")
-        self.assertEqual(query.sizes, ("M", "L"))
-        self.assertEqual(query.conditions, ("Good",))
-        self.assertEqual((query.price_min, query.price_max), (50000, 200000))
-        self.assertEqual(query.city, "Bandung")
-        self.assertEqual(query.tags, ("repairable", "local"))
-        self.assertEqual(query.sort, "harga_terendah")
-        self.assertTrue(query.is_filtered)
+        f = parse("q=kemeja+flanel&category=Top&size=M&size=L&condition=Good&price_min=50000&price_max=200000"
+                  "&city=Bandung&tag=local&tag=repairable&sort=harga_terendah")
+        self.assertEqual(f["q"], "kemeja flanel")
+        self.assertEqual(f["category"], "Top")
+        self.assertEqual(f["sizes"], ["M", "L"])
+        self.assertEqual(f["conditions"], ["Good"])
+        self.assertEqual((f["price_min"], f["price_max"]), (50000, 200000))
+        self.assertEqual(f["city"], "Bandung")
+        self.assertEqual(f["tags"], ["repairable", "local"])
+        self.assertEqual(f["sort"], "harga_terendah")
+        self.assertTrue(is_filtered(f))
 
     def test_unknown_values_are_dropped(self):
-        query = parse("category=Ngawur&size=XXXL&size=M&condition=Rusak&tag=hack&sort=acak")
-        self.assertEqual(query.category, "")
-        self.assertEqual(query.sizes, ("M",))
-        self.assertEqual(query.conditions, ())
-        self.assertEqual(query.tags, ())
-        self.assertEqual(query.sort, "terbaru")
+        f = parse("category=Ngawur&size=XXXL&size=M&condition=Rusak&tag=hack&sort=acak")
+        self.assertEqual(f["category"], "")
+        self.assertEqual(f["sizes"], ["M"])
+        self.assertEqual(f["conditions"], [])
+        self.assertEqual(f["tags"], [])
+        self.assertEqual(f["sort"], "terbaru")
 
     def test_sort_alone_does_not_count_as_a_filter(self):
-        self.assertFalse(parse("sort=harga_tertinggi").is_filtered)
+        self.assertFalse(is_filtered(parse("sort=harga_tertinggi")))
+
+    def test_every_single_filter_counts_as_a_filter(self):
+        for qs in ("q=a", "category=Top", "size=M", "condition=Good", "price_min=0", "price_max=0", "city=Depok",
+                   "tag=local"):
+            with self.subTest(qs=qs):
+                self.assertTrue(is_filtered(parse(qs)))
 
     def test_prices_are_clamped_and_garbage_is_ignored(self):
         for raw in ("abc", "", "1.5", "1e3", " ", "--5", "NaN"):
             with self.subTest(raw=raw):
-                self.assertIsNone(parse(f"price_min={raw}").price_min)
-        self.assertEqual(parse("price_min=-50").price_min, 0)
-        self.assertEqual(parse("price_max=99999999999999999999").price_max, MAX_PRICE)
+                self.assertIsNone(parse(f"price_min={raw}")["price_min"])
+        self.assertEqual(parse("price_min=-50")["price_min"], 0)
+        self.assertEqual(parse("price_max=99999999999999999999")["price_max"], MAX_PRICE)
+
+    def test_absurdly_long_number_does_not_crash(self):
+        self.assertIsNone(parse("price_min=" + "9" * 5000)["price_min"])
 
     def test_reversed_price_range_is_swapped(self):
-        query = parse("price_min=300000&price_max=100000")
-        self.assertEqual((query.price_min, query.price_max), (100000, 300000))
+        f = parse("price_min=300000&price_max=100000")
+        self.assertEqual((f["price_min"], f["price_max"]), (100000, 300000))
 
     def test_search_text_is_normalised_and_capped(self):
-        self.assertEqual(parse("q=++kemeja+++flanel++").q, "kemeja flanel")
-        self.assertEqual(len(parse("q=" + "a" * 500).q), 100)
+        self.assertEqual(parse("q=++kemeja+++flanel++")["q"], "kemeja flanel")
+        self.assertEqual(len(parse("q=" + "a" * 500)["q"]), 100)
 
     def test_duplicate_values_are_collapsed_and_ordered_consistently(self):
-        self.assertEqual(parse("size=L&size=M&size=L").sizes, ("M", "L"))
-        self.assertEqual(parse("size=L&size=M").querystring(), parse("size=M&size=L").querystring())
+        self.assertEqual(parse("size=L&size=M&size=L")["sizes"], ["M", "L"])
+        self.assertEqual(build_querystring(parse("size=L&size=M")), build_querystring(parse("size=M&size=L")))
 
     def test_querystring_round_trips(self):
         original = parse("q=blazer&category=Outerwear&size=S&size=M&condition=Like+New&price_min=1000&city=Depok"
                          "&tag=upcycled&sort=harga_tertinggi")
-        self.assertEqual(parse(original.querystring()), original)
+        self.assertEqual(parse(build_querystring(original)), original)
 
     def test_querystring_adds_page_only_after_page_one(self):
-        query = parse("size=M")
-        self.assertEqual(query.querystring(page=1), "size=M")
-        self.assertEqual(query.querystring(page=3), "size=M&page=3")
+        f = parse("size=M")
+        self.assertEqual(build_querystring(f, page=1), "size=M")
+        self.assertEqual(build_querystring(f, page=3), "size=M&page=3")
 
     def test_chips_remove_exactly_one_filter(self):
-        query = parse("q=coat&size=M&size=L&price_max=200000&city=Bandung&tag=local")
-        labels = [label for label, _ in query.chips()]
-        self.assertEqual(labels, ["“coat”", "M", "L", "Maks Rp 200.000", "Bandung", "Tersedia lokal"])
-        without_m = dict(query.chips())["M"]
-        self.assertEqual(without_m.sizes, ("L",))
-        self.assertEqual(without_m.city, "Bandung")
+        f = parse("q=coat&size=M&size=L&price_max=200000&city=Bandung&tag=local")
+        chips = get_filter_chips(f)
+        self.assertEqual([label for label, _ in chips], ["“coat”", "M", "L", "Maks Rp 200.000", "Bandung", "Tersedia lokal"])
+        without_m = dict(chips)["M"]
+        self.assertEqual(without_m["sizes"], ["L"])
+        self.assertEqual(without_m["city"], "Bandung")
+        self.assertEqual(f["sizes"], ["M", "L"])   # filter aslinya tidak ikut berubah
+
+    def test_tag_labels_match_the_model(self):
+        # Label tag ditulis di dua tempat (filters.py dan models.py): keduanya harus selalu sama.
+        for key, field in TAG_FIELDS.items():
+            with self.subTest(tag=key):
+                self.assertEqual(TAG_LABELS[key], Listing._meta.get_field(field).verbose_name)
+        everything_on = Listing(is_repairable=True, is_upcycled=True, is_locally_available=True, extends_clothing_life=True)
+        self.assertEqual(everything_on.sustainability_tags, [TAG_LABELS[key] for key in TAG_FIELDS])
 
 
 class CatalogFilterBehaviourTests(TestCase):
