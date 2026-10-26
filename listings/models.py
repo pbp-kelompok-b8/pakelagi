@@ -68,6 +68,12 @@ class Listing(models.Model):
     def __str__(self):
         return self.title
 
+    @property
+    def sustainability_tags(self):
+        """Label tag keberlanjutan yang dipilih penjual (fakta dari penjual, bukan klaim dampak)."""
+        names = ("is_repairable", "is_upcycled", "is_locally_available", "extends_clothing_life")
+        return [self._meta.get_field(name).verbose_name for name in names if getattr(self, name)]
+
     def save(self, *args, **kwargs):
         # sold_at hanya dicatat saat status berpindah KE Sold, bukan setiap kali listing diedit.
         was_sold = (

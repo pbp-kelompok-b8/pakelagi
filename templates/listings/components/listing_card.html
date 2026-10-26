@@ -1,6 +1,7 @@
 {% load listing_extras %}
 {# Kartu listing bersama: katalog, beranda, dan etalase profil. Variabel: listing. #}
-<article class="listing-card">
+{# Seluruh kartu bisa diklik lewat satu tautan di judul (after:absolute after:inset-0 meregangkannya ke seluruh kartu). #}
+<article class="listing-card relative">
     <div class="relative aspect-photo bg-sand overflow-hidden">
         <span class="absolute inset-0 flex items-center justify-center px-4 text-center text-xs text-stone" aria-hidden="true">Foto tidak tersedia</span>
         <img src="{{ listing.image_url }}" alt="{{ listing.title }}" loading="lazy"
@@ -9,7 +10,9 @@
     </div>
     <div class="pt-4 space-y-1.5">
         {% if listing.brand %}<p class="label-caps !text-[10px] truncate">{{ listing.brand }}</p>{% endif %}
-        <h2 class="font-display text-xl leading-snug break-words">{{ listing.title }}</h2>
+        <h2 class="font-display text-xl leading-snug break-words">
+            <a href="{% url 'listings:detail' listing.pk %}" class="after:absolute after:inset-0">{{ listing.title }}</a>
+        </h2>
         <p class="flex items-baseline justify-between gap-3 text-sm">
             <span>{{ listing.price|rupiah }}</span>
             <span class="text-xs font-semibold" title="Ukuran">{{ listing.size }}</span>
