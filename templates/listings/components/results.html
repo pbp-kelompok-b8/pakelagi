@@ -1,0 +1,14 @@
+{# Hasil katalog. Dipisah dari list.html agar nanti bisa dirender sendiri sebagai respons HTMX (#listing-results). #}
+
+{% if listings %}
+<ul class="grid grid-cols-2 md:grid-cols-3 gap-x-4 md:gap-x-6 gap-y-10 md:gap-y-14">
+    {% for listing in listings %}
+    <li>{% include "listings/components/listing_card.html" %}</li>
+    {% endfor %}
+</ul>
+{% else %}
+<div class="py-20 text-center border border-line bg-white">
+    <p class="font-display text-3xl">Belum ada pakaian di katalog</p>
+    <p class="text-stone text-sm mt-3">Coba lagi nanti, atau jadilah yang pertama memasang barang.</p>
+</div>
+{% endif %}

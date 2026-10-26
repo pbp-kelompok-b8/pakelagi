@@ -10,7 +10,7 @@
 
         <!-- Kiri: navigasi utama (desktop) -->
         <nav class="hidden md:flex items-center gap-9 flex-1" aria-label="Navigasi utama">
-            <a href="#" class="nav-link">Katalog</a>
+            <a href="{% url 'listings:list' %}" class="nav-link"{% if request.resolver_match.app_name == 'listings' %} aria-current="page"{% endif %}>Katalog</a>
             <a href="#" class="nav-link">Jurnal</a>
             {% if user.is_staff %}
             <a href="#" class="nav-link">Moderasi</a>
@@ -55,7 +55,7 @@
     <!-- Menu HP -->
     <nav id="mobileNav" class="mobile-nav md:hidden" aria-label="Navigasi utama (HP)">
         <div class="container-page pb-6">
-            <a href="#" class="nav-link">Katalog</a>
+            <a href="{% url 'listings:list' %}" class="nav-link"{% if request.resolver_match.app_name == 'listings' %} aria-current="page"{% endif %}>Katalog</a>
             <a href="#" class="nav-link">Jurnal</a>
             {% if user.is_staff %}
             <a href="#" class="nav-link">Moderasi</a>

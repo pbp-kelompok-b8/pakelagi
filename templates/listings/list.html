@@ -1,0 +1,23 @@
+{% extends "base.html" %}
+
+{% block title %}Katalog{% endblock %}
+{% block meta_description %}Katalog pakaian preloved Pakelagi: kondisi dijelaskan jujur, harga masuk akal, dan penjual yang bisa kamu hubungi langsung.{% endblock %}
+
+{% block content %}
+<section class="container-page py-8 md:py-14" aria-labelledby="catalog-title">
+    <nav aria-label="Breadcrumb" class="text-xs text-stone mb-8">
+        <a href="{% url 'main:show_main' %}">Beranda</a> / <span aria-current="page">Katalog</span>
+    </nav>
+
+    <div class="flex flex-wrap items-end gap-x-5 gap-y-2 pb-8 md:pb-12 border-b border-line">
+        <h1 id="catalog-title" class="text-5xl md:text-7xl">Katalog</h1>
+        <p class="text-stone text-sm pb-2" role="status">{{ total_count }} pakaian</p>
+    </div>
+
+    {# Pada tahap yang akan datang, nanti akan ada tab kategori, pencarian, pengurutan, dan sidebar filter masuk di sini. #}
+
+    <div id="listing-results" class="pt-10">
+        {% include "listings/components/results.html" %}
+    </div>
+</section>
+{% endblock %}
