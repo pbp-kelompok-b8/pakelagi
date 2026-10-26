@@ -11,9 +11,9 @@
         <!-- Kiri: navigasi utama (desktop) -->
         <nav class="hidden md:flex items-center gap-9 flex-1" aria-label="Navigasi utama">
             <a href="#" class="nav-link">Katalog</a>
-            <a href="#" class="nav-link">Jurnal</a>
+            <a href="{% url 'sustainableguides:list' %}" class="nav-link">Jurnal</a>
             {% if user.is_staff %}
-            <a href="#" class="nav-link">Moderasi</a>
+            <a href="{% url 'moderations:jurnal_list' %}" class="nav-link">Moderasi</a>
             {% endif %}
         </nav>
 
@@ -56,9 +56,9 @@
     <nav id="mobileNav" class="mobile-nav md:hidden" aria-label="Navigasi utama (HP)">
         <div class="container-page pb-6">
             <a href="#" class="nav-link">Katalog</a>
-            <a href="#" class="nav-link">Jurnal</a>
+            <a href="{% url 'sustainableguides:list' %}" class="nav-link">Jurnal</a>
             {% if user.is_staff %}
-            <a href="#" class="nav-link">Moderasi</a>
+            <a href="{% url 'moderations:ringkasan' %}" class="nav-link">Moderasi</a>
             {% endif %}
 
             {% if user.is_authenticated %}

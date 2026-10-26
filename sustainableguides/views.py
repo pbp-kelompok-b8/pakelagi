@@ -26,7 +26,7 @@ def guide_list(request):
     context = {
         'guides': published_guides,
         'featured_guide': featured_guide,
-        'active-category': category_filter or 'SEMUA',
+        'active_category': category_filter or 'SEMUA',
     }
     return render(request, 'sustainableguides/guide_list.html', context)
 
@@ -114,50 +114,3 @@ def delete_draft(request, id):
     return redirect('sustainableguides:drafts')
 
 
-#=x=x=x=x=x=x=x=x=x=x=x==x=x=x=x=x=x=x
-# Admin Access
-#=x=x=x=x=x=x=x=x=x==x=x=x=x=x=x=x=x=x
-
-def is_admin(user):
-    return user.is_superuser
-
-@user_passes_test(is_admin)
-def admin_moderation(request):
-    pending_guides = Guide.objects.filter(status='PENDING').order_by('date_submitted')
-    context = {
-        'pending_guides': pending_guides
-    }
-    return render(request, 'sustainableguides/moderation.html', context)
-
-
-@user_passes_test(is_admin)
-def review_draft(request, id):
-    guide = get_object_or_404(Guide, id=id, status='PENDING')
-    
-    if request.method == 'POST':
-        action = request.POST.get('action')
-        notes = request.POST.get('rejected_notes', '')
-        
-        if action == 'approve':
-            guide.status = 'DISETUJUI'
-            # is_published otomatis diset True oleh fungsi save() di models.py
-            guide.save()
-            messages.success(request, f"Panduan '{guide.title}' telah disetujui dan diterbitkan.")
-        
-        elif action == 'reject':
-            guide.status = 'DITOLAK'
-            guide.rejected_notes = notes
-            guide.save()
-            messages.error(request, f"Draf '{guide.title}' telah ditolak.")
-        
-        return redirect('sustainableguides:moderation')
-    # Render preview artikel
-    md = markdown.Markdown(extensions=['toc', 'tables', 'nl2br'])
-    content_html = md.convert(guide.konten)
-    
-    context = {
-        'guide': guide,
-        'content_html': content_html
-    }
-
-    return render(request, 'sustainableguides/review_draft.html', context)

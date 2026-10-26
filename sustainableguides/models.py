@@ -46,7 +46,7 @@ class Guide(models.Model):
     #secara otomatis menghitung reading time
     @property
     def reading_time(self):
-        word_count = len(self.content.split())
+        word_count = len(self.konten.split())
         minutes = round(word_count/200)
         return max(1, minutes) #setidaknya ada 1 menit waktu membaca
     

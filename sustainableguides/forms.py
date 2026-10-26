@@ -2,7 +2,7 @@ from django import forms
 from .models import Guide
 
 class GuideForm(forms.ModelForm):
-    class meta:
+    class Meta:
         model = Guide
         fields = ['category', 'title', 'ringkasan', 'konten', 'image_url']
         widgets = {
