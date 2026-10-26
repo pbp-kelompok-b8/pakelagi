@@ -98,21 +98,37 @@ Admin dapat menyembunyikan listing yang melanggar aturan. Listing berstatus `Hid
 
 ### 4.5 Profile dan kontak
 
-Member dapat mengatur display name, bio singkat, kota umum, dan metode kontak. Contact value hanya ditampilkan kepada member login dan tidak boleh berisi alamat rumah. Halaman profil publik menampilkan ringkasan listing pemilik berstatus `Available` (Dijual) dan `Sold` (Terjual); listing `Hidden` maupun listing yang disembunyikan moderator tidak ditampilkan.
+Member membuat profil setelah registrasi akun dan wajib melengkapi profil sebelum menggunakan fitur yang memerlukan status member. `display_name` adalah satu-satunya field profil wajib untuk menyelesaikan onboarding; bio singkat, kota umum, metode kontak, dan nilai kontak dapat dilengkapi atau diubah kemudian. Member dapat membaca dan mengubah profilnya. Penghapusan profil termasuk lingkup MVP, tetapi tidak menghapus akun Django, listing, favorite, atau report; penghapusan profil bukan penghapusan akun. Contact value hanya ditampilkan kepada member yang sudah login dan tidak boleh berisi alamat rumah. Halaman profil publik menampilkan ringkasan listing pemilik berstatus `Available` (Dijual) dan `Sold` (Terjual); listing `Hidden` maupun listing yang disembunyikan moderator tidak ditampilkan.
 
-### 4.6 Favorite
+Rincian etalase dan kriteria penerimaan mengikuti [spesifikasi profil](feat/profile/profile-specification.md). Avatar dan sampul opsional memakai `avatar_url`/`cover_url` HTTPS eksternal; tidak ada upload file atau pemrosesan gambar di server. Nomor telepon opsional merupakan kontak tambahan tanpa verifikasi, hanya terlihat pemilik/member lengkap. Gambar publik dari layanan eksternal dapat mengungkap alamat IP pengunjung kepada layanan tersebut. Profil sendiri dan publik memakai etalase sama; edit melalui menu akun ke `/profile/edit/`, email akun tetap di area privat.
 
-Member dapat menambahkan listing ke favorite, melihat daftar favorite, mengubah catatan pribadi, dan menghapus favorite. Favorite milik satu member bersifat privat.
+Etalase memakai tab Dijual default dan Terjual, masing-masing 8 barang per pemuatan, urutan Terbaru/Harga terendah/Harga tertinggi, serta URL yang mempertahankan tab, urutan, dan posisi pemuatan. Tab Dijual memiliki cuplikan maksimal empat Sold terbaru berdasarkan waktu transisi Sold dan tautan ke tab Terjual. Hitungan hanya mencakup listing publik per status; Hidden/moderasi dikecualikan juga bagi pemilik di etalase. URL publik profil tidak ada/belum lengkap menghasilkan 404; etalase valid tanpa listing memiliki empty state.
 
-### 4.7 Sustainable guide
+### 4.6 Autentikasi dan onboarding member
+
+- Autentikasi menggunakan Django Authentication dan model `User` bawaan.
+- Registrasi MVP memakai username dan password (termasuk konfirmasi password). Email akun bersifat opsional, belum diverifikasi, dan dapat ditambahkan atau diubah pada detail profil/akun; email akun berbeda dari kontak publik `contact_type`/`contact_value`.
+- Setelah registrasi berhasil, pengguna masuk dan diarahkan ke pembuatan/pelengkapan profil. Sampai `display_name` diisi, pengguna tidak dapat menggunakan fitur member; halaman publik dan keluar (logout) tetap dapat diakses.
+- Verifikasi email, verifikasi nomor telepon, OTP, CAPTCHA, dan pemilihan layanan pengiriman OTP bukan deliverable MVP. Template verifikasi telepon hanya referensi visual untuk kemungkinan pengembangan berikutnya.
+- Penghapusan akun bukan bagian MVP saat ini. Sebagai arah pengembangan berikutnya, user akan dapat menghapus akun beserta seluruh listing yang ditampilkannya; perilaku terhadap data terkait lain akan ditentukan saat alur tersebut dirancang.
+
+### 4.7 Halaman error
+
+Halaman 404 Not Found bermerek Pakelagi adalah deliverable MVP. Halaman ini memberi navigasi kembali ke beranda/katalog; rekomendasi listing hanya ditampilkan jika tersedia. Halaman error tidak membocorkan detail internal. Halaman 403 dan 500 khusus tidak ditetapkan sebagai deliverable dalam lingkup ini.
+
+### 4.8 Favorite
+
+Member dapat menambahkan listing Available milik orang lain ke favorite dari katalog, detail, atau etalase profil; melihat daftar favorite; mengubah catatan pribadi; dan menghapus favorite. Favorite milik satu member bersifat privat. Jangan sediakan aksi tambah pada Sold atau listing sendiri. Perubahan listing menjadi Sold tidak menghapus favorite lama; pemilik favorite tetap dapat menghapusnya. Setiap request tambah memeriksa ulang status publik/Available dan izin di server; Hidden/moderasi tidak boleh ditambahkan. Guest diarahkan login dan user login tanpa profil lengkap diarahkan onboarding.
+
+### 4.9 Sustainable guide
 
 Member dapat mengirim draf tips perawatan pakaian dan melihat draf miliknya. Draf berstatus `Pending` dapat diedit atau dihapus oleh pengirim sebelum keputusan moderator. Admin meninjau lalu menyetujui atau menolak draf; persetujuan tidak otomatis menerbitkan guide. Admin menentukan kapan guide dipublikasikan, dan dapat membuat, membaca, mengubah, serta menghapus artikel tentang slow fashion, perawatan pakaian, perbaikan, reuse, dan conscious shopping. Guest dan member hanya dapat membaca guide yang telah dipublikasikan.
 
-### 4.8 Report dan moderasi
+### 4.10 Report dan moderasi
 
 Member dapat membuat report untuk listing, melihat report miliknya, memperbarui atau menghapus report yang masih terbuka. Admin dapat membaca semua report, memperbarui statusnya, menambahkan catatan moderasi, dan mengambil tindakan pada listing terkait.
 
-### 4.9 Integrasi lokasi dengan Nominatim
+### 4.11 Integrasi lokasi dengan Nominatim
 
 Pada form listing, seller mencari kota atau area pickup umum melalui Nominatim. Aplikasi menyimpan nama kota/area, latitude, dan longitude untuk ditampilkan dan difilter.
 
@@ -125,14 +141,30 @@ Setiap modul memiliki Models, Views, Templates, Forms, operasi CRUD, filter aute
 | Modul | Penanggung jawab | Data utama | Ruang CRUD |
 |---|---|---|---|
 | Clothing Listings | Anggota 1 — Nugraha Kautsarrizqi Caksana (`2506541250`) | `Listing` | Member mengelola listing sendiri; admin dapat memoderasi semua listing |
-| User Profiles | Anggota 2 — Victoriano Iman Santosa (`2506544353`) | `Profile` | Member mengelola profile dan contact preference sendiri; ringkasan listing Available dan Sold milik pengguna dapat dilihat publik |
+| User Profiles | Anggota 2 — Victoriano Iman Santosa (`2506544353`) | `Profile` | Member membuat, membaca, mengubah, dan menghapus profilnya; ringkasan listing Available dan Sold milik pengguna dapat dilihat publik |
 | Saved Favorites | Anggota 3 — David Liman (`2506601956`) | `Favorite` | Member menambah, melihat, memberi catatan, dan menghapus favorite sendiri |
 | Sustainable Guides | Anggota 4 — Muhammad Raihan Al Qadri Kusumaputra (`2506602334`) | `Guide` | Member mengirim dan mengelola draf Pending miliknya; admin meninjau draf serta mengelola publikasi guide; publik membaca guide yang dipublikasikan |
 | Reports & Moderation | Anggota 5 — Clevraldo Limuel (`2506656583`) | `Report` | Member membuat/mengelola report sendiri; admin meninjau dan memperbarui status |
 
+Autentikasi dan onboarding akun/profil adalah fondasi lintas modul, bukan modul CRUD keenam. Rincian alurnya ada di [`docs/feat/profile/profile-specification.md`](feat/profile/profile-specification.md).
+
 Anggota 1 — Clothing Listings: Nugraha Kautsarrizqi Caksana (`2506541250`).
 
 Kategori, ukuran, kondisi, status, alasan report, dan tag keberlanjutan menggunakan pilihan terkontrol pada model/form. Tidak perlu membuat modul terpisah untuk masing-masing pilihan tersebut.
+
+### 5.1 Pemetaan operasi CRUD per modul
+
+Path berikut adalah URL yang direncanakan untuk menjelaskan lokasi setiap operasi; implementasi boleh memakai route berbeda selama aksi, otorisasi, dan perilaku yang dijelaskan tetap terpenuhi.
+
+| Modul | Create | Read | Update | Delete |
+|---|---|---|---|---|
+| **Clothing Listings** (`Listing`) | Member membuat listing di `/listings/create/`. | Publik membuka `/listings/` dan `/listings/<id>/`; pemilik melihat seluruh listing miliknya, termasuk `Sold` dan `Hidden`, di `/listings/mine/`. | Pemilik mengubah data di `/listings/<id>/edit/` dan status `Available`/`Sold`; admin dapat menyembunyikan listing melalui moderasi. | Pemilik atau admin menghapus melalui `/listings/<id>/delete/`. |
+| **User Profiles** (`Profile`) | Member tanpa profil membuat profil di `/profile/create/`. | Pemilik membaca profil sendiri di `/profile/`; publik membaca profil dan ringkasan listing di `/profile/<user_id>/`. Kontak hanya terlihat oleh member login. | Pemilik mengubah profil melalui `/profile/edit/`. | Pemilik menghapus hanya record profil melalui `/profile/delete/`; akun dan listing terkait tidak terhapus. Profil dapat dibuat ulang. |
+| **Saved Favorites** (`Favorite`) | Member membuat favorite untuk Available milik orang lain dari katalog/detail/etalase profil melalui tombol favorite (HTMX POST). | Member membaca daftar privat di `/favorites/`. | Pemilik memperbarui catatan di `/favorites/<id>/edit/`. | Pemilik menghapus favorite dari daftarnya atau melalui `/favorites/<id>/delete/`. Tombol toggle dapat melakukan create atau delete sesuai kondisi favorite. |
+| **Sustainable Guides** (`Guide`) | Member mengirim draf di `/guides/submit/`; admin membuat artikel di `/moderation/guides/create/`. | Pengirim membaca draf miliknya di `/guides/my-submissions/`; admin membaca semua guide/draf di `/moderation/guides/`; publik membaca guide terbit di `/guides/` dan `/guides/<slug>/`. | Pengirim mengubah draf hanya selama `Pending` di `/guides/submissions/<id>/edit/`; admin mengubah konten, keputusan moderasi, dan publikasi di halaman moderasi. | Pengirim menghapus draf hanya selama `Pending`; admin dapat menghapus guide melalui `/moderation/guides/<id>/delete/`. |
+| **Reports & Moderation** (`Report`) | Member membuat report pada listing melalui `/reports/create/<listing_id>/`. | Pelapor membaca report miliknya di `/reports/`; admin membaca semua report di `/moderation/reports/`. | Pelapor mengubah report hanya saat `Open` melalui `/reports/<id>/edit/`; admin memperbarui status dan catatan privat melalui `/moderation/reports/<id>/`. | Pelapor menghapus report hanya saat `Open` melalui `/reports/<id>/delete/`. Admin mempertahankan jejak moderasi dan tidak menghapus report sebagai alur moderasi normal. |
+
+Semua aksi perubahan data wajib memeriksa autentikasi dan kepemilikan. Operasi delete harus meminta konfirmasi dan menggunakan request `POST` dengan perlindungan CSRF, bukan menghapus data melalui `GET`. Tombol favorite dapat memakai HTMX dengan fallback HTML biasa.
 
 ## 6. Model domain
 
@@ -155,12 +187,18 @@ Admin User ── memoderasi ── Listing dan Report
 | Field | Tipe/aturan |
 |---|---|
 | `user` | One-to-one ke Django `User`, wajib unik |
-| `display_name` | teks pendek, wajib |
-| `bio` | teks pendek/panjang, opsional |
-| `city` | teks pendek, opsional |
-| `contact_type` | `email`, `instagram`, atau `other` |
-| `contact_value` | teks/URL kontak, opsional |
+| `display_name` | wajib, maksimal 150 karakter, bukan hanya whitespace |
+| `bio` | opsional, maksimal 500 karakter |
+| `city` | opsional, maksimal 100 karakter, kota/area umum |
+| `contact_type` | opsional; `email`, `instagram`, atau `other`; berpasangan dengan nilai |
+| `contact_value` | opsional, maksimal 254 karakter; kosong bersama jenis atau terisi bersama jenis |
+| `phone_number` | opsional, format internasional `+` dan maksimal 15 digit; `08…` dinormalisasi ke `+628…`; tidak terverifikasi, hanya pemilik/member lengkap |
+| `avatar_url`, `cover_url` | opsional, URL HTTPS gambar eksternal; dapat diganti/dikosongkan terpisah; fallback jika kosong/gagal dimuat |
 | `created_at`, `updated_at` | timestamp |
+
+Satu user dapat belum memiliki profil sebelum melengkapi profilnya, lalu memiliki paling banyak satu profil. Create dilakukan melalui form pembuatan profil; Delete hanya menghapus data `Profile`, bukan akun Django atau listing, favorite, dan report milik user. Setelah delete, profil dapat dibuat kembali.
+
+Email akun opsional disimpan pada field email milik Django `User`, bukan sebagai field tambahan `Profile`. Email tersebut tidak otomatis menjadi kontak publik dan tidak diverifikasi pada MVP. Relasi profil menggunakan penghapusan cascade dari akun ke profil: bila akun dihapus pada alur akun yang kelak disepakati, record profil ikut terhapus; menghapus profil sendiri tidak menghapus akun. Penghapusan akun dan data listing terkait berada di luar MVP.
 
 ### 6.3 `Listing`
 
@@ -182,7 +220,10 @@ Admin User ── memoderasi ── Listing dan Report
 | `is_locally_available` | boolean tag, default true |
 | `extends_clothing_life` | boolean tag, default true |
 | `status` | `Available`, `Sold`, `Hidden` |
+| `sold_at` | waktu transisi terakhir ke Sold, untuk urutan cuplikan profil; tidak memakai waktu edit umum |
 | `created_at`, `updated_at` | timestamp |
+
+Untuk pengurutan profil, waktu publikasi harus tersedia; pada MVP publikasi saat create dapat memakai `created_at`. Setiap transisi kembali ke Sold memperbarui `sold_at`. Rincian pagination dan pembeda urutan deterministik mengikuti spesifikasi profil.
 
 Constraint penting:
 
@@ -259,26 +300,41 @@ Constraint: kombinasi `user` dan `listing` harus unik. Member hanya boleh membac
 | Halaman | URL contoh | Akses |
 |---|---|---|
 | Beranda | `/` | Semua |
+| Daftar akun | `/accounts/register/` | Guest |
+| Masuk | `/accounts/login/` | Guest |
+| Keluar | `/accounts/logout/` | Member |
 | Katalog listing | `/listings/` | Semua |
 | Detail listing | `/listings/<id>/` | Semua |
 | Buat listing | `/listings/create/` | Member |
+| Listing saya | `/listings/mine/` | Member |
 | Edit listing | `/listings/<id>/edit/` | Pemilik/Admin |
 | Hapus listing | `/listings/<id>/delete/` | Pemilik/Admin |
 | Profil saya | `/profile/` | Member |
+| Buat profil | `/profile/create/` | Member tanpa profil |
 | Edit profil | `/profile/edit/` | Pemilik |
+| Hapus profil | `/profile/delete/` | Pemilik |
 | Profil publik pengguna | `/profile/<user_id>/` | Semua; ringkasan listing Available dan Sold |
+| Halaman tidak ditemukan | 404 | Semua |
 | Favorite saya | `/favorites/` | Member |
+| Tambah/hapus favorite | Katalog/detail (HTMX POST) | Member |
 | Edit catatan favorite | `/favorites/<id>/edit/` | Pemilik |
+| Hapus favorite | `/favorites/<id>/delete/` | Pemilik |
 | Daftar guide | `/guides/` | Semua |
 | Detail guide | `/guides/<slug>/` | Semua untuk guide published |
 | Draf guide saya | `/guides/my-submissions/` | Member |
 | Kirim draf guide | `/guides/submit/` | Member |
 | Edit draf Pending | `/guides/submissions/<id>/edit/` | Pengirim selama Pending |
+| Hapus draf Pending | `/guides/submissions/<id>/delete/` | Pengirim selama Pending |
+| Buat guide oleh admin | `/moderation/guides/create/` | Admin |
+| Hapus guide | `/moderation/guides/<id>/delete/` | Admin |
 | Daftar report saya | `/reports/` | Member |
 | Buat report | `/reports/create/<listing_id>/` | Member |
+| Edit report Open | `/reports/<id>/edit/` | Pelapor selama Open |
+| Hapus report Open | `/reports/<id>/delete/` | Pelapor selama Open |
 | Moderasi | `/moderation/` | Admin |
 | Kelola guide | `/moderation/guides/` | Admin |
 | Kelola report | `/moderation/reports/` | Admin |
+| Detail/update moderasi report | `/moderation/reports/<id>/` | Admin |
 
 Template wajib memakai struktur bersama, minimal `base.html`, header/navbar, footer, halaman error, serta partial untuk kartu listing dan hasil filter.
 
@@ -326,7 +382,7 @@ Template dasar `base.html` mengatur CSRF token/header untuk request HTMX secara 
 
 ## 11. Design system
 
-Bootstrap digunakan melalui CDN untuk layout responsive. CSS custom hanya untuk identitas Pakelagi dan komponen yang tidak tercakup Bootstrap.
+Tailwind CSS digunakan melalui CDN seperti pada template dasar project; CSS custom digunakan untuk identitas dan komponen khusus Pakelagi. Tailwind menjadi acuan UI dokumen ini.
 
 | Token | Nilai awal | Penggunaan |
 |---|---|---|
@@ -351,10 +407,15 @@ Tag keberlanjutan harus ditampilkan sebagai fakta yang dipilih seller, bukan seb
 ## 12. Keamanan dan privasi
 
 - Gunakan Django authentication dan `login_required` untuk aksi member.
+- Gunakan validasi Django bawaan untuk username/password; registrasi meminta konfirmasi password. Jangan log atau menampilkan password.
+- Profil wajib dilengkapi sampai memiliki `display_name` sebelum fitur member dapat digunakan; jangan memblokir halaman publik atau logout.
+- Email akun opsional, belum terverifikasi, dan tidak boleh diperlakukan otomatis sebagai kontak publik.
 - Terapkan ownership check pada setiap update/delete; jangan hanya mengandalkan ID dari URL.
 - Gunakan CSRF protection pada seluruh form POST.
 - Validasi semua input melalui Django Forms.
-- Validasi URL gambar dan kontak agar hanya HTTP/HTTPS.
+- URL gambar listing hanya HTTP/HTTPS; avatar/sampul profil hanya HTTPS. Server tidak mengambil gambar profil eksternal. URL kosong/gagal dimuat menggunakan fallback.
+- Kontak Instagram dinormalisasi menjadi handle, email kontak divalidasi sebagai email, dan other di-escape sebagai teks; hanya URL HTTP/HTTPS valid yang dijadikan tautan (email memakai `mailto:`).
+- Jangan mengirim nilai kontak atau nomor telepon kepada guest maupun user login yang belum melengkapi profil, termasuk melalui partial dan respons data. Nomor telepon hanya diperiksa formatnya, bukan diverifikasi kepemilikannya.
 - Jangan menaruh password, secret key, atau kredensial database di repository.
 - Jangan menampilkan contact value kepada guest.
 - Jangan menyimpan atau menampilkan alamat rumah.
@@ -374,9 +435,17 @@ Gunakan Django `TestCase` dan test client bawaan sebagai baseline.
 - member dapat mengirim draf guide, mengubah/menghapus draf Pending miliknya, dan tidak dapat menerbitkan guide;
 - admin dapat menyetujui/menolak draf guide dan mengatur publikasinya secara terpisah;
 - guest tidak dapat membuat, mengubah, atau menghapus data member;
+- registrasi username/password berhasil, password dikonfirmasi dan disimpan melalui mekanisme hashing Django, serta username duplikat ditolak;
+- email akun boleh kosong dan tidak dianggap terverifikasi;
+- member baru diarahkan ke onboarding profil dan tidak dapat memakai fitur member sebelum `display_name` tersedia; setelah profil lengkap akses member normal diberikan;
+- penghapusan profil tidak menghapus akun, listing, favorite, atau report;
+- URL yang tidak ditemukan menampilkan halaman 404 Pakelagi yang aman dan menyediakan navigasi kembali;
 - member hanya dapat mengubah atau menghapus listing/profile/favorite/report miliknya;
 - admin dapat memoderasi semua listing dan report;
 - seluruh operasi CRUD pada lima modul berjalan;
+- create/read/update/delete profil hanya memengaruhi profil milik member yang sedang login; penghapusan profil tidak menghapus akun atau listing;
+- member tidak dapat mengubah/menghapus report setelah statusnya bukan `Open`;
+- pengirim guide tidak dapat mengubah/menghapus draf setelah statusnya bukan `Pending`;
 - filter kombinasi menghasilkan data yang benar;
 - favorite unik per member-listing;
 - listing hidden tidak tampil di katalog publik;
@@ -413,6 +482,7 @@ Checklist deployment:
 - static files berhasil dikumpulkan;
 - `DEBUG` nonaktif pada production;
 - halaman utama, login, katalog, detail, form CRUD, guide, favorite, report, dan moderasi dapat dibuka;
+- registrasi, login/logout, onboarding profil wajib, serta halaman 404 berjalan;
 - fixture/seed data dapat diulang tanpa membuat data duplikat yang tidak terkendali;
 - URL PWS ditambahkan ke README setelah tersedia.
 
@@ -428,7 +498,7 @@ Urutan kerja paling aman:
 
 1. Sepakati wireframe, istilah, field, dan ownership.
 2. Buat project Django, koneksi PostgreSQL, template dasar, dan design tokens.
-3. Buat model inti, migration, authentication, dan fixture sample.
+3. Buat model inti, migration, Django authentication, registrasi, onboarding profil, dan fixture sample.
 4. Integrasikan modul listing dengan katalog/filter HTMX.
 5. Integrasikan profile, favorite, guide, report, dan moderasi.
 6. Tambahkan Nominatim, test suite, dan fallback.
@@ -469,6 +539,8 @@ Informasi proyek saat ini (ikuti README untuk pembaruan):
 - Figma: https://www.figma.com/design/dCekkdFnlpwdcTY6vaXyrX/Web-Design?m=auto&t=WEkEhoembXHyU27W-1
 
 ## 18. Informasi yang masih harus diisi kelompok
+
+Dokumen rincian auth, onboarding profil, dan halaman 404: [`docs/feat/profile/profile-specification.md`](feat/profile/profile-specification.md).
 
 ```text
 Anggota 1: Nugraha Kautsarrizqi Caksana — 2506541250 — Clothing Listings
