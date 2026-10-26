@@ -1,21 +1,21 @@
 {% extends "base.html" %}
 
 {% block content %}
-<!-- Header Halaman -->
 <div class="w-full bg-transparent">
     <div class="w-full px-6 md:px-12 pt-16 pb-14 flex flex-col md:flex-row justify-between items-start md:items-end overflow-hidden border-b border-stone-200">
         <div class="inline-flex flex-col justify-start items-start gap-3 overflow-hidden">
             <h1 class="justify-start text-zinc-900 text-5xl md:text-7xl font-medium font-['Cormorant_Garamond'] leading-tight md:leading-[76px]">Draf panduan</h1>
         </div>
         <div class="justify-start text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight mt-4 md:mt-0">
-            {{ drafts.count }} draf &nbsp;·&nbsp; {{ pending_count }} menunggu tinjauan
+            <!-- Kita tambahkan span ber-id agar update jumlah bisa mulus -->
+            <span id="drafts-count-info">{{ drafts.count }} draf &nbsp;·&nbsp; {{ pending_count }} menunggu tinjauan</span>
         </div>
     </div>
 
     <!-- Layout 2 Kolom -->
     <div class="w-full px-6 md:px-12 py-12 md:pb-32 flex flex-col lg:flex-row justify-start items-start gap-12 lg:gap-20 overflow-hidden">
         
-        <!-- Sidebar Kiri -->
+        <!-- Sidebar Kiri (Akun Saya) Tetap Statis -->
         <div class="w-full lg:w-60 flex flex-col justify-start items-start overflow-hidden">
             <div class="pb-5 flex flex-col justify-start items-start overflow-hidden">
                 <div class="justify-start text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Akun saya</div>
@@ -28,24 +28,21 @@
                 <div class="text-stone-600 text-base font-normal font-['Jost'] leading-6">Listing saya</div>
             </a>
             
-            <!-- Menu Aktif -->
             <a href="{% url 'sustainableguides:drafts' %}" class="self-stretch py-4 border-t border-stone-300 flex justify-between items-center">
                 <div class="text-amber-700 font-medium text-base font-['Jost'] leading-6">Draf panduan</div>
-                <!-- Indikator Aktif -->
                 <div class="size-2 rounded-full bg-amber-700"></div>
             </a>
             
-            <!-- Form Logout -->
             <form action="{% url 'accounts:logout' %}" method="POST" class="self-stretch border-t border-b border-stone-300">
                 {% csrf_token %}
-                <button type="submit" class="w-full text-left py-4 text-stone-600 text-base font-normal font-['Jost'] leading-6 hover:bg-stone-100 transition-colors">
+                <button type="submit" class="w-full text-left py-4 text-stone-600 text-base font-normal font-['Jost'] leading-6 hover:bg-stone-100 transition-colors cursor-pointer">
                     Keluar
                 </button>
             </form>
         </div>
 
-        <!-- Konten Kanan Utama -->
-        <div class="flex-1 flex flex-col justify-start items-start gap-12 overflow-hidden w-full">
+        <!-- KOLOM KANAN (DIBUNGKUS UNTUK TARGET HTMX) -->
+        <div id="drafts-content-area" class="flex-1 flex flex-col justify-start items-start gap-12 overflow-hidden w-full">
             
             <!-- Notifikasi Django Messages -->
             {% if messages %}
@@ -67,7 +64,6 @@
             
             <!-- TABEL RIWAYAT DRAF -->
             <div class="self-stretch flex flex-col justify-start items-start overflow-hidden w-full">
-                <!-- Header Tabel (Sembunyikan di layar HP) -->
                 <div class="hidden md:flex self-stretch pb-3.5 justify-start items-start gap-6 overflow-hidden">
                     <div class="flex-1 text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Draf</div>
                     <div class="w-28 text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Dikirim</div>
@@ -78,34 +74,32 @@
                 {% for draft in drafts %}
                 <!-- Baris Data Draf -->
                 <div class="self-stretch py-6 border-t border-stone-300 flex flex-col md:flex-row justify-start items-start gap-4 md:gap-6 overflow-hidden">
-                    <!-- Judul & Ringkasan -->
                     <div class="flex-1 flex flex-col justify-start items-start gap-1.5 overflow-hidden">
                         <div class="self-stretch text-zinc-900 text-xl font-semibold font-['Cormorant_Garamond'] leading-6">{{ draft.title }}</div>
                         <div class="self-stretch text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight line-clamp-2">{{ draft.ringkasan }}</div>
                     </div>
                     
-                    <!-- Tanggal -->
                     <div class="w-full md:w-28 flex justify-start items-start">
                         <span class="md:hidden text-stone-500 text-xs mr-2">Dikirim: </span>
                         <div class="text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight">{{ draft.date_submitted|date:"j M Y" }}</div>
                     </div>
                     
-                    <!-- Badge Status -->
                     <div class="w-full md:w-28 flex justify-start items-start">
                         {% include 'sustainableguides/components/status_badge.html' with status=draft.status %}
                     </div>
                     
-                    <!-- Catatan & Tindakan -->
                     <div class="w-full md:w-64 flex flex-col justify-start items-start gap-2.5 overflow-hidden">
                         {% if draft.status == 'PENDING' %}
                             <div class="text-neutral-700 text-xs font-normal font-['Jost'] leading-5 tracking-tight">Menunggu tinjauan admin. Masih bisa diubah.</div>
                             <div class="flex justify-start items-start gap-5">
-                                <a href="{% url 'sustainableguides:edit_draft' draft.id %}" class="text-zinc-900 text-xs font-semibold font-['Jost'] underline uppercase leading-4 tracking-wider hover:text-amber-700">Ubah draf</a>
+                                <a href="{% url 'sustainableguides:edit_draft' draft.id %}" class="text-zinc-900 text-xs font-semibold font-['Jost'] underline uppercase leading-4 tracking-wider hover:text-amber-700 transition-colors">Ubah draf</a>
                                 
-                                <!-- Hapus Draf harus menggunakan POST form -->
-                                <form action="{% url 'sustainableguides:delete_draft' draft.id %}" method="POST" onsubmit="return confirm('Yakin ingin menghapus draf ini?');">
+                                <!-- FORM HAPUS DRAF (AJAX HTMX) -->
+                                <form hx-post="{% url 'sustainableguides:delete_draft' draft.id %}" 
+                                      hx-target="#drafts-content-area" hx-select="#drafts-content-area" hx-swap="outerHTML" 
+                                      hx-confirm="Yakin ingin menghapus draf ini?">
                                     {% csrf_token %}
-                                    <button type="submit" class="text-orange-800 text-xs font-semibold font-['Jost'] underline uppercase leading-4 tracking-wider hover:text-red-700">Hapus</button>
+                                    <button type="submit" class="text-orange-800 text-xs font-semibold font-['Jost'] underline uppercase leading-4 tracking-wider hover:text-red-700 transition-colors cursor-pointer">Hapus</button>
                                 </form>
                             </div>
                         {% elif draft.status == 'DISETUJUI' %}
@@ -117,7 +111,7 @@
                                 {% endif %}
                             </div>
                             {% if draft.is_published %}
-                            <a href="{% url 'sustainableguides:detail' draft.id %}" class="text-amber-700 text-xs font-semibold font-['Jost'] underline uppercase leading-4 tracking-wider">Lihat Panduan</a>
+                            <a href="{% url 'sustainableguides:detail' draft.id %}" class="text-amber-700 text-xs font-semibold font-['Jost'] underline uppercase leading-4 tracking-wider hover:text-amber-800">Lihat Panduan</a>
                             {% endif %}
                         {% elif draft.status == 'DITOLAK' %}
                             <div class="text-neutral-700 text-xs font-normal font-['Jost'] leading-5 tracking-tight italic">
@@ -134,29 +128,30 @@
                 <div class="self-stretch h-px bg-stone-300"></div>
             </div>
 
-            <!-- FORM SUBMISI DRAF BARU -->
+            <!-- FORM SUBMISI DRAF BARU (AJAX HTMX) -->
             <div class="self-stretch p-6 md:p-12 bg-white outline outline-1 outline-offset-[-1px] outline-stone-300 flex flex-col justify-start items-start gap-8 shadow-sm mt-8">
                 <div class="flex flex-col justify-start items-start gap-2">
                     <h2 class="text-zinc-900 text-3xl md:text-4xl font-medium font-['Cormorant_Garamond'] leading-10">Bagikan cara merawat pakaianmu</h2>
                 </div>
                 
-                <form method="POST" action="" class="w-full flex flex-col gap-6">
+                <form hx-post="{% url 'sustainableguides:drafts' %}" 
+                      hx-target="#drafts-content-area" 
+                      hx-select="#drafts-content-area" 
+                      hx-swap="outerHTML"
+                      class="w-full flex flex-col gap-6">
                     {% csrf_token %}
                     
-                    <!-- Kategori -->
                     <div class="flex flex-col gap-2">
                         <label class="text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Kategori</label>
                         {{ form.category }}
                     </div>
 
-                    <!-- Judul -->
                     <div class="flex flex-col gap-2">
                         <label class="text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Judul</label>
                         {{ form.title }}
                         {% if form.title.errors %}<span class="text-red-500 text-xs">{{ form.title.errors }}</span>{% endif %}
                     </div>
 
-                    <!-- Ringkasan -->
                     <div class="flex flex-col gap-2">
                         <label class="text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Ringkasan</label>
                         {{ form.ringkasan }}
@@ -164,7 +159,7 @@
                         {% if form.ringkasan.errors %}<span class="text-red-500 text-xs">{{ form.ringkasan.errors }}</span>{% endif %}
                     </div>
 
-                    <!-- Isi Panduan -->
+                    <!-- Link Panduan Markdown (Permintaan Sebelumnya) -->
                     <div class="flex flex-col gap-2">
                         <label class="text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Isi panduan</label>
                         {{ form.konten }}
@@ -175,7 +170,6 @@
                         {% if form.konten.errors %}<span class="text-red-500 text-xs">{{ form.konten.errors }}</span>{% endif %}
                     </div>
 
-                    <!-- URL Gambar -->
                     <div class="flex flex-col gap-2">
                         <label class="text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">URL gambar sampul (opsional)</label>
                         {{ form.image_url }}
@@ -183,12 +177,13 @@
                         {% if form.image_url.errors %}<span class="text-red-500 text-xs">{{ form.image_url.errors }}</span>{% endif %}
                     </div>
 
-                    <!-- Tombol Submit -->
                     <div class="pt-4 flex flex-col md:flex-row justify-start items-center gap-6">
-                        <button type="submit" class="w-full md:w-auto px-9 py-4 bg-amber-700 hover:bg-amber-800 transition-colors flex justify-center items-center">
-                            <span class="text-white text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-widest">Kirim untuk ditinjau</span>
+                        <!-- Tombol Submit dengan Visual Feedback HTMX -->
+                        <button type="submit" class="htmx-submit-btn w-full md:w-auto px-9 py-4 bg-amber-700 hover:bg-amber-800 transition-colors flex justify-center items-center cursor-pointer">
+                            <span class="htmx-normal-text text-white text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-widest">Kirim untuk ditinjau</span>
+                            <span class="htmx-loading-text text-white text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-widest hidden opacity-70">Mengirim...</span>
                         </button>
-                        <button type="reset" class="pb-2 border-b border-transparent hover:border-zinc-900 transition-colors">
+                        <button type="reset" class="pb-2 border-b border-transparent hover:border-zinc-900 transition-colors cursor-pointer">
                             <span class="text-zinc-900 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-widest">Batal / Reset</span>
                         </button>
                     </div>
@@ -199,25 +194,28 @@
     </div>
 </div>
 
-<!-- Styling Tambahan untuk input form bawaan Django -->
 <style>
+    /* Styling Form Input Bawaan Django */
     .form-input, .form-select {
-        width: 100%;
-        padding: 0.75rem 1rem;
-        background-color: transparent;
-        border: 1px solid #d6d3d1; /* stone-300 */
-        color: #18181b; /* zinc-900 */
-        font-family: 'Jost', sans-serif;
-        font-size: 1rem;
-        line-height: 1.5rem;
-        transition: border-color 0.2s;
+        width: 100%; padding: 0.75rem 1rem; background-color: transparent;
+        border: 1px solid #d6d3d1; color: #18181b; font-family: 'Jost', sans-serif;
+        font-size: 1rem; line-height: 1.5rem; transition: border-color 0.2s;
     }
     .form-input:focus, .form-select:focus {
-        outline: none;
-        border-color: #18181b; /* zinc-900 */
+        outline: none; border-color: #18181b;
     }
-    .form-input::placeholder {
-        color: #a8a29e; /* stone-400 */
+    .form-input::placeholder { color: #a8a29e; }
+
+    /* CSS Custom untuk HTMX Loading Indicator di Tombol Submit (4/4 Bonus) */
+    .htmx-request.htmx-submit-btn .htmx-normal-text {
+        display: none;
+    }
+    .htmx-request.htmx-submit-btn .htmx-loading-text {
+        display: block;
+    }
+    .htmx-request.htmx-submit-btn {
+        pointer-events: none;
     }
 </style>
 {% endblock %}
+
