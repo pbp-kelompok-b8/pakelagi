@@ -112,15 +112,23 @@
         });
     })();
 
-    // Menu "Akun saya" ditutup kalau klik di luar menu atau menekan Esc
-    const $menuAkun = document.getElementById('account-menu');
+    // Menu "Akun saya" ditutup kalau klik di luar menu atau menekan Esc.
+    // Elemennya dicari saat kejadian terjadi (bukan disimpan di variabel luar), supaya tetap benar setelah
+    // HTMX memulihkan halaman lewat tombol back dan menjalankan ulang skrip ini.
+    function tutupMenuAkunKalauKlikDiLuar(event) {
+        const $menuAkun = document.getElementById('account-menu');
+        if ($menuAkun && !$menuAkun.contains(event.target)) $menuAkun.open = false;
+    }
 
-    if ($menuAkun) {
-        document.addEventListener('click', (event) => {
-            if (!$menuAkun.contains(event.target)) $menuAkun.open = false;
-        });
-        document.addEventListener('keydown', (event) => {
-            if (event.key === 'Escape') $menuAkun.open = false;
-        });
+    function tutupMenuAkunKalauEsc(event) {
+        const $menuAkun = document.getElementById('account-menu');
+        if ($menuAkun && event.key === 'Escape') $menuAkun.open = false;
+    }
+
+    // Listener di document cukup dipasang satu kali
+    if (!window.menuAkunTerpasang) {
+        document.addEventListener('click', tutupMenuAkunKalauKlikDiLuar);
+        document.addEventListener('keydown', tutupMenuAkunKalauEsc);
+        window.menuAkunTerpasang = true;
     }
 </script>

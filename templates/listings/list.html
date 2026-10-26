@@ -42,19 +42,21 @@
 <script>
     /* ---------------------------------------------
        Halaman katalog
+       Variabel dibuat di dalam fungsi (bukan di tingkat paling luar), karena HTMX menjalankan ulang
+       semua <script> saat tombol back dipakai. const di tingkat luar akan error "already been declared".
        --------------------------------------------- */
-    const $panelFilter = document.getElementById('filter-panel');
-    const $kolomCari = document.getElementById('catalog-q');
 
     // Di layar kecil panel filter dilipat, di layar lebar selalu terbuka.
     // Kalau JavaScript mati, panelnya tetap terbuka.
     function lipatPanelDiLayarKecil() {
+        const $panelFilter = document.getElementById('filter-panel');
         const layarKecil = window.matchMedia('(max-width: 1023px)').matches;
         if ($panelFilter && layarKecil) $panelFilter.open = false;
     }
 
     // Ikon cari di header menautkan ke #catalog-q, jadi kolom pencariannya langsung difokuskan
     function fokusKeKolomCari() {
+        const $kolomCari = document.getElementById('catalog-q');
         if ($kolomCari && location.hash === '#catalog-q') $kolomCari.focus();
     }
 
@@ -72,7 +74,12 @@
 
     lipatPanelDiLayarKecil();
     fokusKeKolomCari();
-    window.addEventListener('hashchange', fokusKeKolomCari);
-    document.body.addEventListener('htmx:configRequest', bersihkanParameter);
+
+    // Listener di window/body cukup dipasang satu kali, walaupun skrip ini dijalankan ulang
+    if (!window.katalogTerpasang) {
+        window.addEventListener('hashchange', fokusKeKolomCari);
+        document.body.addEventListener('htmx:configRequest', bersihkanParameter);
+        window.katalogTerpasang = true;
+    }
 </script>
 {% endblock %}

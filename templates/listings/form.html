@@ -140,56 +140,69 @@
        Saran kota (Nominatim)
        Memilih saran mengisi kota dan koordinat.
        Mengetik ulang secara manual membuang koordinat lama.
+       Variabel dibuat di dalam fungsi karena HTMX menjalankan ulang <script> saat tombol back dipakai.
        --------------------------------------------- */
-    const $kota = document.getElementById('id_city');
-    const $latitude = document.getElementById('id_latitude');
-    const $longitude = document.getElementById('id_longitude');
-    const $hasilSaran = document.getElementById('location-results');
-
-    // Teks kota yang cocok dengan koordinat yang tersimpan saat ini (kosong kalau belum ada koordinat)
-    let kotaTerpilih = '';
-    if ($latitude && $longitude && $latitude.value && $longitude.value) {
-        kotaTerpilih = $kota.value;
-    }
-
     function kosongkanSaran() {
-        $hasilSaran.innerHTML = '';
+        const $hasilSaran = document.getElementById('location-results');
+        if ($hasilSaran) $hasilSaran.innerHTML = '';
     }
 
-    // Penjual mengklik salah satu saran
-    function pilihSaran(event) {
-        const $saran = event.target.closest('[data-city]');
-        if (!$saran) return;
-
-        $kota.value = $saran.dataset.city;
-        $latitude.value = $saran.dataset.lat;
-        $longitude.value = $saran.dataset.lon;
-        kotaTerpilih = $kota.value;
-
-        kosongkanSaran();
-        $kota.focus();
-    }
-
-    // Penjual mengetik lagi: kalau teksnya sudah beda dari saran yang dipilih, koordinatnya tidak cocok lagi
-    function cekKotaDiketikUlang() {
-        if ($kota.value !== kotaTerpilih) {
-            $latitude.value = '';
-            $longitude.value = '';
-        }
-    }
-
+    // Klik di luar kolom kota dan kotak saran menutup saran
     function tutupSaranKalauKlikDiLuar(event) {
+        const $hasilSaran = document.getElementById('location-results');
+        const $kota = document.getElementById('id_city');
+        if (!$hasilSaran) return;
+
         const klikDiLuar = !$hasilSaran.contains(event.target) && event.target !== $kota;
         if (klikDiLuar) kosongkanSaran();
     }
 
-    if ($kota && $latitude && $longitude && $hasilSaran) {
-        $hasilSaran.addEventListener('click', pilihSaran);
-        $kota.addEventListener('input', cekKotaDiketikUlang);
+    function pasangSaranKota() {
+        const $kota = document.getElementById('id_city');
+        const $latitude = document.getElementById('id_latitude');
+        const $longitude = document.getElementById('id_longitude');
+        const $hasilSaran = document.getElementById('location-results');
+        if (!$kota || !$latitude || !$longitude || !$hasilSaran) return;
+
+        // Teks kota yang cocok dengan koordinat yang tersimpan saat ini (kosong kalau belum ada koordinat)
+        let kotaTerpilih = '';
+        if ($latitude.value && $longitude.value) {
+            kotaTerpilih = $kota.value;
+        }
+
+        // Penjual mengklik salah satu saran
+        $hasilSaran.addEventListener('click', (event) => {
+            const $saran = event.target.closest('[data-city]');
+            if (!$saran) return;
+
+            $kota.value = $saran.dataset.city;
+            $latitude.value = $saran.dataset.lat;
+            $longitude.value = $saran.dataset.lon;
+            kotaTerpilih = $kota.value;
+
+            kosongkanSaran();
+            $kota.focus();
+        });
+
+        // Penjual mengetik lagi: kalau teksnya sudah beda dari saran yang dipilih, koordinatnya tidak cocok lagi
+        $kota.addEventListener('input', () => {
+            if ($kota.value !== kotaTerpilih) {
+                $latitude.value = '';
+                $longitude.value = '';
+            }
+        });
+
         $kota.addEventListener('keydown', (event) => {
             if (event.key === 'Escape') kosongkanSaran();
         });
+    }
+
+    pasangSaranKota();
+
+    // Listener di document cukup dipasang satu kali, walaupun skrip ini dijalankan ulang
+    if (!window.saranKotaTerpasang) {
         document.addEventListener('click', tutupSaranKalauKlikDiLuar);
+        window.saranKotaTerpasang = true;
     }
 </script>
 {% endblock %}
