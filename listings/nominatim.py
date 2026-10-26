@@ -27,7 +27,7 @@ DEFAULT_USER_AGENT = "Pakelagi/1.0 (+https://github.com/pbp-kelompok-b8/pakelagi
 MIN_QUERY_LENGTH = 3
 MAX_QUERY_LENGTH = 100
 FETCH_LIMIT = 8             # jumlah yang diminta ke Nominatim (sebagian akan dibuang)
-MAX_RESULTS = 5             # jumlah yang ditampilkan ke penjual
+MAX_RESULTS = 6             # jumlah yang ditampilkan ke penjual ("depok" saja punya enam tempat berbeda)
 REQUEST_TIMEOUT = (2, 4)    # (detik untuk menyambung, detik untuk membaca) supaya form tidak menunggu lama
 
 RESULT_TTL = 24 * 60 * 60   # hasil yang ada isinya disimpan 24 jam
@@ -50,7 +50,34 @@ ALLOWED_TYPES = [
     "city", "town", "village", "hamlet", "suburb", "neighbourhood", "quarter", "borough", "city_district",
     "municipality", "county", "state_district", "district", "administrative", "island",
 ]
-REGION_KEYS = ["city", "town", "municipality", "county", "regency", "state_district"]
+# Kota/kabupaten tempat sebuah lokasi berada (induknya). Kecamatan sengaja TIDAK ada di daftar ini:
+# dulu "municipality" ikut dipakai, jadi Desa Depok di Kabupaten Kulonprogo tertulis "Depok, Panjatan"
+# (Panjatan itu kecamatan) dan nama kabupatennya hilang.
+PARENT_KEYS = ["county", "city", "regency", "town"]
+
+# Tingkat kecamatan, ditampilkan di keterangan sebagai "Kec. ..."
+KECAMATAN_KEYS = ["city_district", "municipality", "subdistrict", "district", "borough"]
+
+# Jenis tempat untuk keterangan. Nominatim TIDAK bisa membedakan kota dari kabupaten: Depok (kota) dan Garut
+# (kabupaten) sama-sama bertipe "city", jadi kita tidak menebak dan menulis "Kota/Kabupaten".
+# Hanya "county" yang pasti kabupaten, dan kunci kecamatan pasti kecamatan.
+KIND_LABELS = {
+    "city": "Kota/Kabupaten",
+    "town": "Kota kecil",
+    "county": "Kabupaten",
+    "district": "Kecamatan",
+    "municipality": "Kecamatan",
+    "city_district": "Kecamatan",
+    "subdistrict": "Kecamatan",
+    "borough": "Kecamatan",
+    "village": "Desa/Kelurahan",
+    "suburb": "Desa/Kelurahan",
+    "hamlet": "Dusun",
+    "neighbourhood": "Lingkungan",
+    "quarter": "Lingkungan",
+    "state_district": "Wilayah",
+    "island": "Pulau",
+}
 
 # Kotak kasar Indonesia, cuma untuk membuang koordinat yang ngawur (misal di Eropa atau Amerika).
 # Ini BUKAN batas negara: Singapura dan Malaysia bagian utara ikut berada di dalam kotak.
@@ -80,8 +107,21 @@ def is_in_indonesia(lat, lon):
     return LAT_MIN <= lat <= LAT_MAX and LON_MIN <= lon <= LON_MAX
 
 
+def first_value(address, keys):
+    # Nilai pertama yang terisi dari daftar kunci alamat (urutan kunci = urutan prioritas)
+    for key in keys:
+        if address.get(key):
+            return str(address[key]).strip()
+    return ""
+
+
 def build_label(item):
-    # Judul dan keterangan satu hasil, contoh: ("Coblong, Kota Bandung", "Jawa Barat, Indonesia")
+    # Judul dan keterangan satu hasil. Contoh nyata untuk pencarian "depok":
+    #   ("Depok, Jawa Barat",            "Kota/Kabupaten · Jawa Barat, Indonesia")
+    #   ("Depok, Sleman",                "Desa/Kelurahan · Daerah Istimewa Yogyakarta, Indonesia")
+    #   ("Depok, Kulonprogo",            "Desa/Kelurahan · Kec. Panjatan · Daerah Istimewa Yogyakarta, Indonesia")
+    # Judul = teks yang disimpan di kolom kota (nama + kota/kabupaten, atau nama + provinsi kalau tidak ada induknya).
+    # Keterangan = jenis tempat, kecamatan, dan provinsi, untuk membedakan tempat-tempat yang namanya sama.
     address = item.get("address")
     if not isinstance(address, dict):
         address = {}
@@ -90,35 +130,42 @@ def build_label(item):
     if not name:
         name = str(item.get("display_name") or "").split(",")[0].strip()
 
-    # Wilayah induknya (kota/kabupaten) dicari dari beberapa kemungkinan kunci
-    region = ""
-    for key in REGION_KEYS:
-        if address.get(key):
-            region = str(address[key]).strip()
-            break
-
-    # Kalau nama sudah bagian dari wilayah (atau sebaliknya), misal "Bandung" dan "Kota Bandung",
-    # cukup pakai yang lebih lengkap supaya tidak tertulis dua kali
-    sama = name.casefold() in region.casefold() or region.casefold() in name.casefold()
-    if region and name and not sama:
-        title = name + ", " + region
-    elif len(region) > len(name):
-        title = region
-    else:
-        title = name
-
     state = str(address.get("state") or "").strip()
-    if state:
-        subtitle = state + ", Indonesia"
-    else:
-        subtitle = "Indonesia"
+    parent = first_value(address, PARENT_KEYS)          # kota/kabupaten induknya
+    kecamatan = first_value(address, KECAMATAN_KEYS)
+    kind = KIND_LABELS.get(item.get("addresstype") or item.get("type"), "")
 
-    return title[:100].rstrip(" ,"), subtitle
+    # Kalau nama sudah bagian dari induknya (atau sebaliknya), misal "Bandung" dan "Kota Bandung",
+    # induknya dianggap sama dengan tempat itu sendiri dan cukup pakai nama yang lebih lengkap
+    sama = name.casefold() in parent.casefold() or parent.casefold() in name.casefold()
+    if parent and name and not sama:
+        title = name + ", " + parent
+    else:
+        base = name
+        if len(parent) > len(name):
+            base = parent
+        # Tidak ada induk yang berbeda, jadi provinsi yang menjelaskan: "Depok, Jawa Barat"
+        if state:
+            title = base + ", " + state
+        else:
+            title = base
+
+    parts = []
+    if kind:
+        parts.append(kind)
+    if kecamatan and kecamatan.casefold() != name.casefold():
+        parts.append("Kec. " + kecamatan)
+    if state:
+        parts.append(state + ", Indonesia")
+    else:
+        parts.append("Indonesia")
+
+    return title[:100].rstrip(" ,"), " · ".join(parts)
 
 
 def parse_results(payload):
     results = []
-    sudah_ada = []   # judul yang sudah dimasukkan, supaya tidak ada yang dobel
+    sudah_ada = []   # (judul, keterangan) yang sudah dimasukkan, supaya tidak ada yang benar-benar dobel
 
     for item in payload:
         if not isinstance(item, dict):
@@ -132,9 +179,11 @@ def parse_results(payload):
             continue
 
         title, subtitle = build_label(item)
-        if not title or title.casefold() in sudah_ada:
+        # Dua tempat boleh berjudul sama asal keterangannya berbeda (misal kota Depok dan Kelurahan Depok)
+        penanda = (title.casefold(), subtitle.casefold())
+        if not title or penanda in sudah_ada:
             continue
-        sudah_ada.append(title.casefold())
+        sudah_ada.append(penanda)
 
         results.append({
             "title": title,

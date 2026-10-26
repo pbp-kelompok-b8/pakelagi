@@ -24,17 +24,42 @@ def status_of(query):
     return nominatim.search(query)[1]
 
 COBLONG = {
-    "category": "boundary", "type": "administrative", "name": "Coblong",
+    "category": "boundary", "type": "administrative", "addresstype": "district", "name": "Coblong",
     "display_name": "Coblong, Kota Bandung, Jawa Barat, Indonesia", "lat": "-6.8848474", "lon": "107.6152496",
     "address": {"district": "Coblong", "city": "Kota Bandung", "state": "Jawa Barat", "country": "Indonesia"},
 }
 COBLONG_HAMLET = {
-    "category": "place", "type": "hamlet", "name": "Coblong",
+    "category": "place", "type": "hamlet", "addresstype": "hamlet", "name": "Coblong",
     "display_name": "Coblong, Sidomukti, Kabupaten Semarang, Jawa Tengah, 50665, Indonesia",
     "lat": "-7.2026623", "lon": "110.3854000",
     "address": {"hamlet": "Coblong", "village": "Sidomukti", "county": "Kabupaten Semarang",
                 "state": "Jawa Tengah", "postcode": "50665", "country": "Indonesia"},
 }
+
+
+def real_item(addresstype, category, type_, lat, lon, **address):
+    # Satu hasil seperti bentuk asli Nominatim: name selalu "Depok", sisanya berbeda-beda
+    return {
+        "category": category, "type": type_, "addresstype": addresstype, "name": "Depok",
+        "lat": lat, "lon": lon, "address": {"country": "Indonesia", "country_code": "id", **address},
+    }
+
+
+# Hasil asli pencarian "depok": kota Depok, desa di Sleman, kelurahan di Kota Depok, kecamatan di DIY,
+# desa di Kulonprogo (kecamatan Panjatan), dan kelurahan di Garut (kecamatan Pakenjeng)
+REAL_DEPOK = [
+    real_item("city", "boundary", "administrative", "-6.4071900", "106.8158371", city="Depok", state="Jawa Barat"),
+    real_item("village", "boundary", "administrative", "-7.7581211", "110.3937564",
+              village="Depok", county="Sleman", state="Daerah Istimewa Yogyakarta"),
+    real_item("village", "boundary", "administrative", "-6.4036768", "106.8197388",
+              village="Depok", city_district="Pancoran Mas", city="Depok", state="Jawa Barat"),
+    real_item("district", "place", "district", "-7.7582474", "110.3936827",
+              district="Depok", state="Daerah Istimewa Yogyakarta", postcode="55283"),
+    real_item("village", "boundary", "administrative", "-7.9106436", "110.1587197",
+              village="Depok", municipality="Panjatan", county="Kulonprogo", state="Daerah Istimewa Yogyakarta"),
+    real_item("suburb", "boundary", "administrative", "-7.4618286", "107.6606434",
+              suburb="Depok", subdistrict="Pakenjeng", city="Garut", state="Jawa Barat"),
+]
 
 
 def reply(payload, status=200):
@@ -67,7 +92,8 @@ class ParsingTests(NoRealNetworkMixin, SimpleTestCase):
         results, status = nominatim.search("Coblong")
         self.assertEqual(status, nominatim.OK)
         self.assertEqual(results, [{
-            "title": "Coblong, Kota Bandung", "subtitle": "Jawa Barat, Indonesia", "city": "Coblong, Kota Bandung",
+            "title": "Coblong, Kota Bandung", "subtitle": "Kecamatan · Jawa Barat, Indonesia",
+            "city": "Coblong, Kota Bandung",
             "lat": "-6.88", "lon": "107.62",
         }])
 
@@ -76,19 +102,19 @@ class ParsingTests(NoRealNetworkMixin, SimpleTestCase):
         self.get.return_value = reply([COBLONG, COBLONG_HAMLET])
         titles = [r["title"] for r in results_of("Coblong")]
         self.assertEqual(titles, ["Coblong, Kota Bandung", "Coblong, Kabupaten Semarang"])
-        self.assertEqual(results_of("Coblong")[1]["subtitle"], "Jawa Tengah, Indonesia")
+        self.assertEqual(results_of("Coblong")[1]["subtitle"], "Dusun · Jawa Tengah, Indonesia")
 
     def test_name_contained_in_region_is_not_repeated(self):
         self.get.side_effect = None
         item = {**COBLONG, "name": "Bandung", "address": {"city": "Kota Bandung", "state": "Jawa Barat"}}
         self.get.return_value = reply([item])
-        self.assertEqual(results_of("Bandung")[0]["title"], "Kota Bandung")
+        self.assertEqual(results_of("Bandung")[0]["title"], "Kota Bandung, Jawa Barat")
 
     def test_missing_state_falls_back_to_country_only(self):
         self.get.side_effect = None
         item = {**COBLONG, "address": {"city": "Kota Bandung"}}
         self.get.return_value = reply([item])
-        self.assertEqual(results_of("Coblong")[0]["subtitle"], "Indonesia")
+        self.assertEqual(results_of("Coblong")[0]["subtitle"], "Kecamatan · Indonesia")
 
     def test_streets_buildings_shops_and_houses_are_dropped(self):
         self.get.side_effect = None
@@ -123,7 +149,7 @@ class ParsingTests(NoRealNetworkMixin, SimpleTestCase):
         self.assertEqual(status, nominatim.OK)
         self.assertEqual(len(results), 1)  # hanya item terakhir yang masih valid (tanpa alamat)
 
-    def test_duplicates_are_collapsed_and_results_capped_at_five(self):
+    def test_duplicates_are_collapsed_and_results_capped_at_six(self):
         self.get.side_effect = None
         many = [
             {**COBLONG, "name": f"Tempat {i}", "address": {"city": f"Kota {i}", "state": "Jawa Barat"}}
@@ -131,8 +157,8 @@ class ParsingTests(NoRealNetworkMixin, SimpleTestCase):
         ]
         self.get.return_value = reply([COBLONG, COBLONG] + many)
         results = results_of("Tempat")
-        self.assertEqual(len(results), 5)
-        self.assertEqual(len({r["title"] for r in results}), 5)
+        self.assertEqual(len(results), 6)
+        self.assertEqual(len({r["title"] for r in results}), 6)
 
     def test_title_longer_than_the_city_column_is_cut_to_fit(self):
         self.get.side_effect = None
@@ -153,6 +179,85 @@ class ParsingTests(NoRealNetworkMixin, SimpleTestCase):
         self.assertFalse(nominatim.is_in_indonesia(Decimal("40.7"), Decimal("-74.0")))    # New York
         self.assertFalse(nominatim.is_in_indonesia(Decimal("-33.9"), Decimal("151.2")))   # Sydney
         self.assertFalse(nominatim.is_in_indonesia(Decimal("0"), Decimal("0")))           # titik (0, 0) = data kosong
+
+
+class ClearLabelTests(NoRealNetworkMixin, SimpleTestCase):
+    # Pencarian "depok" menghasilkan enam tempat bernama Depok. Setiap saran harus bisa dibedakan dan
+    # menyebut nama kota/kabupaten (atau provinsi) serta provinsinya.
+    def setUp(self):
+        super().setUp()
+        self.get.side_effect = None
+        self.get.return_value = reply(REAL_DEPOK)
+        self.results = results_of("depok")
+
+    def test_all_six_real_places_are_listed(self):
+        self.assertEqual(len(self.results), 6)
+
+    def test_every_suggestion_names_its_region_and_province(self):
+        titles = [r["title"] for r in self.results]
+        self.assertEqual(titles, [
+            "Depok, Jawa Barat",                       # kota Depok
+            "Depok, Sleman",                           # desa di Kabupaten Sleman
+            "Depok, Jawa Barat",                       # kelurahan di Kota Depok
+            "Depok, Daerah Istimewa Yogyakarta",       # kecamatan (tanpa kabupaten dari Nominatim)
+            "Depok, Kulonprogo",                       # desa di Kabupaten Kulonprogo
+            "Depok, Garut",                            # kelurahan di Kabupaten Garut
+        ])
+        for result in self.results:
+            self.assertIn("Indonesia", result["subtitle"])
+            self.assertTrue(result["subtitle"].split(" · ")[-1].endswith(", Indonesia"))
+
+    def test_subtitle_tells_apart_places_with_the_same_title(self):
+        subtitles = [r["subtitle"] for r in self.results]
+        self.assertEqual(subtitles, [
+            "Kota/Kabupaten · Jawa Barat, Indonesia",
+            "Desa/Kelurahan · Daerah Istimewa Yogyakarta, Indonesia",
+            "Desa/Kelurahan · Kec. Pancoran Mas · Jawa Barat, Indonesia",
+            "Kecamatan · Daerah Istimewa Yogyakarta, Indonesia",
+            "Desa/Kelurahan · Kec. Panjatan · Daerah Istimewa Yogyakarta, Indonesia",
+            "Desa/Kelurahan · Kec. Pakenjeng · Jawa Barat, Indonesia",
+        ])
+        # Dua saran berjudul sama ("Depok, Jawa Barat") tidak boleh saling membuang
+        self.assertEqual(len(set(subtitles)), 6)
+
+    def test_kecamatan_is_never_mistaken_for_the_parent_regency(self):
+        # Bug lama: "Depok, Panjatan" (Panjatan = kecamatan), padahal kabupatennya Kulonprogo
+        titles = [r["title"] for r in self.results]
+        self.assertNotIn("Depok, Panjatan", titles)
+        self.assertNotIn("Depok, Pakenjeng", titles)
+        self.assertNotIn("Depok, Pancoran Mas", titles)
+        self.assertIn("Kec. Panjatan", self.results[4]["subtitle"])
+
+    def test_city_and_regency_are_not_guessed(self):
+        # Nominatim menandai Depok (kota) dan Garut (kabupaten) sama-sama sebagai "city": kita tidak boleh menebak.
+        for result in self.results:
+            self.assertNotIn("Kota Depok", result["title"] + result["subtitle"])
+            self.assertNotIn("Kabupaten Garut", result["title"] + result["subtitle"])
+        self.assertEqual(self.results[0]["subtitle"].split(" · ")[0], "Kota/Kabupaten")
+
+    def test_a_county_is_labelled_kabupaten_and_a_district_kecamatan(self):
+        county = real_item("county", "boundary", "administrative", "-7.7", "110.3", county="Sleman",
+                           state="Daerah Istimewa Yogyakarta")
+        county["name"] = "Sleman"
+        self.get.return_value = reply([county])
+        self.expire_throttle()   # setUp sudah memakai satu pencarian; anggap satu detik sudah berlalu
+        result = results_of("sleman")[0]
+        self.assertEqual(result["title"], "Sleman, Daerah Istimewa Yogyakarta")
+        self.assertEqual(result["subtitle"], "Kabupaten · Daerah Istimewa Yogyakarta, Indonesia")
+
+    def test_stored_city_text_is_the_title_and_fits_the_column(self):
+        for result in self.results:
+            self.assertEqual(result["city"], result["title"])
+            self.assertLessEqual(len(result["city"]), 100)
+
+    def test_unknown_place_type_still_gets_a_usable_label(self):
+        odd = real_item("something_new", "place", "island", "-5.0", "120.0", state="Sulawesi Selatan")
+        odd["name"] = "Pulau Contoh"
+        self.get.return_value = reply([odd])
+        self.expire_throttle()
+        result = results_of("pulau")[0]
+        self.assertEqual(result["title"], "Pulau Contoh, Sulawesi Selatan")
+        self.assertEqual(result["subtitle"], "Sulawesi Selatan, Indonesia")
 
 
 class RequestTests(NoRealNetworkMixin, SimpleTestCase):
