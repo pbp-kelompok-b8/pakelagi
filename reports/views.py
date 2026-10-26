@@ -4,7 +4,7 @@ from django.shortcuts import render
 # TODO : show_reports
 def show_reports(request):
     title_query = request.GET.get("title", "").strip()
-    pass
+    return render()
 
 # TODO : create_reports
 def create_reports():
