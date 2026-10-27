@@ -1,5 +1,6 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import user_passes_test
+from django.utils.html import escape, strip_tags
 from django.contrib import messages
 from django.utils import timezone
 import markdown
@@ -62,7 +63,8 @@ def jurnal_moderation(request):
     selected_content_html = ""
     if selected_guide:
         md = markdown.Markdown(extensions=['toc', 'tables', 'nl2br'])
-        selected_content_html = md.convert(selected_guide.konten)
+        safe_konten = escape(selected_guide.konten)
+        selected_content_html = md.convert(safe_konten).replace('href="javascript:', 'href="#blocked-javascript:')
     
     context = {
         'active_tab': active_tab,
@@ -87,7 +89,7 @@ def review_jurnal_action(request, id):
     
     if request.method == 'POST':
         action = request.POST.get('action')
-        notes = request.POST.get('rejected_notes', '').strip()
+        notes = strip_tags(request.POST.get('rejected_notes', '')).strip()
 
         direct_publish = request.POST.get('direct_publish') == 'true'
         
