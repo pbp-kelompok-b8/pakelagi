@@ -1,5 +1,9 @@
-<form method="post" action="{% url 'favorites:edit' favorite.pk %}" class="space-y-5">
+<div id="favorite-note-{{ favorite.pk }}" hx-history="false">
+<form method="post" action="{% url 'favorites:edit' favorite.pk %}" class="space-y-5"
+      hx-post="{% url 'favorites:edit' favorite.pk %}" hx-target="#favorite-note-{{ favorite.pk }}" hx-swap="outerHTML"
+      hx-push-url="false" hx-sync="this:drop" hx-disabled-elt="find button" data-favorite-action>
     {% csrf_token %}
+    <input type="hidden" name="next" value="{{ return_to }}">
     {{ form.non_field_errors }}
     <div>
         {{ form.note.label_tag }}
@@ -9,6 +13,7 @@
     </div>
     <div class="flex flex-wrap gap-4">
         <button type="submit" class="btn btn-primary">Simpan catatan</button>
-        <a href="{% url 'favorites:list' %}" class="btn btn-secondary">Kembali ke favorit</a>
+        <a href="{{ return_to|default:'/favorites/' }}" class="btn btn-secondary">Kembali ke favorit</a>
     </div>
 </form>
+</div>

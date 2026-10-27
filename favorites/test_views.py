@@ -6,7 +6,7 @@ from listings.models import Listing
 from listings.test_detail import create_listing, make_user
 
 
-class FavoriteViewTests(TestCase):
+class FavoriteTestCase(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.seller = make_user("seller", "Penjual")
@@ -25,6 +25,8 @@ class FavoriteViewTests(TestCase):
     def save_favorite(self, **kwargs):
         return Favorite.objects.create(user=self.member, listing=self.listing, **kwargs)
 
+
+class FavoriteViewTests(FavoriteTestCase):
     def test_add_is_idempotent_and_ignores_submitted_owner(self):
         for _ in range(2):
             response = self.client.post(self.action_url("add"), {"user": self.other.pk})

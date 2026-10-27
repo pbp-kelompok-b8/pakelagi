@@ -12,8 +12,12 @@ from listings.models import Listing
 from profiles.access import safe_profile_next
 
 
-def list_context(request):
-    category = get_catalog_filter(request.GET)["category"]
+def is_partial(request):
+    return request.headers.get("HX-Request") == "true" and request.headers.get("HX-History-Restore-Request") != "true"
+
+
+def list_context(request, params=None):
+    category = get_catalog_filter(request.GET if params is None else params)["category"]
     favorites = Favorite.objects.filter(
         user=request.user, listing__status__in=[Listing.Status.AVAILABLE, Listing.Status.SOLD],
     ).select_related("listing")
@@ -26,13 +30,17 @@ def list_context(request):
         "href": url + "?" + urlencode({"category": value}) if value else url,
         "active": value == category,
     } for value, label in [("", "Semua"), *Listing.Category.choices]]
-    return {"favorites": favorites, "category": category, "tabs": tabs, "total_count": total_count}
+    return {
+        "favorites": favorites, "category": category, "tabs": tabs, "total_count": total_count,
+        "favorites_return_to": url + "?" + urlencode({"category": category}) if category else url,
+    }
 
 
 @favorite_member_required
 @require_GET
 def favorite_list(request):
-    return render(request, "favorites/list.html", list_context(request))
+    template = "favorites/components/results.html" if is_partial(request) else "favorites/list.html"
+    return render(request, template, list_context(request))
 
 
 @favorite_member_required
@@ -51,6 +59,8 @@ def favorite_add(request, listing_id):
 def favorite_remove(request, listing_id):
     # Tidak membaca detail listing: favorit lama tetap bisa dihapus setelah Sold/Hidden.
     Favorite.objects.filter(user=request.user, listing_id=listing_id).delete()
+    if is_partial(request):
+        return render(request, "favorites/components/results.html", list_context(request, request.POST))
     target = safe_profile_next(request, request.POST.get("next"))
     return redirect(target or "favorites:list")
 
@@ -64,8 +74,14 @@ def favorite_edit(request, pk):
         ), pk=pk,
     )
     form = FavoriteNoteForm(request.POST if request.method == "POST" else None, instance=favorite)
+    target = safe_profile_next(request, request.POST.get("next") or request.GET.get("next"))
     if request.method == "POST" and form.is_valid():
         favorite.note = form.cleaned_data["note"]
         favorite.save(update_fields=["note", "updated_at"])
-        return redirect("favorites:list")
-    return render(request, "favorites/edit.html", {"form": form, "favorite": favorite})
+        if is_partial(request):
+            return render(request, "favorites/components/note.html", {
+                "favorite": favorite, "saved": True, "return_to": target,
+            })
+        return redirect(target or "favorites:list")
+    template = "favorites/components/note_form.html" if is_partial(request) else "favorites/edit.html"
+    return render(request, template, {"form": form, "favorite": favorite, "return_to": target})
