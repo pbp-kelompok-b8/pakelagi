@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'profiles.apps.ProfilesConfig',
     'listings.apps.ListingsConfig', 
+    'favorites.apps.FavoritesConfig',
     'sustainableguides',
     'moderations',
 ]
