@@ -49,6 +49,18 @@ class FavoriteHtmxTests(FavoriteTestCase):
         self.assertTemplateNotUsed(response, "base.html")
         self.assertContains(response, "Catatan disimpan")
 
+    def test_note_return_url_with_spaces_round_trips_and_can_be_cleared(self):
+        favorite = self.save_favorite(note="Awal")
+        url = reverse("favorites:edit", args=[favorite.pk])
+        target = self.list_url + "?category=Modest+Wear"
+        response = self.client.get(url, {"next": target}, HTTP_HX_REQUEST="true")
+        self.assertContains(response, 'value="/favorites/?category=Modest+Wear"')
+        response = self.client.post(url, {"note": "", "next": target}, HTTP_HX_REQUEST="true")
+        self.assertContains(response, "Belum ada catatan.")
+        self.assertContains(response, "next=/favorites/%3Fcategory%3DModest%2BWear")
+        favorite.refresh_from_db()
+        self.assertEqual(favorite.note, "")
+
     def test_htmx_invalid_note_keeps_errors_and_existing_value(self):
         favorite = self.save_favorite(note="Awal")
         response = self.client.post(reverse("favorites:edit", args=[favorite.pk]), {

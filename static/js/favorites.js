@@ -11,6 +11,10 @@
             if (control.dataset.listingId !== listingId) return;
             const form = control.querySelector('form[data-favorite-action]');
             if (!form) return;
+            if (!saved && control.dataset.canSave !== 'true') {
+                control.replaceChildren();
+                return;
+            }
             const action = saved ? form.dataset.removeUrl : form.dataset.addUrl;
             form.action = action;
             form.setAttribute('hx-post', action);

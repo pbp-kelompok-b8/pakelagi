@@ -127,6 +127,14 @@ class FavoriteViewTests(FavoriteTestCase):
         self.assertNotContains(response, "Catatan tersembunyi")
         self.assertContains(response, "Belum ada favorit")
 
+    def test_hidden_partial_never_exposes_title_image_or_note(self):
+        self.save_favorite(note="Catatan tersembunyi")
+        Listing.objects.filter(pk=self.listing.pk).update(status=Listing.Status.HIDDEN)
+        response = self.client.get(self.list_url, HTTP_HX_REQUEST="true")
+        self.assertEqual(response.context["total_count"], 0)
+        for secret in (self.listing.title, self.listing.image_url, "Catatan tersembunyi"):
+            self.assertNotContains(response, secret)
+
     def test_category_filters_use_official_choices_and_unknown_means_all(self):
         top = self.save_favorite()
         dress = create_listing(self.seller, category=Listing.Category.DRESS)
@@ -144,6 +152,18 @@ class FavoriteViewTests(FavoriteTestCase):
         response = self.client.get(self.list_url, {"category": "Dress"})
         self.assertContains(response, "Belum ada favorit di kategori ini")
         self.assertNotContains(response, "Belum ada favorit</")
+
+    def test_every_category_works_on_full_and_partial_favorites_pages(self):
+        expected = {}
+        for category in Listing.Category.values:
+            listing = create_listing(self.seller, category=category)
+            expected[category] = Favorite.objects.create(user=self.member, listing=listing)
+        for category, favorite in expected.items():
+            for headers in ({}, {"HTTP_HX_REQUEST": "true"}):
+                with self.subTest(category=category, headers=headers):
+                    response = self.client.get(self.list_url, {"category": category}, **headers)
+                    self.assertEqual(list(response.context["favorites"]), [favorite])
+                    self.assertContains(response, 'aria-current="page">' + category + "</a>")
 
     def test_list_is_get_only(self):
         self.assertEqual(self.client.post(self.list_url).status_code, 405)

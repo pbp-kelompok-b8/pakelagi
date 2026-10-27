@@ -1,4 +1,4 @@
-<div id="{{ component_id }}" class="favorite-control relative z-10" data-listing-id="{{ listing.pk }}" hx-history="false">
+<div id="{{ component_id }}" class="favorite-control relative z-10" data-listing-id="{{ listing.pk }}" data-can-save="{% if listing.status == 'Available' %}true{% else %}false{% endif %}" hx-history="false">
 {% if show_button %}
     {% if invite_url %}
     <a href="{{ invite_url }}" class="btn btn-secondary btn-sm bg-white" aria-label="{{ invite_label }}">
