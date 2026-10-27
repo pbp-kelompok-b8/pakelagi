@@ -3,24 +3,24 @@
 {% block title %}Moderasi Panduan{% endblock %}
 
 {% block content %}
-<!-- BUNGKUS UTAMA UNTUK TARGET HTMX -->
+{% comment %} BUNGKUS UTAMA UNTUK TARGET HTMX {% endcomment %}
 <div id="moderation-container" class="w-full min-h-screen bg-stone-100 flex flex-col justify-start items-start overflow-hidden">
 
-    <!-- Header Halaman & Tombol Tulis Artikel -->
+    {% comment %} Header Halaman & Tombol Tulis Artikel {% endcomment %}
     <div class="self-stretch px-6 md:px-12 pt-16 pb-12 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-6 overflow-hidden">
         <div class="inline-flex flex-col justify-start items-start gap-3">
             <h1 class="text-zinc-900 text-5xl md:text-7xl font-medium font-['Cormorant_Garamond'] leading-tight md:leading-[76px]">
                 Panduan
             </h1>
         </div>
-        <a href="{% url 'sustainableguides:drafts' %}" class="px-9 py-4 bg-amber-700 hover:bg-amber-800 transition-colors flex justify-center items-center gap-3">
+        <a href="{% url 'sustainableguides:my_submissions' %}" class="px-9 py-4 bg-amber-700 hover:bg-amber-800 transition-colors flex justify-center items-center gap-3">
             <span class="text-white text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-widest">
                 Tulis artikel baru
             </span>
         </a>
     </div>
 
-    <!-- Baris Filter Tab (HTMX AJAX) -->
+    {% comment %} Baris Filter Tab (HTMX AJAX) {% endcomment %}
     <div class="self-stretch px-6 md:px-12 pb-10 flex flex-col justify-start items-start overflow-hidden">
         <div class="self-stretch border-b border-stone-300 flex justify-start items-start gap-8 md:gap-10 overflow-x-auto">
             
@@ -51,7 +51,7 @@
         </div>
     </div>
 
-    <!-- Notifikasi Pesan -->
+    {% comment %} Notifikasi Pesan {% endcomment %}
     {% if messages %}
     <div class="self-stretch px-6 md:px-12 pb-6 flex flex-col gap-2">
         {% for message in messages %}
@@ -62,76 +62,75 @@
     </div>
     {% endif %}
 
-    <!-- Konten Utama Split-Screen (Kiri: Daftar | Kanan: Panel Tinjauan) -->
+    {% comment %} Konten Utama Split-Screen (Kiri: Daftar | Kanan: Panel Tinjauan) {% endcomment %}
     <div class="self-stretch px-6 md:px-12 pb-24 flex flex-col lg:flex-row justify-start items-start gap-12 overflow-hidden">
         
-        <!-- ========================================== -->
-        <!-- KOLOM KIRI: DAFTAR PANDUAN                 -->
-        <!-- ========================================== -->
+        {% comment %} ========================================== {% endcomment %}
+        {% comment %} KOLOM KIRI: DAFTAR PANDUAN                 {% endcomment %}
+        {% comment %} ========================================== {% endcomment %}
         <div class="flex-1 w-full inline-flex flex-col justify-start items-start overflow-hidden">
             
-            <div class="pb-3 flex flex-col justify-start items-start">
-                <div class="text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">
-                    {% if active_tab == 'pending' %} Menunggu tinjauan
-                    {% elif active_tab == 'approved' %} Daftar panduan disetujui
-                    {% elif active_tab == 'published' %} Daftar panduan terbit di jurnal
-                    {% elif active_tab == 'rejected' %} Daftar draf ditolak
-                    {% endif %}
-                </div>
-            </div>
-
-            {% for item in guides %}
-            <div class="self-stretch px-4 py-5 {% if selected_guide and selected_guide.id == item.id %}bg-white border-l-2 border-amber-700 shadow-sm{% else %}border-t border-stone-300 hover:bg-stone-200/40{% endif %} transition-colors inline-flex justify-between items-center gap-4 overflow-hidden">
+            {% if active_tab == 'pending' %}
                 
-                <!-- HTMX AJAX UNTUK MENGGANTI PANEL KANAN SAAT DIKLIK -->
-                <button hx-get="?tab={{ active_tab }}&id={{ item.id }}" 
-                        hx-target="#moderation-container" hx-select="#moderation-container" hx-swap="outerHTML" hx-push-url="true"
-                        class="flex-1 flex justify-start items-center gap-4 overflow-hidden text-left cursor-pointer">
-                    
-                    {% if item.image_url %}
-                        <img class="size-10 object-cover shrink-0" src="{{ item.image_url }}" alt="{{ item.title }}" />
-                    {% else %}
-                        <div class="size-10 bg-neutral-200 flex justify-center items-center shrink-0">
-                            <span class="text-gray-800 text-xs font-semibold font-['Jost'] uppercase">{{ item.author_name|slice:":2"|upper }}</span>
-                        </div>
-                    {% endif %}
-
-                    <div class="flex-1 inline-flex flex-col justify-start items-start gap-0.5 overflow-hidden">
-                        <div class="self-stretch text-zinc-900 text-xl font-semibold font-['Cormorant_Garamond'] leading-6 truncate">
-                            {{ item.title }}
-                        </div>
-                        <div class="text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight">
-                            {{ item.author_name }} &nbsp;·&nbsp; {% if item.status == 'DISETUJUI' and item.date_published %}disetujui {{ item.date_published|date:"j M Y" }}{% else %}{{ item.date_submitted|date:"j M Y" }}{% endif %}
-                        </div>
+                {% comment %} BLOK 1: MENUNGGU TINJAUAN {% endcomment %}
+                <div class="self-stretch pb-3 flex flex-col justify-start items-start">
+                    <div class="text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">
+                        Menunggu Tinjauan
                     </div>
-                </button>
-
-                <div class="flex justify-end items-center gap-4 shrink-0">
-                    {% include 'sustainableguides/components/status_badge.html' with status=item.status %}
-                    
-                    <!-- Form Hapus Permanen via HTMX -->
-                    <form hx-post="{% url 'moderations:jurnal_delete' item.id %}?tab={{ active_tab }}" 
-                          hx-target="#moderation-container" hx-select="#moderation-container" hx-swap="outerHTML"
-                          hx-confirm="Hapus panduan ini secara permanen?">
-                        {% csrf_token %}
-                        <button type="submit" class="text-orange-800 hover:text-red-700 text-xs font-semibold font-['Jost'] underline uppercase leading-4 tracking-wider transition-colors cursor-pointer">
-                            Hapus
-                        </button>
-                    </form>
                 </div>
-            </div>
-            {% empty %}
-            <div class="self-stretch py-10 border-t border-stone-300 text-stone-500 text-sm font-['Jost']">
-                Tidak ada panduan pada kategori tab ini.
-            </div>
-            {% endfor %}
-            <div class="self-stretch h-px bg-stone-300"></div>
 
+                {% for item in guides %}
+                    {% include "moderations/components/list_item.html" with item=item %}
+                {% empty %}
+                    <div class="self-stretch py-10 border-t border-stone-300 text-stone-500 text-sm font-['Jost']">
+                        Tidak ada draf yang menunggu tinjauan.
+                    </div>
+                {% endfor %}
+                
+                <div class="self-stretch h-px bg-transparent mb-12"></div>
+
+                {% comment %} BLOK 2: DISETUJUI · MENUNGGU TERBIT {% endcomment %}
+                <div class="self-stretch pb-3 flex flex-col justify-start items-start">
+                    <div class="text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">
+                        Disetujui &nbsp;·&nbsp; Menunggu Terbit
+                    </div>
+                </div>
+
+                {% for item in waiting_publish_guides %}
+                    {% include "moderations/components/list_item.html" with item=item %}
+                {% empty %}
+                    <div class="self-stretch py-10 border-t border-stone-300 text-stone-500 text-sm font-['Jost']">
+                        Tidak ada panduan yang mengantre untuk diterbitkan.
+                    </div>
+                {% endfor %}
+
+            {% else %}
+                
+                {% comment %} TAMPILAN STANDAR UNTUK TAB SELAIN PENDING {% endcomment %}
+                <div class="self-stretch pb-3 flex flex-col justify-start items-start">
+                    <div class="text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">
+                        {% if active_tab == 'approved' %} Daftar panduan disetujui
+                        {% elif active_tab == 'published' %} Daftar panduan terbit di jurnal
+                        {% elif active_tab == 'rejected' %} Daftar draf ditolak
+                        {% endif %}
+                    </div>
+                </div>
+
+                {% for item in guides %}
+                    {% include "moderations/components/list_item.html" with item=item %}
+                {% empty %}
+                    <div class="self-stretch py-10 border-t border-stone-300 text-stone-500 text-sm font-['Jost']">
+                        Tidak ada panduan pada kategori tab ini.
+                    </div>
+                {% endfor %}
+                
+            {% endif %}
+            
+            <div class="self-stretch h-px bg-stone-300"></div>
         </div>
 
-        <!-- ========================================== -->
-        <!-- KOLOM KANAN: PANEL PREVIEW & KEPUTUSAN     -->
-        <!-- ========================================== -->
+
+        {% comment %} PANEL PREVIEW & KEPUTUSAN {% endcomment %}
         <div class="w-full lg:w-[580px] p-6 md:p-10 bg-white outline outline-1 outline-offset-[-1px] outline-stone-300 inline-flex flex-col justify-start items-start gap-6 overflow-hidden shrink-0 transition-all duration-300 ease-in-out">
             
             {% if selected_guide %}
@@ -168,12 +167,19 @@
                     </button>
                 </div>
 
-                <!-- FORM KEPUTUSAN MODERASI (HTMX AJAX) -->
-                {% if active_tab == 'pending' %}
+                {% comment %} FORM KEPUTUSAN MODERASI (HTMX AJAX) {% endcomment %}
+                
+                <!-- 👇 INI YANG DIUBAH: Sebelumnya ngecek active_tab == 'pending' 👇 -->
+                {% if selected_guide.status == 'PENDING' %}
+                <!-- 👆 ========================================================== 👆 -->
+                
                 <form hx-post="{% url 'moderations:jurnal_review' selected_guide.id %}" 
                       hx-target="#moderation-container" hx-select="#moderation-container" hx-swap="outerHTML"
                       class="self-stretch flex flex-col justify-start items-start gap-6">
                     {% csrf_token %}
+                    
+                    {% comment %} INPUT TERSEMBUNYI UNTUK SAKLAR {% endcomment %}
+                    <input type="hidden" name="direct_publish" id="direct-publish-input" value="false">
                     
                     <div class="self-stretch flex flex-col justify-start items-start gap-2">
                         <label for="rejected_notes" class="text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Catatan untuk pengirim</label>
@@ -184,13 +190,13 @@
                     </div>
 
                     <div class="inline-flex flex-wrap justify-start items-center gap-4">
-                        <!-- Submit Setujui -->
+                        {% comment %} Submit Setujui {% endcomment %}
                         <button type="submit" name="action" value="approve" class="htmx-submit-btn px-9 py-4 bg-amber-700 hover:bg-amber-800 transition-colors flex justify-center items-center gap-3 cursor-pointer">
                             <span class="htmx-normal-text text-white text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-widest">Setujui draf</span>
                             <span class="htmx-loading-text text-white text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-widest hidden opacity-70">Memproses...</span>
                         </button>
                         
-                        <!-- Submit Tolak -->
+                        {% comment %} Submit Tolak {% endcomment %}
                         <button type="submit" name="action" value="reject" class="htmx-submit-btn px-9 py-4 outline outline-1 outline-offset-[-1px] outline-zinc-900 hover:bg-zinc-900 text-zinc-900 hover:text-white transition-colors flex justify-center items-center gap-3 cursor-pointer">
                             <span class="htmx-normal-text text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-widest">Tolak</span>
                             <span class="htmx-loading-text text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-widest hidden opacity-70">Memproses...</span>
@@ -201,18 +207,41 @@
 
                 <div class="self-stretch h-px bg-stone-300"></div>
 
+                {% comment %} KOTAK STATUS PUBLIKASI INTERAKTIF {% endcomment %}
                 <div class="self-stretch px-6 py-5 bg-stone-200 flex flex-col justify-start items-start gap-3">
                     <div class="text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Status Publikasi Jurnal</div>
                     <div class="self-stretch inline-flex justify-start items-center gap-3.5">
-                        {% if selected_guide.is_published %}
-                            <div class="w-10 h-5 p-0.5 bg-green-700 rounded-xl flex justify-end items-center"><div class="size-4 bg-white rounded-lg"></div></div>
-                            <div class="flex-1 text-zinc-900 text-base font-normal font-['Jost'] leading-6">Telah terbit</div>
-                            <div class="text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight">is_published = true</div>
-                        {% else %}
-                            <div class="w-10 h-5 p-0.5 bg-stone-400 rounded-xl flex justify-start items-center"><div class="size-4 bg-white rounded-lg"></div></div>
+                        
+                        {% if selected_guide.status == 'PENDING' %}
+                        
+                            {% comment %} Saklar Javascript (Hanya mengubah input hidden di form atas) {% endcomment %}
+                            <button type="button" onclick="togglePendingPublish()" id="pending-publish-switch" class="w-10 h-5 p-0.5 bg-stone-400 rounded-xl flex justify-start items-center transition-colors cursor-pointer shrink-0">
+                                <div class="size-4 bg-white rounded-lg transition-transform"></div>
+                            </button>
+                            <div id="pending-publish-text" class="flex-1 text-zinc-900 text-base font-normal font-['Jost'] leading-6">Belum terbit</div>
+                            <div class="text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight hidden sm:block">Klik agar terbit saat disetujui</div>
+                        {% elif selected_guide.status == 'DISETUJUI' %}
+                            {% comment %} Saklar HTMX (Otomatis mengirim request mengubah database real-time) {% endcomment %}
+                            <form hx-post="{% url 'moderations:jurnal_toggle_publish' selected_guide.id %}?tab={{ active_tab }}" 
+                                  hx-target="#moderation-container" hx-select="#moderation-container" hx-swap="outerHTML"
+                                  class="flex items-center m-0 shrink-0">
+                                {% csrf_token %}
+                                <button type="submit" class="w-10 h-5 p-0.5 {% if selected_guide.is_published %}bg-green-700 justify-end{% else %}bg-stone-400 justify-start{% endif %} rounded-xl flex items-center transition-colors cursor-pointer">
+                                    <div class="size-4 bg-white rounded-lg"></div>
+                                </button>
+                            </form>
+                            <div class="flex-1 text-zinc-900 text-base font-normal font-['Jost'] leading-6">
+                                {% if selected_guide.is_published %}Telah terbit{% else %}Belum terbit{% endif %}
+                            </div>
+                            <div class="text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight">is_published = {{ selected_guide.is_published|yesno:"true,false" }}</div>                     
+                        
+                            {% elif selected_guide.status == 'DITOLAK' %}
+                            {% comment %} Tampilan Statis (Untuk guide Ditolak) {% endcomment %}
+                            <div class="w-10 h-5 p-0.5 bg-stone-400 rounded-xl flex justify-start items-center shrink-0"><div class="size-4 bg-white rounded-lg"></div></div>
                             <div class="flex-1 text-zinc-900 text-base font-normal font-['Jost'] leading-6">Belum terbit</div>
                             <div class="text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight">is_published = false</div>
                         {% endif %}
+
                     </div>
                 </div>
 
@@ -226,7 +255,7 @@
         </div>
     </div>
 </div>
-
+<div id="modal-container"></div>
 <style>
     /* CSS Custom untuk Feedback HTMX Loading (Syarat 4/4) */
     .htmx-request.htmx-submit-btn .htmx-normal-text { display: none; }
@@ -267,5 +296,19 @@
         }
     }
     document.addEventListener("DOMContentLoaded", initToggle);
+    function togglePendingPublish() {
+        const input = document.getElementById('direct-publish-input');
+        const switchBtn = document.getElementById('pending-publish-switch');
+        
+        if (input.value === 'false') {
+            input.value = 'true';
+            switchBtn.classList.replace('bg-stone-400', 'bg-green-700');
+            switchBtn.classList.replace('justify-start', 'justify-end');
+        } else {
+            input.value = 'false';
+            switchBtn.classList.replace('bg-green-700', 'bg-stone-400');
+            switchBtn.classList.replace('justify-end', 'justify-start');
+        }
+    }
 </script>
 {% endblock %}

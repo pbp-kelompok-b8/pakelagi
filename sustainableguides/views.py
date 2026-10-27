@@ -60,57 +60,72 @@ def guide_detail(request, id):
 
 @login_required(login_url='accounts:login')
 def user_drafts(request):
-    # Ambil draft User
+    # Ambil draft User berdasarkan tanggal submit dan menghitung yang pending
     drafts = Guide.objects.filter(author=request.user).order_by('-date_submitted')
     pending_count = drafts.filter(status='PENDING').count()
     
-    if request.method == 'POST':
-        form = GuideForm(request.POST)
-        if form.is_valid():
-            new_guide = form.save(commit=False)
-            new_guide.author = request.user # Set author jadi user
-            new_guide.status = 'PENDING'
-            new_guide.save()
-            messages.success(request, "Draf panduan berhasil dibuat menunggu approval admin")
-            return redirect('sustainableguides:drafts')
-    else:
-        form = GuideForm()
-        
+    form = GuideForm()
+    
     context = {
         'drafts': drafts,
         'pending_count': pending_count,
-        'form': form,
+        'form': form
     }
     return render(request, 'sustainableguides/user_drafts.html', context)
+
+@login_required(login_url='accounts:login')
+def submit_draft(request):
+    if request.method == 'POST':
+        form = GuideForm(request.POST)
+        if form.is_valid():
+            guide = form.save(commit=False)
+            guide.author = request.user
+            guide.status = 'PENDING'
+            guide.save()
+            messages.success(request, 'Draf panduan berhasil dikirim dan menunggu tinjauan admin.')
+        else:
+            messages.error(request, 'Gagal mengirim draf. Periksa kembali isian form.')
+            
+    # HTMX akan merender ulang daftar draf secara otomatis
+    return user_drafts(request)
     
 @login_required(login_url='accounts:login')
 def edit_draft(request, id):
-    guide = get_object_or_404(Guide, id=id, author=request.user, status='PENDING')
+    guide = get_object_or_404(Guide, id=id, author=request.user)
     
+    # Tolak jika status bukan pending
+    if guide.status != 'PENDING':
+        messages.error(request, "Draf yang sudah disetujui atau ditolak tidak dapat diubah lagi.")
+        return redirect('sustainableguides:my_submissions')
+
     if request.method == 'POST':
         form = GuideForm(request.POST, instance=guide)
         if form.is_valid():
             form.save()
-            messages.success(request, "Draf berhasil diperbarui.")
-            return redirect('sustainableguides:drafts')
+            messages.success(request, 'Draf panduan berhasil diperbarui.')
+            return redirect('sustainableguides:my_submissions')
     else:
         form = GuideForm(instance=guide)
-        
+
     context = {
         'form': form, 
         'guide': guide
     }
-        
     return render(request, 'sustainableguides/edit_draft.html', context)
 
 @login_required(login_url='accounts:login')
 def delete_draft(request, id):
-    guide = get_object_or_404(Guide, id=id, author=request.user, status='PENDING')
+    guide = get_object_or_404(Guide, id=id, author=request.user)
     
     if request.method == 'POST':
-        guide.delete()
-        messages.success(request, "Draf berhasil dihapus.")
-        
-    return redirect('sustainableguides:drafts')
+        # Validasi Kunci
+        if guide.status == 'PENDING':
+            title = guide.title
+            guide.delete()
+            messages.success(request, f"Draf '{title}' berhasil dibatalkan dan dihapus.")
+        else:
+            messages.error(request, "Draf yang sudah ditinjau admin tidak dapat dihapus.")
+            
+    return user_drafts(request)
 
 
