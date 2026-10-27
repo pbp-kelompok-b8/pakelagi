@@ -1,3 +1,4 @@
+import json
 from urllib.parse import urlencode
 
 from django.shortcuts import get_object_or_404, redirect, render
@@ -7,6 +8,7 @@ from django.views.decorators.http import require_GET, require_http_methods, requ
 from favorites.access import favorite_member_required
 from favorites.forms import FavoriteNoteForm
 from favorites.models import Favorite
+from favorites.presentation import button_context
 from listings.filters import get_catalog_filter
 from listings.models import Listing
 from profiles.access import safe_profile_next
@@ -43,6 +45,23 @@ def favorite_list(request):
     return render(request, template, list_context(request))
 
 
+def mutation_response(request, listing_id, saved, listing=None):
+    if request.POST.get("surface") == "list":
+        response = render(request, "favorites/components/results.html", list_context(request, request.POST))
+    else:
+        listing = listing or Listing.objects.filter(pk=listing_id).first()
+        slot = request.POST.get("slot", "card")
+        slot = slot if slot in {"card", "detail"} else "card"
+        context = {"component_id": f"favorite-{slot}-{listing_id}", "show_button": False}
+        if listing:
+            listing.is_favorited = saved
+            target = safe_profile_next(request, request.POST.get("next")) or reverse("listings:detail", args=[listing_id])
+            context = button_context(request, listing, member=True, slot=slot, return_to=target)
+        response = render(request, "favorites/components/button.html", context)
+    response["HX-Trigger"] = json.dumps({"favoriteChanged": {"listingId": listing_id, "saved": saved}})
+    return response
+
+
 @favorite_member_required
 @require_POST
 def favorite_add(request, listing_id):
@@ -50,6 +69,8 @@ def favorite_add(request, listing_id):
         Listing.objects.filter(status=Listing.Status.AVAILABLE).exclude(seller=request.user), pk=listing_id,
     )
     Favorite.objects.get_or_create(user=request.user, listing=listing)
+    if is_partial(request):
+        return mutation_response(request, listing.pk, True, listing)
     target = safe_profile_next(request, request.POST.get("next"))
     return redirect(target or reverse("listings:detail", args=[listing.pk]))
 
@@ -60,7 +81,7 @@ def favorite_remove(request, listing_id):
     # Tidak membaca detail listing: favorit lama tetap bisa dihapus setelah Sold/Hidden.
     Favorite.objects.filter(user=request.user, listing_id=listing_id).delete()
     if is_partial(request):
-        return render(request, "favorites/components/results.html", list_context(request, request.POST))
+        return mutation_response(request, listing_id, False)
     target = safe_profile_next(request, request.POST.get("next"))
     return redirect(target or "favorites:list")
 
@@ -73,7 +94,9 @@ def favorite_edit(request, pk):
             user=request.user, listing__status__in=[Listing.Status.AVAILABLE, Listing.Status.SOLD],
         ), pk=pk,
     )
-    form = FavoriteNoteForm(request.POST if request.method == "POST" else None, instance=favorite)
+    form = FavoriteNoteForm(
+        request.POST if request.method == "POST" else None, instance=favorite, auto_id=f"favorite-{favorite.pk}-%s",
+    )
     target = safe_profile_next(request, request.POST.get("next") or request.GET.get("next"))
     if request.method == "POST" and form.is_valid():
         favorite.note = form.cleaned_data["note"]

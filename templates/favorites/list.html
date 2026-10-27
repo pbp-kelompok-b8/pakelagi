@@ -1,6 +1,8 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Favorit Saya{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/listings.css' %}">{% endblock %}
 {% block content %}
 <section class="container-page py-8 md:py-14" aria-labelledby="favorites-title" hx-history="false">
     <h1 id="favorites-title" class="text-5xl md:text-7xl">Favorit Saya</h1>

@@ -2,6 +2,7 @@
 from django.db.models import Count, F, Q
 
 from listings.models import Listing
+from favorites.presentation import with_favorite_state
 
 STOREFRONT_PAGE_SIZE = 8     # jumlah barang yang dimuat setiap kali
 SOLD_PREVIEW_SIZE = 4        # cuplikan "Baru saja terjual" di tab Dijual
@@ -18,7 +19,6 @@ STOREFRONT_SORT = {
 
 def for_profile(seller_id, viewer, selection):
     # selection adalah StorefrontSelection (tab, sort, page) dari profiles/storefront.py.
-    # viewer belum dipakai di sini; nanti dipakai modul Favorit untuk tahu barang mana yang sudah disimpan.
 
     # Etalase hanya menampilkan Available dan Sold. Hidden (termasuk yang disembunyikan moderator)
     # tidak ikut dihitung dan tidak ditampilkan, bahkan ketika pemiliknya sendiri yang membuka.
@@ -34,6 +34,7 @@ def for_profile(seller_id, viewer, selection):
     )
     available_count = counts["available"]
     sold_count = counts["sold"]
+    public = with_favorite_state(public, viewer)
 
     if selection.tab == "terjual":
         status = Listing.Status.SOLD

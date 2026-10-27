@@ -306,7 +306,7 @@ class CatalogPageContentTests(TestCase):
         self.assertFalse(tabs["Semua"]["active"])
         self.assertEqual(tabs["Top"]["href"], "/listings/?category=Top&size=M")
         self.assertEqual(tabs["Semua"]["href"], "/listings/?size=M")
-        self.assertContains(response, '<input type="hidden" name="category" value="Dress">')
+        self.assertContains(response, '<input type="hidden" name="category" value="Dress" form="catalog-filters">')
 
     def test_city_options_come_from_available_listings_without_duplicates(self):
         create_listing(self.seller, city="Bandung")

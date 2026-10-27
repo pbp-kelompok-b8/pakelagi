@@ -1,5 +1,5 @@
 {# Isi #listing-results: tab kategori, urutan, chip filter, kartu, dan pagination. Dirender penuh atau sebagai respons HTMX. #}
-{% if query.category %}<input type="hidden" name="category" value="{{ query.category }}">{% endif %}
+{% if query.category %}<input type="hidden" name="category" value="{{ query.category }}" form="catalog-filters">{% endif %}
 
 <div class="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b border-line">
     <nav id="kategori" aria-label="Kategori" class="flex flex-wrap gap-x-7 gap-y-1 scroll-mt-28">
@@ -9,7 +9,9 @@
     </nav>
     <div class="flex items-center gap-3 pb-3">
         <label for="catalog-sort" class="label-caps !text-[10px]">Urutkan</label>
-        <select id="catalog-sort" name="sort" class="catalog-sort">
+        <select id="catalog-sort" name="sort" class="catalog-sort" form="catalog-filters"
+                hx-get="{% url 'listings:list' %}" hx-include="#catalog-filters" hx-trigger="change"
+                hx-target="#listing-results" hx-push-url="true" hx-sync="#catalog-filters:replace">
             {% for value, label in sort_options %}<option value="{{ value }}"{% if query.sort == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
         </select>
     </div>
