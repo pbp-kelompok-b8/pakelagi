@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Favorit Saya{% endblock %}
+{% block content %}
+<section class="container-page py-8 md:py-14" aria-labelledby="favorites-title" hx-history="false">
+    <h1 id="favorites-title" class="text-5xl md:text-7xl">Favorit Saya</h1>
+    <p class="text-sm text-stone mt-4 mb-8">Simpanan dan catatan ini hanya terlihat olehmu. Bukan pesanan atau reservasi.</p>
+    <div id="favorite-results" aria-live="polite">
+        {% include "favorites/components/results.html" %}
+    </div>
+</section>
+{% endblock %}

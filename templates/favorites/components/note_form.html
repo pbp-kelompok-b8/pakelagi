@@ -1,0 +1,14 @@
+<form method="post" action="{% url 'favorites:edit' favorite.pk %}" class="space-y-5">
+    {% csrf_token %}
+    {{ form.non_field_errors }}
+    <div>
+        {{ form.note.label_tag }}
+        {{ form.note }}
+        {{ form.note.errors }}
+        <p class="text-xs text-stone mt-2">Opsional, maksimal 1.000 karakter. Hanya kamu yang dapat melihatnya.</p>
+    </div>
+    <div class="flex flex-wrap gap-4">
+        <button type="submit" class="btn btn-primary">Simpan catatan</button>
+        <a href="{% url 'favorites:list' %}" class="btn btn-secondary">Kembali ke favorit</a>
+    </div>
+</form>

@@ -1,0 +1,36 @@
+<nav aria-label="Kategori favorit" class="flex flex-wrap gap-x-7 gap-y-2 border-b border-line mb-8">
+    {% for tab in tabs %}
+    <a href="{{ tab.href }}" class="my-tab"{% if tab.active %} aria-current="page"{% endif %}>{{ tab.label }}</a>
+    {% endfor %}
+</nav>
+<p class="text-sm text-stone mb-6">{{ favorites|length }} dari {{ total_count }} favorit</p>
+{% if favorites %}
+<ul class="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+    {% for favorite in favorites %}
+    <li id="favorite-{{ favorite.pk }}" class="border border-line p-5 space-y-5">
+        {% include "listings/components/listing_card.html" with listing=favorite.listing %}
+        <div class="space-y-3">
+            <h3 class="label-caps !text-[10px]">Catatan pribadi</h3>
+            <p class="text-sm whitespace-pre-line break-words">{{ favorite.note|default:"Belum ada catatan." }}</p>
+            <a href="{% url 'favorites:edit' favorite.pk %}" class="btn btn-text">Edit catatan</a>
+        </div>
+        <form method="post" action="{% url 'favorites:remove' favorite.listing_id %}">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ request.get_full_path }}">
+            <button type="submit" class="btn btn-secondary btn-sm">Hapus favorit</button>
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% elif total_count %}
+<div class="py-16 text-center border border-line">
+    <h2 class="text-3xl">Belum ada favorit di kategori ini</h2>
+    <a href="{% url 'favorites:list' %}" class="btn btn-secondary mt-6">Lihat semua favorit</a>
+</div>
+{% else %}
+<div class="py-16 text-center border border-line">
+    <h2 class="text-3xl">Belum ada favorit</h2>
+    <p class="text-sm text-stone mt-3">Simpan pakaian pilihanmu dari katalog.</p>
+    <a href="{% url 'listings:list' %}" class="btn btn-primary mt-6">Jelajahi katalog</a>
+</div>
+{% endif %}
