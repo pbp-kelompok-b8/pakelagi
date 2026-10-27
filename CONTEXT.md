@@ -2,7 +2,7 @@
 
 Pakelagi mempertemukan penjual dan pencari pakaian preloved melalui etalase listing. Komunikasi dan transaksi berlangsung di luar Pakelagi.
 
-## Language
+## Language 
 
 **Akun**:
 Identitas pengguna untuk masuk ke Pakelagi, berbeda dari profil publiknya.
