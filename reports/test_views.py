@@ -411,18 +411,3 @@ class ReportFormTests(SimpleTestCase):
         values = [value for value, _ in ReportForm().fields["reason"].choices]
         self.assertNotIn("", values)
         self.assertEqual(len(values), len(Report._meta.get_field("reason").choices))
-
-
-# class ReasonHintFilterTests(SimpleTestCase):
-#     def render(self, value):
-#         return Template("{% load report_extras %}{{ v|reason_hint }}").render(Context({"v": value}))
-
-#     def test_known_reasons_get_a_hint_regardless_of_case_and_separator(self):
-#         for value in ("counterfeit", "Counterfeit", "prohibited item", "Prohibited Item", "prohibited_item"):
-#             with self.subTest(value=value):
-#                 self.assertNotEqual(self.render(value), "")
-
-#     def test_unknown_or_empty_value_renders_nothing_instead_of_failing(self):
-#         for value in ("ngawur", "", None):
-#             with self.subTest(value=value):
-#                 self.assertEqual(self.render(value), "")

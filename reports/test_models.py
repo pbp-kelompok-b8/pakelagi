@@ -128,18 +128,6 @@ class ReportDuplicateRuleTests(TestCase):
         self.reporter = make_user("budi", "Budi")
         self.listing = create_listing(self.seller)
 
-    # TODO
-    # def test_active_statuses_are_open_and_reviewing_only(self):
-    #     self.assertEqual(set(ACTIVE_STATUSES), {STATUS_OPEN, STATUS_REVIEWING})
-
-    # def test_second_active_report_is_rejected_for_each_active_status(self):
-    #     for status in ACTIVE_STATUSES:
-    #         with self.subTest(status=status):
-    #             Report.objects.all().delete()
-    #             create_report(self.reporter, self.listing, status=status)
-    #             with self.assertRaises(ValidationError):
-    #                 make_report(self.reporter, self.listing).full_clean()
-
     def test_another_reporter_may_report_the_same_listing(self):
         create_report(self.reporter, self.listing)
         make_report(make_user("dewi", "Dewi"), self.listing).full_clean()

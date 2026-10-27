@@ -49,7 +49,7 @@ class ReportForm(ModelForm):
         }
         
         widgets = {    
-            "category" : RadioSelect(
+            "reason" : RadioSelect(
                 attrs={
                     "required" : True,
                     "class": "reason-select",

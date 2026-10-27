@@ -7,6 +7,8 @@ from listings.models import Listing
 import uuid
 # Create your models here.
 
+ACTIVE_STATUS = ("open", "reviewing")
+
 class Report(models.Model):
     """
     Laporan pelanggaran yang diajukan user terhadap sebuah listing.
@@ -19,8 +21,11 @@ class Report(models.Model):
         - Satu user hanya boleh memiliki satu laporan *aktif* (status
           ``open`` atau ``reviewing``) per listing. Setelah laporan
           selesai, user boleh melapor lagi.
-        - Jika reporter atau listing dihapus, laporan ikut terhapus
-          (CASCADE).
+        - Jika reporter dihapus, laporannya ikut terhapus (CASCADE).
+        - Jika listing dihapus, laporan tetap ada sebagai jejak moderasi.
+        Relasi ``listing`` menjadi NULL (SET_NULL), dan nama listing tetap
+        terbaca lewat ``listing_title``, salinan judul yang diambil saat
+        laporan dibuat.
 
     Attributes:
         id (UUID): Primary key acak, tidak bisa diedit.
@@ -45,11 +50,11 @@ class Report(models.Model):
     """
 
     REASONS = [
-        ('counterfeit','Counterfeit'),
-        ('misleading','Misleading'),
-        ('offensive','Offensive'),
-        ('prohibited_item','Prohibited Item'),
-        ('other','Other')
+        ('Counterfeit','Counterfeit'),
+        ('Misleading','Misleading'),
+        ('Offensive','Offensive'),
+        ('Prohibited Item','Prohibited Item'),
+        ('Other','Other')
     ]
     STATUS = [
         ('open','Open'),
@@ -57,6 +62,7 @@ class Report(models.Model):
         ('resolved','Resolved'),
         ('rejected','Rejected'),
     ]
+        
     id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
     reporter = models.ForeignKey(
         User, related_name='submitted_reports', on_delete=models.CASCADE ,null=False, blank=False
@@ -70,7 +76,7 @@ class Report(models.Model):
     status = models.CharField(max_length=10, choices=STATUS, default='open')
     moderator_note = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
-    updated_at = models.DateTimeField(blank=True, null=True)
+    updated_at = models.DateTimeField(blank=True, null=True, auto_now=True)
     
     class Meta:
         ordering = ["-created_at"]
@@ -104,7 +110,8 @@ class Report(models.Model):
             if self.listing.status == Listing.Status.HIDDEN:
                 raise ValidationError("Listing ini sudah tidak tampil di katalog.")
 
-        if self.listing_id and self.status in self.STATUS:
+        
+        if self.listing_id and self.status in ACTIVE_STATUS:
             duplicate = Report.objects.filter(
                 reporter_id=self.reporter_id, listing_id=self.listing_id, status__in=self.STATUS,
             ).exclude(pk=self.pk)
