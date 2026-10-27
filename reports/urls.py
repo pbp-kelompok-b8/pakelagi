@@ -1,9 +1,12 @@
 from django.urls import path
-from reports.views import show_reports, create_reports
+
+from reports import views
 
 app_name = "reports"
 
 urlpatterns = [
-    path("", show_reports, name="show_reports"),
-    path("create/<uuid:listing_id>/", create_reports, name="create_reports"),
+    path("", views.report_list, name="list"),
+    path("create/<int:listing_id>/", views.report_create, name="create"),
+    path("<uuid:pk>/edit/", views.report_edit, name="edit"),
+    path("<uuid:pk>/delete/", views.report_delete, name="delete"),
 ]

@@ -1,0 +1,25 @@
+{% extends "base.html" %}
+
+{% block title %}{% if report %}Ubah laporan{% else %}Laporkan listing{% endif %}{% endblock %}
+
+{% block content %}
+<section class="container-page py-10 md:py-16" aria-labelledby="report-page-title">
+    <nav aria-label="Breadcrumb" class="text-xs text-stone mb-8">
+        <a href="{% url 'main:show_main' %}">Beranda</a> /
+        {% if report %}
+        <a href="{% url 'reports:list' %}">Laporan saya</a> /
+        {% else %}
+        <a href="{% url 'listings:list' %}">Katalog</a> /
+        {% endif %}
+        <span aria-current="page">{% if report %}Ubah laporan{% else %}Laporkan listing{% endif %}</span>
+    </nav>
+
+    <div class="max-w-xl space-y-8">
+        <div>
+            <h1 id="report-page-title" class="text-5xl md:text-6xl">{% if report %}Ubah <em>laporan.</em>{% else %}Laporkan <em>listing.</em>{% endif %}</h1>
+            <p class="mt-4 text-stone">Laporan ditinjau moderator. Penjual tidak melihat siapa yang melapor.</p>
+        </div>
+        {% include "reports/components/form.html" %}
+    </div>
+</section>
+{% endblock %}

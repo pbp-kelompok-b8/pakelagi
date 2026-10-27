@@ -46,8 +46,10 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'accounts.apps.AccountsConfig',
     'profiles.apps.ProfilesConfig',
+    'listings.apps.ListingsConfig', 
+    'sustainableguides',
+    'moderations',
     'reports',
-    'listings',
     'main',
 ]
 

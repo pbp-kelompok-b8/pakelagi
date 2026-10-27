@@ -1,0 +1,133 @@
+{% extends "base.html" %}
+{% load static listing_extras %}
+
+{% block title %}Laporan saya{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/reports.css' %}">{% endblock %}
+
+{% comment %}
+    Variabel konteks yang diharapkan dari view:
+    - reports          : queryset Report milik user (select_related listing), terbaru dulu
+    - total_count      : jumlah seluruh laporan user
+    - open_count       : jumlah laporan berstatus Open
+    - form             : ReportForm (field reason, description); None jika tidak sedang melaporkan listing
+    - listing          : Listing yang sedang dilaporkan (opsional, dari /reports/create/<listing_id>/)
+    - reason_options   : list (value, label, hint), contoh ("Counterfeit", "Counterfeit", "Barang palsu atau tiruan.")
+{% endcomment %}
+
+{% block content %}
+<section class="container-page reports-page py-10 md:py-16" aria-labelledby="reports-title">
+
+    <div class="reports-head">
+        <h1 id="reports-title" class="page-title">Laporan saya</h1>
+        <p class="reports-meta">{{ total_count }} laporan · {{ open_count }} masih terbuka</p>
+    </div>
+
+    <div class="reports-layout">
+
+        <!-- Navigasi akun -->
+        {% comment %} <aside>
+            <nav aria-label="Akun saya" class="reports-nav">
+                <p class="label-caps">Akun saya</p>
+                <a href="{% url 'profiles:profile_edit' %}">Profil</a>
+                <a href="{% url 'listings:mine' %}">Listing saya</a>
+                <a href="{% url 'profiles:profile' %}">Etalase saya</a>
+                <a href="#">Favorit</a>
+                <a href="{% url 'sustainableguides:drafts' %}">Draf panduan</a>
+                <a href="{% url 'reports:list' %}" aria-current="page">Laporan saya <span aria-hidden="true">→</span></a>
+                <form method="post" action="{% url 'accounts:logout' %}">
+                    {% csrf_token %}
+                    <button type="submit">Keluar</button>
+                </form>
+            </nav>
+        </aside> {% endcomment %}
+
+        <!-- Form laporan -->
+        <div class="min-w-0">
+            {% if form %}
+            <form method="post" class="report-form" novalidate aria-labelledby="report-form-title">
+                {% csrf_token %}
+                <h2 id="report-form-title" class="report-form__title">Ada yang tidak sesuai?</h2>
+
+                {% if form.non_field_errors %}<div role="alert" class="errorlist">{{ form.non_field_errors }}</div>{% endif %}
+
+                {% if listing %}
+                <div class="report-target">
+                    <div class="report-target__photo" aria-hidden="true">
+                        <img src="{{ listing.image_url }}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">
+                    </div>
+                    <div class="min-w-0">
+                        {% if listing.brand %}<p class="label-caps">{{ listing.brand }}</p>{% endif %}
+                        <p class="report-target__title"><a href="{% url 'listings:detail' listing.pk %}">{{ listing.title }}</a></p>
+                        <p class="report-target__meta">Dijual oleh {{ listing.seller.profile.display_name }} · {{ listing.city }}</p>
+                    </div>
+                </div>
+                {% endif %}
+
+                <fieldset class="report-reasons">
+                    <legend class="label-caps">Alasan</legend>
+                    {% for value, label, hint in reason_options %}
+                    <label class="report-reason">
+                        <input type="radio" name="reason" value="{{ value }}"{% if form.reason.value == value %} checked{% endif %}>
+                        <span class="report-reason__text">
+                            <span class="report-reason__label">{{ label }}</span>
+                            <span class="report-reason__hint">{{ hint }}</span>
+                        </span>
+                    </label>
+                    {% endfor %}
+                    {% if form.reason.errors %}<div role="alert" class="errorlist">{{ form.reason.errors }}</div>{% endif %}
+                </fieldset>
+
+                <div class="field{% if form.description.errors %} has-error{% endif %}">
+                    <label for="{{ form.description.id_for_label }}">Penjelasan</label>
+                    {{ form.description }}
+                    <p class="field-help" id="report-description-hint">Wajib diisi. Hanya admin yang membaca laporanmu.</p>
+                    {% if form.description.errors %}<div role="alert">{{ form.description.errors }}</div>{% endif %}
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block">Kirim laporan</button>
+            </form>
+            {% else %}
+            <div class="empty-state">
+                <p class="font-display text-2xl text-ink">Belum ada laporan baru</p>
+                <p class="mt-2 text-sm">Untuk melaporkan, buka detail listing lalu pilih “Laporkan listing”.</p>
+                <a href="{% url 'listings:list' %}" class="btn btn-secondary mt-6">Jelajahi katalog</a>
+            </div>
+            {% endif %}
+        </div>
+
+        <!-- Riwayat laporan -->
+        <section aria-labelledby="history-title" class="min-w-0">
+            <h2 id="history-title" class="label-caps report-history__heading">Riwayat laporan</h2>
+
+            {% if reports %}
+            <ul class="report-history">
+                {% for report in reports %}
+                <li class="report-item">
+                    <div class="report-item__top">
+                        <h3 class="report-item__title">{{ report.listing.title }}</h3>
+                        <span class="report-status report-status--{{ report.status|lower }}">
+                            {% if report.status == 'Resolved' %}
+                            <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 19c0-9 5-14 14-14 0 9-5 14-14 14z"/><path d="M5 19 13 11"/></svg>
+                            {% endif %}
+                            {{ report.status }}
+                        </span>
+                    </div>
+                    <p class="report-item__meta">{{ report.get_reason_display }} · {{ report.created_at|date:"j M Y" }}</p>
+                    <p class="report-item__desc">{{ report.description }}</p>
+                    {% if report.status == 'Open' %}
+                    <div class="report-item__actions">
+                        <a href="{% url 'reports:edit' report.pk %}" class="report-action">Ubah laporan</a>
+                        <a href="{% url 'reports:delete' report.pk %}" class="report-action report-action--danger">Hapus</a>
+                    </div>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+            {% else %}
+            <div class="empty-state">Kamu belum pernah mengirim laporan.</div>
+            {% endif %}
+        </section>
+
+    </div>
+</section>
+{% endblock %}

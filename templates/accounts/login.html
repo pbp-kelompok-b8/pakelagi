@@ -1,9 +1,11 @@
 {% extends "accounts/layout.html" %}
+{% load static %}
 
 {% block title %}Masuk{% endblock %}
 {% block panel %}
 <h2 class="font-display text-4xl lg:text-5xl">Lemarimu penuh cerita.</h2>
 <p class="leading-relaxed">Temukan pilihan preloved dan beri kesempatan kedua pada pakaian yang kamu cintai.</p>
+<img src="{% static 'profile-photo/Auth-Login.png' %}" alt="Pakaian preloved pada gantungan kayu" width="592" height="640" class="w-full h-64 lg:h-80 object-cover">
 {% endblock %}
 {% block form_heading %}
 <div class="space-y-3">

@@ -1,6 +1,8 @@
 from django.db import models
 from django.contrib.auth.models import User
 from django.db.models import CheckConstraint, Q, F
+from django.core.exceptions import ValidationError
+from django.core.validators import MinLengthValidator
 from listings.models import Listing
 import uuid
 # Create your models here.
@@ -47,7 +49,7 @@ class Report(models.Model):
         ('misleading','Misleading'),
         ('offensive','Offensive'),
         ('prohibited_item','Prohibited Item'),
-        ('other','Other'),
+        ('other','Other')
     ]
     STATUS = [
         ('open','Open'),
@@ -60,10 +62,11 @@ class Report(models.Model):
         User, related_name='submitted_reports', on_delete=models.CASCADE ,null=False, blank=False
     )
     listing = models.ForeignKey(
-        Listing, related_name='reports', on_delete=models.CASCADE, blank=False, null=False
+        Listing, related_name='reports', on_delete=models.SET_NULL, blank=True, null=True
     )
+    listing_title = models.CharField("Judul listing", max_length=120, blank=True, editable=False)
     reason = models.CharField(max_length=20, choices=REASONS)
-    description = models.TextField()
+    description = models.TextField(blank=False, null=False, validators=[MinLengthValidator(10)])
     status = models.CharField(max_length=10, choices=STATUS, default='open')
     moderator_note = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
@@ -82,5 +85,41 @@ class Report(models.Model):
                 name="unique_active_report_per_reporter_listing",
             ),
         ]
+        
+    def __str__(self):
+        return f"Report #{self.pk}: {self.listing_title} ({self.status})"
+
+    def clean(self):
+        super().clean()
+        if self.reporter_id is None:
+            return
+
+        # Aturan pembuatan: hanya saat report baru. Setelah itu listing boleh saja disembunyikan
+        # (bahkan lewat report ini sendiri) tanpa membuat pelapor tidak bisa menyunting teksnya.
+        if self._state.adding:
+            if self.listing_id is None:
+                raise ValidationError("Listing yang dilaporkan tidak ditemukan.")
+            if self.listing.seller_id == self.reporter_id:
+                raise ValidationError("Kamu tidak bisa melaporkan listing milikmu sendiri.")
+            if self.listing.status == Listing.Status.HIDDEN:
+                raise ValidationError("Listing ini sudah tidak tampil di katalog.")
+
+        if self.listing_id and self.status in self.STATUS:
+            duplicate = Report.objects.filter(
+                reporter_id=self.reporter_id, listing_id=self.listing_id, status__in=self.STATUS,
+            ).exclude(pk=self.pk)
+            if duplicate.exists():
+                raise ValidationError("Kamu sudah melaporkan listing ini dan laporannya masih diproses.")
+
+
+    def save(self, *args, **kwargs):
+        if self.listing_id and not self.listing_title:
+            self.listing_title = self.listing.title[:120]
+        super().save(*args, **kwargs)
+
+    @property
+    def is_editable(self):
+        return self.status == "open"
+    
     
     

@@ -1,0 +1,125 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}{% if listing %}Ubah listing{% else %}Posting barang{% endif %}{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/listings.css' %}">{% endblock %}
+
+{% block content %}
+<section class="container-page listing-editor py-10 md:py-16" aria-labelledby="listing-form-title">
+    <div class="pb-10 md:pb-14">
+        {% if listing %}
+            <h1 id="listing-form-title" class="text-5xl md:text-7xl">Ubah <em>listing.</em></h1>
+            <p class="mt-4 text-stone">Perubahan langsung terlihat oleh pengunjung setelah disimpan.</p>
+        {% else %}
+            <h1 id="listing-form-title" class="text-5xl md:text-7xl">Beri pakaianmu <em>kehidupan kedua.</em></h1>
+            <p class="mt-4 text-stone">Transaksi berlangsung di luar Pakelagi.</p>
+        {% endif %}
+    </div>
+
+    <div class="grid gap-12 lg:grid-cols-[minmax(0,40rem)_minmax(0,18rem)] lg:gap-20 items-start">
+        <form method="post" class="min-w-0 space-y-14" novalidate>
+            {% csrf_token %}
+            {% if form.errors %}
+            <div role="alert" class="border border-error p-4 text-error">
+                <p>Periksa kembali isian yang ditandai di bawah.</p>
+                {{ form.non_field_errors }}
+            </div>
+            {% endif %}
+
+            <fieldset class="space-y-7">
+                <legend class="form-section-title"><span>01</span> Foto</legend>
+                <div class="flex flex-col sm:flex-row gap-6">
+                    {% if listing and listing.image_url %}
+                    <div class="relative w-24 h-28 shrink-0 bg-sand overflow-hidden" aria-hidden="true">
+                        <img src="{{ listing.image_url }}" alt="" class="absolute inset-0 w-full h-full object-cover" referrerpolicy="no-referrer" onerror="this.remove()">
+                    </div>
+                    {% endif %}
+                    <div class="min-w-0 flex-1">
+                        {% include "listings/components/field.html" with field=form.image_url hint="Satu tautan http/https. Jika gagal dimuat, placeholder Pakelagi yang tampil. Rasio terbaik 4:5." %}
+                    </div>
+                </div>
+            </fieldset>
+
+            <fieldset class="space-y-7">
+                <legend class="form-section-title"><span>02</span> Tentang pakaian</legend>
+                {% include "listings/components/field.html" with field=form.title hint="5–120 karakter." %}
+                {% include "listings/components/field.html" with field=form.brand hint="Opsional." %}
+
+                <fieldset>
+                    <legend class="label-caps mb-3">Kategori</legend>
+                    <div class="flex flex-wrap gap-2">
+                        {% for value, label in form.category.field.choices %}
+                        <label class="chip"><input type="radio" name="category" value="{{ value }}"{% if form.category.value == value %} checked{% endif %}><span>{{ label }}</span></label>
+                        {% endfor %}
+                    </div>
+                    {% if form.category.errors %}<div role="alert">{{ form.category.errors }}</div>{% endif %}
+                </fieldset>
+
+                <fieldset>
+                    <legend class="label-caps mb-3">Ukuran</legend>
+                    <div class="flex flex-wrap gap-2">
+                        {% for value, label in form.size.field.choices %}
+                        <label class="chip"><input type="radio" name="size" value="{{ value }}"{% if form.size.value == value %} checked{% endif %}><span>{{ label }}</span></label>
+                        {% endfor %}
+                    </div>
+                    {% if form.size.errors %}<div role="alert">{{ form.size.errors }}</div>{% endif %}
+                </fieldset>
+            </fieldset>
+
+            <fieldset class="space-y-4">
+                <legend class="form-section-title"><span>03</span> Kondisi</legend>
+                {% for value, label, hint, level in form.condition_options %}
+                <label class="cond-card">
+                    <input type="radio" name="condition" value="{{ value }}"{% if form.condition.value == value %} checked{% endif %}>
+                    <span class="cond-bar" data-level="{{ level }}" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                    <span class="font-semibold">{{ label }}</span>
+                    <span class="cond-hint">{{ hint }}</span>
+                </label>
+                {% endfor %}
+                {% if form.condition.errors %}<div role="alert">{{ form.condition.errors }}</div>{% endif %}
+            </fieldset>
+
+            <fieldset class="space-y-7">
+                <legend class="form-section-title"><span>04</span> Harga</legend>
+                {% include "listings/components/field.html" with field=form.price hint="Angka saja, tanpa titik atau “Rp”. Minimal 0." %}
+            </fieldset>
+
+            <fieldset class="space-y-7">
+                <legend class="form-section-title"><span>05</span> Lokasi</legend>
+                {% include "listings/components/field.html" with field=form.city hint="Hanya kota atau area umum — jangan alamat rumah." %}
+            </fieldset>
+
+            <fieldset class="space-y-5">
+                <legend class="form-section-title"><span>06</span> Tag keberlanjutan</legend>
+                <div class="grid gap-6 sm:grid-cols-2">
+                    <label class="check-option">{{ form.is_repairable }}<span><span class="block text-sm">{{ form.is_repairable.label }}</span><span class="block text-xs text-stone">Cacat kecil yang mudah dijahit.</span></span></label>
+                    <label class="check-option">{{ form.is_upcycled }}<span><span class="block text-sm">{{ form.is_upcycled.label }}</span><span class="block text-xs text-stone">Dibuat ulang dari pakaian lama.</span></span></label>
+                    <label class="check-option">{{ form.is_locally_available }}<span><span class="block text-sm">{{ form.is_locally_available.label }}</span><span class="block text-xs text-stone">Bisa serah terima di kotamu.</span></span></label>
+                    <label class="check-option">{{ form.extends_clothing_life }}<span><span class="block text-sm">{{ form.extends_clothing_life.label }}</span><span class="block text-xs text-stone">Masih layak bertahun-tahun.</span></span></label>
+                </div>
+                <p class="text-xs text-stone">Tag adalah fakta yang kamu pilih, bukan klaim angka dampak lingkungan.</p>
+            </fieldset>
+
+            <fieldset class="space-y-7">
+                <legend class="form-section-title"><span>07</span> Deskripsi</legend>
+                {% include "listings/components/field.html" with field=form.description hint="Sebutkan cacat dengan spesifik dan tenang." %}
+            </fieldset>
+
+            <div class="flex flex-wrap items-center gap-8 border-t border-line pt-8">
+                <button type="submit" class="btn btn-primary">{% if listing %}Simpan perubahan{% else %}Terbitkan listing{% endif %}</button>
+                <a href="{% if listing %}{% url 'listings:detail' listing.pk %}{% else %}{% url 'listings:mine' %}{% endif %}" class="btn btn-text">Batal</a>
+            </div>
+        </form>
+
+        <aside class="panel space-y-4 lg:sticky lg:top-8" aria-label="Sebelum terbit">
+            <p class="label-caps !text-[10px]">Sebelum terbit</p>
+            <ul class="space-y-3 text-xs text-stone">
+                <li>✓ Foto jelas, satu pakaian</li>
+                <li>✓ Kondisi dan ukuran terisi</li>
+                <li>✓ Lokasi hanya kota, bukan alamat</li>
+                <li>✓ Harga ditulis lengkap</li>
+            </ul>
+        </aside>
+    </div>
+</section>
+{% endblock %}

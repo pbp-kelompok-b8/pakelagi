@@ -1,0 +1,31 @@
+{# Form laporan. Dipakai inline (HTMX) dan di halaman penuh. Variabel: form, listing, report (None saat baru). #}
+<form method="post" action="{{ request.path }}"
+      hx-post="{{ request.path }}" hx-target="this" hx-swap="outerHTML"
+      class="panel space-y-6" aria-labelledby="report-form-title" novalidate>
+    {% csrf_token %}
+
+    <div class="space-y-2">
+        <h2 id="report-form-title" class="font-display text-2xl">{% if report %}Ubah laporan{% else %}Laporkan listing{% endif %}</h2>
+        {% if listing %}
+        <p class="text-sm text-stone break-words">{{ listing.title }}</p>
+        {% elif report %}
+        <p class="text-sm text-stone break-words">{{ report.listing_title }}</p>
+        {% endif %}
+    </div>
+
+    {# Error dari Report.clean() (listing sendiri, sudah dilaporkan, dll.) muncul di sini #}
+    {% if form.non_field_errors %}
+    <div role="alert" class="border border-error p-4 text-sm text-error">{{ form.non_field_errors }}</div>
+    {% endif %}
+
+    {% include "listings/components/field.html" with field=form.reason hint="Pilih alasan yang paling sesuai." %}
+    {% include "listings/components/field.html" with field=form.description hint="Jelaskan masalahnya dengan spesifik, minimal 10 karakter. Laporan hanya dilihat moderator." %}
+
+    <div class="flex flex-wrap items-center gap-6">
+        <button type="submit" class="btn btn-primary">{% if report %}Simpan perubahan{% else %}Kirim laporan{% endif %}</button>
+        {# Inline: menutup form. Tanpa JavaScript: kembali ke halaman sebelumnya. #}
+        <a href="{% if listing %}{% url 'listings:detail' listing.pk %}{% else %}{% url 'reports:list' %}{% endif %}"
+           class="btn btn-text"
+           onclick="var f = this.closest('form'); if (f.closest('#report-slot')) { f.remove(); return false; }">Batal</a>
+    </div>
+</form>

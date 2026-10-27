@@ -10,10 +10,10 @@
 
         <!-- Kiri: navigasi utama (desktop) -->
         <nav class="hidden md:flex items-center gap-9 flex-1" aria-label="Navigasi utama">
-            <a href="#" class="nav-link">Katalog</a>
-            <a href="#" class="nav-link">Jurnal</a>
+            <a href="{% url 'listings:list' %}" class="nav-link"{% if request.resolver_match.app_name == 'listings' %} aria-current="page"{% endif %}>Katalog</a>
+            <a href="{% url 'sustainableguides:list' %}" class="nav-link">Jurnal</a>
             {% if user.is_staff %}
-            <a href="#" class="nav-link">Moderasi</a>
+            <a href="{% url 'moderations:jurnal_list' %}" class="nav-link">Moderasi</a>
             {% endif %}
         </nav>
 
@@ -29,6 +29,7 @@
                     <summary class="nav-link cursor-pointer">Akun saya ({{ user.username }})</summary>
                     <div class="absolute right-0 z-20 bg-ivory border border-line p-4 min-w-40 space-y-3">
                         <a href="{% url 'profiles:profile' %}" class="nav-link block">Etalase saya</a>
+                        <a href="{% url 'listings:mine' %}" class="nav-link block">Listing saya</a>
                         <a href="{% url 'profiles:profile_edit' %}" class="nav-link block">Edit profil</a>
                     </div>
                 </details>
@@ -36,7 +37,7 @@
                     {% csrf_token %}
                     <button type="submit" class="nav-link">Keluar</button>
                 </form>
-                <a href="#" class="btn btn-secondary btn-sm">Posting barang</a>
+                <a href="{% url 'listings:create' %}" class="btn btn-secondary btn-sm">Posting barang</a>
             {% else %}
                 <a href="{% url 'accounts:login' %}" class="nav-link">Masuk</a>
                 <a href="{% url 'accounts:register' %}" class="btn btn-secondary btn-sm">Daftar</a>
@@ -55,21 +56,22 @@
     <!-- Menu HP -->
     <nav id="mobileNav" class="mobile-nav md:hidden" aria-label="Navigasi utama (HP)">
         <div class="container-page pb-6">
-            <a href="#" class="nav-link">Katalog</a>
-            <a href="#" class="nav-link">Jurnal</a>
+            <a href="{% url 'listings:list' %}" class="nav-link"{% if request.resolver_match.app_name == 'listings' %} aria-current="page"{% endif %}>Katalog</a>
+            <a href="{% url 'sustainableguides:list' %}" class="nav-link">Jurnal</a>
             {% if user.is_staff %}
-            <a href="#" class="nav-link">Moderasi</a>
+            <a href="{% url 'moderations:ringkasan' %}" class="nav-link">Moderasi</a>
             {% endif %}
 
             {% if user.is_authenticated %}
                 <a href="#" class="nav-link">Favorit</a>
                 <a href="{% url 'profiles:profile' %}" class="nav-link">Etalase saya ({{ user.username }})</a>
+                <a href="{% url 'listings:mine' %}" class="nav-link">Listing saya</a>
                 <a href="{% url 'profiles:profile_edit' %}" class="nav-link">Edit profil</a>
                 <form method="post" action="{% url 'accounts:logout' %}">
                     {% csrf_token %}
                     <button type="submit" class="nav-link">Keluar</button>
                 </form>
-                <a href="#" class="btn btn-primary btn-block mt-6">Posting barang</a>
+                <a href="{% url 'listings:create' %}" class="btn btn-primary btn-block mt-6">Posting barang</a>
             {% else %}
                 <a href="{% url 'accounts:login' %}" class="nav-link">Masuk</a>
                 <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-block mt-6">Daftar</a>
