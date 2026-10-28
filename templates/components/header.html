@@ -12,7 +12,7 @@
         <!-- Kiri: navigasi utama (desktop) -->
         <nav class="hidden xl:flex items-center gap-8 flex-1" aria-label="Navigasi utama">
             <a href="{% url 'listings:list' %}" class="nav-link"{% if app == 'listings' %} aria-current="page"{% endif %}>Katalog</a>
-            <a href="{% url 'listings:list' %}#kategori" class="nav-link">Kategori</a>
+            <a href="{% url 'main:category_index' %}" class="nav-link"{% if app == 'main' and current == 'category_index' %} aria-current="page"{% endif %}>Kategori</a>
             <a href="{% url 'sustainableguides:list' %}" class="nav-link"{% if app == 'sustainableguides' %} aria-current="page"{% endif %}>Jurnal</a>
             <a href="#" class="nav-link">Penjual</a>
             {% if user.is_staff %}
@@ -70,7 +70,7 @@
     <nav id="mobileNav" class="mobile-nav xl:hidden" aria-label="Navigasi utama (HP)">
         <div class="container-page pb-6">
             <a href="{% url 'listings:list' %}" class="nav-link"{% if app == 'listings' %} aria-current="page"{% endif %}>Katalog</a>
-            <a href="{% url 'listings:list' %}#kategori" class="nav-link">Kategori</a>
+            <a href="{% url 'main:category_index' %}" class="nav-link"{% if app == 'main' and current == 'category_index' %} aria-current="page"{% endif %}>Kategori</a>
             <a href="{% url 'sustainableguides:list' %}" class="nav-link"{% if app == 'sustainableguides' %} aria-current="page"{% endif %}>Jurnal</a>
             <a href="#" class="nav-link">Penjual</a>
             {% if user.is_staff %}

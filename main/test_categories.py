@@ -112,3 +112,14 @@ class CategoryPageTests(TestCase):
         response = self.client.get("/categories/")
         for text in ("Judul privat yang tidak perlu", "Kota rahasia", "Deskripsi bukan isi kartu kategori"):
             self.assertNotContains(response, text)
+
+    def test_header_and_footer_link_to_category_page_instead_of_catalog_anchor(self):
+        response = self.client.get(reverse("main:show_main"))
+        self.assertContains(response, 'href="/categories/"', count=3)
+        self.assertNotContains(response, 'href="/listings/#kategori"')
+
+    def test_desktop_and_mobile_navigation_mark_only_category_route_active(self):
+        active = 'href="/categories/" class="nav-link" aria-current="page">Kategori</a>'
+        self.assertContains(self.client.get("/categories/"), active, count=2)
+        self.assertNotContains(self.client.get(reverse("main:show_main")), active)
+        self.assertNotContains(self.client.get(reverse("listings:list")), active)
