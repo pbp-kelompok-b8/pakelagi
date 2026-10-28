@@ -29,6 +29,12 @@ class LoginLogoutTests(TestCase):
         self.assertTemplateUsed(response, "base.html")
         self.assertContains(response, 'name="csrfmiddlewaretoken"')
 
+    def test_login_rejects_head_requests(self):
+        response = self.client.head(self.login_url)
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.headers["Allow"], "GET, POST")
+        self.assertNotIn(SESSION_KEY, self.client.session)
+
     def test_valid_credentials_start_session_and_redirect_home(self):
         response = self.client.post(self.login_url, self.credentials)
         self.assertRedirects(response, reverse("main:show_main"))
@@ -116,6 +122,13 @@ class LoginLogoutTests(TestCase):
         self.client.force_login(self.user)
         response = self.client.get(self.logout_url)
         self.assertEqual(response.status_code, 405)
+        self.assertEqual(self.client.session[SESSION_KEY], str(self.user.pk))
+
+    def test_logout_rejects_options_requests_and_keeps_session(self):
+        self.client.force_login(self.user)
+        response = self.client.options(self.logout_url)
+        self.assertEqual(response.status_code, 405)
+        self.assertEqual(response.headers["Allow"], "POST")
         self.assertEqual(self.client.session[SESSION_KEY], str(self.user.pk))
 
     def test_guest_header_links_to_login_and_registration_without_private_email(self):
