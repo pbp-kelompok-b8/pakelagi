@@ -1,0 +1,12 @@
+{% extends "base.html" %}
+
+{% block title %}Kategori{% endblock %}
+{% block content %}
+<section class="container-page py-8 md:py-14" aria-labelledby="category-title">
+    <nav aria-label="Breadcrumb" class="text-xs text-stone mb-8">
+        <a href="{% url 'main:show_main' %}">Beranda</a> / <span aria-current="page">Kategori</span>
+    </nav>
+    <h1 id="category-title" class="text-5xl md:text-7xl">Kategori</h1>
+    <p class="text-stone text-sm md:text-base leading-7 max-w-xl mt-5">Temukan pakaian preloved sesuai gayamu. Mulai dari kategori pilihan, lalu jelajahi barang yang masih tersedia.</p>
+</section>
+{% endblock %}
