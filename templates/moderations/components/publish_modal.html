@@ -13,7 +13,7 @@
         </div>
 
         {% comment %} FORM HTMX {% endcomment %}
-        <form id-"publish-form" hx-post="{% url 'moderations:jurnal_publish' guide.id %}?tab={{ active_tab }}"
+        <form id="publish-form" hx-post="{% url 'moderations:jurnal_publish' guide.id %}?tab={{ active_tab }}"
               hx-target="#moderation-container" hx-select="#moderation-container" hx-swap="outerHTML"
               class = "flex flex-col">
               {% csrf_token %}
@@ -41,8 +41,8 @@
             </div>
             {% comment %} Publish Button {% endcomment %}
             <div class="px-8 py-6 bg-stone-100 border-t border-stone-200 flex justify-end gap-4">
-                <button type="button" class="px-6 py-3 text-zinc-900 text-xs font-semibold font-['Jost'] uppercase tracking-widest hover:bg-stone-200 transition-colors cursor-pointer">Batal</button>
-                <button type="submit" onclick="closeModal()" class="htmx-submit-btn px-8 py-3 bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold font-['Jost'] uppercase tracking-widest transition-colors cursor-pointer flex items-center justify-center min-w-[140px]">
+                <button type="button" onclick="closeModal()" class="px-6 py-3 text-zinc-900 text-xs font-semibold font-['Jost'] uppercase tracking-widest hover:bg-stone-200 transition-colors cursor-pointer">Batal</button>
+                <button type="submit" class="htmx-submit-btn px-8 py-3 bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold font-['Jost'] uppercase tracking-widest transition-colors cursor-pointer flex items-center justify-center min-w-[140px]">
                     <span class="htmx-normal-text">Konfirmasi</span>
                     <span class="htmx-loading-text hidden opacity-70">Memproses...</span>
                 </button>
@@ -65,6 +65,7 @@
         setTimeout(() => document.getElementById('modal-container').innerHTML = '', 200)
     }
     
+    const publishForm = document.getElementById('publish-form');
     if (publishForm) {
         publishForm.addEventListener('htmx:afterRequest', function(evt) {
             // evt.detail.successful bernilai 'true' jika server membalas dengan status sukses (200 OK)
