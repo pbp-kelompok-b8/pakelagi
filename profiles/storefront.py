@@ -1,6 +1,8 @@
-"""Storefront seam; replace the empty adapter when the listing module exists."""
+"""Storefront: membaca pilihan tab/urutan/halaman dari URL lalu meminta barangnya dari modul listing."""
 from dataclasses import dataclass
 from urllib.parse import urlencode
+
+from listings.storefront import for_profile
 
 
 @dataclass(frozen=True)
@@ -24,19 +26,14 @@ class StorefrontSelection:
         )
 
 
-class EmptyListingAdapter:
-    """Deliberately no invented listings, favorites, routes or model dependencies."""
-
-    def for_profile(self, *, seller_id, viewer, selection):
-        return {"available_count": 0, "sold_count": 0, "listings": (), "sold_preview": ()}
-
-
 def listing_context(*, seller_id, viewer, query):
     selection = StorefrontSelection.from_query(query)
-    result = EmptyListingAdapter().for_profile(seller_id=seller_id, viewer=viewer, selection=selection)
+    result = for_profile(seller_id=seller_id, viewer=viewer, selection=selection)
     return {
         **result,
         "selection": selection,
         "sold_tab_query": urlencode({"tab": "terjual", "sort": selection.sort}),
         "available_tab_query": urlencode({"tab": "dijual", "sort": selection.sort}),
+        # Tautan "Muat lebih banyak": tab dan urutan tetap, halamannya naik satu
+        "more_query": urlencode({"tab": selection.tab, "sort": selection.sort, "page": result["next_page"]}),
     }

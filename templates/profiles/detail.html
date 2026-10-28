@@ -1,7 +1,7 @@
 {% extends "base.html" %}
 {% block title %}{{ profile.display_name }} · Penjual{% endblock %}
 {% block content %}
-<section class="container-page py-8 md:py-14" aria-labelledby="profile-title">
+<section class="container-page py-8 md:py-14" aria-labelledby="profile-title" hx-history="false">
     <nav aria-label="Breadcrumb" class="text-sm mb-8"><a href="{% url 'main:show_main' %}">Beranda</a> / Penjual / <span aria-current="page">{{ profile.display_name }}</span></nav>
     <div class="bg-sand h-48 md:h-80 overflow-hidden mb-8" aria-hidden="true">
         {% if profile.cover_url %}<img src="{{ profile.cover_url }}" alt="" class="w-full h-full object-cover" referrerpolicy="no-referrer" onerror="this.remove()">{% endif %}
@@ -32,4 +32,31 @@
     </div>
     {% include "profiles/listings.html" %}
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /* ---------------------------------------------
+       Etalase: pesan kalau "Muat lebih banyak" gagal
+       Barang yang sudah tampil dibiarkan (HTMX tidak mengganti isi kalau server membalas error),
+       dan tombolnya tetap bisa diklik untuk mencoba lagi.
+       --------------------------------------------- */
+    function tampilkanErrorEtalase() {
+        const $error = document.getElementById('storefront-error');
+        if ($error) $error.hidden = false;
+    }
+
+    function sembunyikanErrorEtalase() {
+        const $error = document.getElementById('storefront-error');
+        if ($error) $error.hidden = true;
+    }
+
+    // Listener di body cukup dipasang satu kali, walaupun skrip ini dijalankan ulang (misal saat tombol back)
+    if (!window.etalaseTerpasang) {
+        document.body.addEventListener('htmx:beforeRequest', sembunyikanErrorEtalase);
+        document.body.addEventListener('htmx:responseError', tampilkanErrorEtalase);
+        document.body.addEventListener('htmx:sendError', tampilkanErrorEtalase);
+        window.etalaseTerpasang = true;
+    }
+</script>
 {% endblock %}

@@ -1,0 +1,47 @@
+{% load static %}
+<div class="self-stretch px-4 py-5 {% if selected_guide and selected_guide.id == item.id %}bg-white border-l-2 border-amber-700 shadow-sm{% else %}border-t border-stone-300 hover:bg-stone-200/40{% endif %} transition-colors inline-flex justify-between items-center gap-4 overflow-hidden">
+    
+    {% comment %} HTMX AJAX UNTUK MENGGANTI PANEL KANAN SAAT DIKLIK {% endcomment %}
+    <button hx-get="?tab={{ active_tab }}&id={{ item.id }}" 
+            hx-target="#moderation-container" hx-select="#moderation-container" hx-swap="outerHTML" hx-push-url="true"
+            class="flex-1 flex justify-start items-center gap-4 overflow-hidden text-left cursor-pointer">
+        
+        {% if item.image_url %}
+            <img class="size-10 object-cover shrink-0" src="{{ item.image_url }}" alt="{{ item.title }}" />
+        {% else %}
+            <div class="size-10 bg-neutral-200 flex justify-center items-center shrink-0">
+                <span class="text-gray-800 text-xs font-semibold font-['Jost'] uppercase">{{ item.author_name|slice:":2"|upper }}</span>
+            </div>
+        {% endif %}
+
+        <div class="flex-1 inline-flex flex-col justify-start items-start gap-0.5 overflow-hidden">
+            <div class="self-stretch text-zinc-900 text-xl font-semibold font-['Cormorant_Garamond'] leading-6 truncate">
+                {{ item.title }}
+            </div>
+            <div class="text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight">
+                {{ item.author_name }} &nbsp;·&nbsp; {% if item.status == 'DISETUJUI' and item.date_published %}disetujui {{ item.date_published|date:"j M Y" }}{% else %}{{ item.date_submitted|date:"j M Y" }}{% endif %}
+            </div>
+        </div>
+    </button>
+
+    <div class="flex justify-end items-center gap-4 shrink-0">
+        {% include 'sustainableguides/components/status_badge.html' with status=item.status %}
+        
+        {% if item.status == 'DISETUJUI' and not item.is_published %}
+        <button hx-get="{% url 'moderations:publish_modal' item.id %}?tab={{ active_tab }}"
+                hx-target="#modal-container"
+                class="text-amber-700 hover:text-amber-900 text-xs font-semibold font-['Jost'] underline uppercase leading-4 tracking-wider transition-colors cursor-pointer">
+            Terbitkan
+        </button>
+        {% else %}
+        <form hx-post="{% url 'moderations:jurnal_delete' item.id %}?tab={{ active_tab }}" 
+              hx-target="#moderation-container" hx-select="#moderation-container" hx-swap="outerHTML"
+              hx-confirm="Hapus panduan ini secara permanen?">
+            {% csrf_token %}
+            <button type="submit" class="text-orange-800 hover:text-red-700 text-xs font-semibold font-['Jost'] underline uppercase leading-4 tracking-wider transition-colors cursor-pointer">
+                Hapus
+            </button>
+        </form>
+        {% endif %}
+    </div>
+</div>

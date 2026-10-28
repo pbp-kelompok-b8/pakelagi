@@ -1,23 +1,90 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Katalog{% endblock %}
 {% block meta_description %}Katalog pakaian preloved Pakelagi: kondisi dijelaskan jujur, harga masuk akal, dan penjual yang bisa kamu hubungi langsung.{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/listings.css' %}">{% endblock %}
 
 {% block content %}
-<section class="container-page py-8 md:py-14" aria-labelledby="catalog-title">
+<section class="container-page py-8 md:py-14" aria-labelledby="catalog-title" hx-history="false">
     <nav aria-label="Breadcrumb" class="text-xs text-stone mb-8">
         <a href="{% url 'main:show_main' %}">Beranda</a> / <span aria-current="page">Katalog</span>
     </nav>
 
-    <div class="flex flex-wrap items-end gap-x-5 gap-y-2 pb-8 md:pb-12 border-b border-line">
-        <h1 id="catalog-title" class="text-5xl md:text-7xl">Katalog</h1>
-        <p class="text-stone text-sm pb-2" role="status">{{ total_count }} pakaian</p>
-    </div>
+    {# Kartu berada di luar form GET agar form POST favorit tidak bersarang. #}
+    <div class="catalog">
 
-    {# Pada tahap yang akan datang, nanti akan ada tab kategori, pencarian, pengurutan, dan sidebar filter masuk di sini. #}
+        <div class="flex flex-wrap items-end justify-between gap-x-8 gap-y-6 pb-8 md:pb-10 border-b border-line">
+            <div class="flex flex-wrap items-end gap-x-5 gap-y-2">
+                <h1 id="catalog-title" class="text-5xl md:text-7xl">Katalog</h1>
+                {% include "listings/components/count.html" %}
+            </div>
+            <div class="w-full md:w-80">
+                <label for="catalog-q" class="sr-only">Cari judul atau brand</label>
+                <input type="search" id="catalog-q" name="q" value="{{ query.q }}" maxlength="100" autocomplete="off" form="catalog-filters"
+                       placeholder="Cari judul atau brand" class="catalog-search">
+            </div>
+        </div>
 
-    <div id="listing-results" class="pt-10">
-        {% include "listings/components/results.html" %}
+        <div class="grid gap-10 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-12 pt-8">
+            <aside aria-label="Filter">
+                <form id="catalog-filters" method="get" action="{% url 'listings:list' %}"
+                      hx-get="{% url 'listings:list' %}" hx-target="#listing-results" hx-push-url="true"
+                      hx-trigger="change, submit, input changed delay:500ms from:#catalog-q" hx-sync="this:replace">
+                    {% include "listings/components/filters.html" %}
+                </form>
+            </aside>
+            <div id="listing-results" class="min-w-0" aria-live="polite">
+                {% include "listings/components/results.html" %}
+            </div>
+        </div>
     </div>
 </section>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    /* ---------------------------------------------
+       Halaman katalog
+       Variabel dibuat di dalam fungsi (bukan di tingkat paling luar), karena HTMX menjalankan ulang
+       semua <script> saat tombol back dipakai. const di tingkat luar akan error "already been declared".
+       --------------------------------------------- */
+
+    // Di layar kecil panel filter dilipat, di layar lebar selalu terbuka.
+    // Kalau JavaScript mati, panelnya tetap terbuka.
+    function lipatPanelDiLayarKecil() {
+        const $panelFilter = document.getElementById('filter-panel');
+        const layarKecil = window.matchMedia('(max-width: 1023px)').matches;
+        if ($panelFilter && layarKecil) $panelFilter.open = false;
+    }
+
+    // Ikon cari di header menautkan ke #catalog-q, jadi kolom pencariannya langsung difokuskan
+    function fokusKeKolomCari() {
+        const $kolomCari = document.getElementById('catalog-q');
+        if ($kolomCari && location.hash === '#catalog-q') $kolomCari.focus();
+    }
+
+    // Parameter kosong dan urutan bawaan dibuang dari permintaan HTMX supaya URL yang dibagikan tetap ringkas,
+    // misal "?size=M" dan bukan "?q=&size=M&price_min=&sort=terbaru"
+    function bersihkanParameter(event) {
+        if (event.detail.elt.id !== 'catalog-filters' && event.detail.elt.id !== 'catalog-sort') return;
+        const params = event.detail.parameters;
+
+        for (const nama of Object.keys(params)) {
+            const kosong = params[nama] === '';
+            const urutanBawaan = nama === 'sort' && params[nama] === 'terbaru';
+            if (kosong || urutanBawaan) delete params[nama];
+        }
+    }
+
+    lipatPanelDiLayarKecil();
+    fokusKeKolomCari();
+
+    // Listener di window/body cukup dipasang satu kali, walaupun skrip ini dijalankan ulang
+    if (!window.katalogTerpasang) {
+        window.addEventListener('hashchange', fokusKeKolomCari);
+        document.body.addEventListener('htmx:configRequest', bersihkanParameter);
+        window.katalogTerpasang = true;
+    }
+</script>
 {% endblock %}

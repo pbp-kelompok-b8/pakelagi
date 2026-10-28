@@ -1,0 +1,70 @@
+{# Sidebar filter. Semua input ada di dalam form #catalog-filters (method GET). #}
+<details id="filter-panel" class="filter-panel" open>
+    <summary class="flex items-center justify-between py-3 border-b border-line cursor-pointer lg:cursor-default">
+        <span class="label-caps">Filter</span>
+        {% if is_filtered %}<a href="{% url 'listings:list' %}" class="label-caps !text-terracotta">Reset</a>{% endif %}
+    </summary>
+
+    <div class="space-y-8 pt-6">
+        <fieldset>
+            <legend class="label-caps !text-[10px] mb-3">Ukuran</legend>
+            <div class="flex flex-wrap gap-2">
+                {% for value, label in size_choices %}
+                <label class="chip"><input type="checkbox" name="size" value="{{ value }}"{% if value in query.sizes %} checked{% endif %}><span>{{ label }}</span></label>
+                {% endfor %}
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend class="label-caps !text-[10px] mb-3">Kondisi</legend>
+            <div class="space-y-2.5">
+                {% for value, label in condition_choices %}
+                <label class="check-option text-sm"><input type="checkbox" name="condition" value="{{ value }}"{% if value in query.conditions %} checked{% endif %}><span>{{ label }}</span></label>
+                {% endfor %}
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend class="label-caps !text-[10px] mb-3">Harga (Rp)</legend>
+            <div class="grid grid-cols-2 gap-4">
+                <div>
+                    <label for="price_min" class="text-[10px] uppercase tracking-widest text-stone">Min</label>
+                    <input type="number" id="price_min" name="price_min" min="0" max="{{ max_price }}" inputmode="numeric" placeholder="0"
+                           value="{{ query.price_min|default_if_none:'' }}" class="catalog-input">
+                </div>
+                <div>
+                    <label for="price_max" class="text-[10px] uppercase tracking-widest text-stone">Maks</label>
+                    <input type="number" id="price_max" name="price_max" min="0" max="{{ max_price }}" inputmode="numeric" placeholder="Bebas"
+                           value="{{ query.price_max|default_if_none:'' }}" class="catalog-input">
+                </div>
+            </div>
+            <div class="flex flex-wrap gap-2 mt-4">
+                {% for label, href in price_presets %}<a href="{{ href }}" class="chip-link">{{ label }}</a>{% endfor %}
+            </div>
+        </fieldset>
+
+        <fieldset>
+            <legend class="label-caps !text-[10px] mb-3">Lokasi</legend>
+            <label for="catalog-city" class="text-[10px] uppercase tracking-widest text-stone">Kota</label>
+            <select id="catalog-city" name="city" class="catalog-input">
+                <option value="">Semua kota</option>
+                {% for city in city_choices %}
+                <option value="{{ city }}"{% if city|lower == query.city|lower %} selected{% endif %}>{{ city }}</option>
+                {% endfor %}
+            </select>
+        </fieldset>
+
+        <fieldset>
+            <legend class="label-caps !text-[10px] mb-3">Keberlanjutan</legend>
+            <div class="space-y-2.5">
+                {% for value, label in tag_choices %}
+                <label class="check-option text-sm"><input type="checkbox" name="tag" value="{{ value }}"{% if value in query.tags %} checked{% endif %}><span>{{ label }}</span></label>
+                {% endfor %}
+            </div>
+            <p class="text-xs text-stone mt-4 leading-relaxed">Tag keberlanjutan adalah informasi yang dipilih penjual, bukan klaim dampak lingkungan.</p>
+        </fieldset>
+
+        {# Tombol ini dibutuhkan saat JavaScript mati; dengan HTMX filter langsung diterapkan saat dipilih. #}
+        <button type="submit" class="btn btn-secondary btn-sm btn-block">Terapkan filter</button>
+    </div>
+</details>

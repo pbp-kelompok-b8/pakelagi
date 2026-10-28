@@ -60,7 +60,7 @@ class CatalogViewTests(TestCase):
 
     def test_card_without_brand_omits_brand_line(self):
         make_listing(self.seller, brand="").save()
-        self.assertNotContains(self.client.get(self.url), "label-caps !text-[10px]")
+        self.assertNotContains(self.client.get(self.url), "label-caps !text-[10px] truncate")
 
     def test_image_has_alt_text_and_local_fallback(self):
         make_listing(self.seller, title="Kemeja flanel kotak", image_url="https://example.com/k.jpg").save()

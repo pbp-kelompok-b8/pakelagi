@@ -22,6 +22,7 @@ urlpatterns = [
     path("accounts/", include("accounts.urls")),
     path("profile/", include("profiles.urls")),
     path("listings/", include("listings.urls")),
+    path("favorites/", include("favorites.urls")),
     path('guides/', include('sustainableguides.urls')),
     path('moderation/', include('moderations.urls')),
     path("", include("main.urls")),

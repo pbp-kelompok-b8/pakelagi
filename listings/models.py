@@ -76,18 +76,32 @@ class Listing(models.Model):
 
     @property
     def sustainability_tags(self):
-        """Label tag keberlanjutan yang dipilih penjual (fakta dari penjual, bukan klaim dampak)."""
-        names = ("is_repairable", "is_upcycled", "is_locally_available", "extends_clothing_life")
-        return [self._meta.get_field(name).verbose_name for name in names if getattr(self, name)]
+        # Tag keberlanjutan yang dipilih penjual. Ini fakta dari penjual, bukan klaim dampak lingkungan.
+        tags = []
+        if self.is_repairable:
+            tags.append("Bisa diperbaiki")
+        if self.is_upcycled:
+            tags.append("Upcycled")
+        if self.is_locally_available:
+            tags.append("Tersedia lokal")
+        if self.extends_clothing_life:
+            tags.append("Memperpanjang usia pakaian")
+        return tags
 
     def save(self, *args, **kwargs):
-        # sold_at hanya dicatat saat status berpindah KE Sold, bukan setiap kali listing diedit.
-        was_sold = (
-            self.pk is not None
-            and Listing.objects.filter(pk=self.pk, status=self.Status.SOLD).exists()
-        )
+        # sold_at cuma dicatat saat status berpindah KE Sold, bukan setiap kali listing diedit.
+        # Jadi kita cek dulu apakah di database listing ini sudah berstatus Sold.
+        was_sold = False
+        if self.pk is not None:
+            was_sold = Listing.objects.filter(pk=self.pk, status=self.Status.SOLD).exists()
+
         if self.status == self.Status.SOLD and not was_sold:
             self.sold_at = timezone.now()
+
+            # Kalau save() dipanggil dengan update_fields, sold_at harus ikut disimpan
             if kwargs.get("update_fields") is not None:
-                kwargs["update_fields"] = {*kwargs["update_fields"], "sold_at"}
+                fields = set(kwargs["update_fields"])
+                fields.add("sold_at")
+                kwargs["update_fields"] = fields
+
         super().save(*args, **kwargs)

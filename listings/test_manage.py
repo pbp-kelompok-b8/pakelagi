@@ -46,7 +46,7 @@ class ListingFormTests(TestCase):
         self.assertTrue(form.is_valid(), form.errors)
 
     def test_form_does_not_expose_protected_fields(self):
-        for name in ("seller", "status", "sold_at", "latitude", "longitude", "created_at"):
+        for name in ("seller", "status", "sold_at", "created_at"):
             with self.subTest(field=name):
                 self.assertNotIn(name, ListingForm().fields)
 
@@ -507,6 +507,49 @@ class NavigationLinkTests(TestCase):
         response = self.client.get("/")
         self.assertContains(response, 'href="/listings/create/"')
         self.assertContains(response, 'href="/listings/mine/"')
+
+    def test_guest_header_has_icons_login_and_register_but_no_account_menu(self):
+        html = self.client.get("/").content.decode()
+        for text in ('aria-label="Cari pakaian"', 'aria-label="Favorit"', ">Masuk<", ">Daftar<"):
+            with self.subTest(text=text):
+                self.assertIn(text, html)
+        self.assertNotIn('id="account-menu"', html)
+        self.assertNotIn('href="/listings/create/"', html)
+
+    def test_member_header_has_account_menu_without_username_in_the_label(self):
+        member = make_user("sari", "Sari")
+        self.client.force_login(member)
+        html = self.client.get("/").content.decode()
+        self.assertIn('id="account-menu"', html)
+        self.assertIn("Masuk sebagai <strong", html)
+        self.assertNotIn("Akun saya (sari)", html.split('id="mobileNav"')[0])
+        # Keluar ada di dalam menu akun, bukan lagi tombol terpisah di bilah atas.
+        menu = html.split('id="account-menu"')[1].split("</details>")[0]
+        self.assertIn('action="/accounts/logout/"', menu)
+
+    def test_header_main_menu_matches_the_design_in_desktop_and_mobile_menus(self):
+        html = self.client.get("/").content.decode().split("</header>")[0]  # footer punya tautan serupa
+        for href in ('href="/categories/"', 'href="/guides/"'):
+            with self.subTest(href=href):
+                self.assertEqual(html.count(href), 2)  # menu desktop + menu HP
+        for label in (">Katalog<", ">Kategori<", ">Jurnal<", ">Penjual<"):
+            with self.subTest(label=label):
+                self.assertEqual(html.count(label), 2)
+
+    def test_moderation_link_is_shown_to_staff_only(self):
+        self.assertNotContains(self.client.get("/"), ">Moderasi<")
+        staff = make_user("mod", "Moderator")
+        staff.is_staff = True
+        staff.save()
+        self.client.force_login(staff)
+        self.assertContains(self.client.get("/"), ">Moderasi<", count=2)
+
+    def test_current_section_is_marked_in_the_menu(self):
+        self.assertContains(self.client.get("/listings/"), 'class="nav-link" aria-current="page">Katalog<', count=2)
+        self.assertNotContains(self.client.get("/"), 'aria-current="page">Katalog<')
+
+    def test_catalog_keeps_its_existing_category_tabs_anchor(self):
+        self.assertContains(self.client.get("/listings/"), 'id="kategori"')
 
     def test_guest_homepage_cta_points_to_register(self):
         response = self.client.get("/")

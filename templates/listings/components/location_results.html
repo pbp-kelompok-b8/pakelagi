@@ -1,0 +1,25 @@
+{# Saran kota dari Nominatim, dimuat HTMX ke #location-results. Variabel: status, results, query. #}
+{% if status == 'ok' and results %}
+<div class="location-box">
+    <ul>
+        {% for result in results %}
+        <li>
+            <button type="button" class="location-option" data-city="{{ result.city }}" data-lat="{{ result.lat }}" data-lon="{{ result.lon }}">
+                <span class="block text-sm">{{ result.title }}</span>
+                <span class="block text-xs text-stone">{{ result.subtitle }}</span>
+            </button>
+        </li>
+        {% endfor %}
+    </ul>
+    <p class="px-4 py-3 border-t border-line text-[11px] text-stone">
+        Data lokasi © <a href="https://www.openstreetmap.org/copyright" target="_blank" rel="noopener noreferrer" class="underline">OpenStreetMap contributors</a> · Nominatim
+    </p>
+</div>
+{% elif status == 'ok' %}
+<p class="location-note">Tidak menemukan kotamu? Ketik nama kota secara manual — listing tetap bisa terbit.</p>
+{% elif status == 'throttled' %}
+{# Batas 1 request/detik ke Nominatim: coba lagi otomatis sebentar lagi, penjual tidak perlu mengetik ulang. #}
+<p class="location-note" hx-get="{% url 'listings:location_search' %}?city={{ query|urlencode }}" hx-trigger="load delay:1100ms" hx-target="#location-results" hx-swap="innerHTML">Mencari lokasi…</p>
+{% elif status == 'unavailable' %}
+<p class="location-note">Pencarian lokasi sedang tidak tersedia. Ketik nama kota secara manual — listing tetap bisa terbit.</p>
+{% endif %}

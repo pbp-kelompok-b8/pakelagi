@@ -1,14 +1,65 @@
-{# Hasil katalog. Dipisah dari list.html agar nanti bisa dirender sendiri sebagai respons HTMX (#listing-results). #}
+{# Isi #listing-results: tab kategori, urutan, chip filter, kartu, dan pagination. Dirender penuh atau sebagai respons HTMX. #}
+{% if query.category %}<input type="hidden" name="category" value="{{ query.category }}" form="catalog-filters">{% endif %}
 
-{% if listings %}
-<ul class="grid grid-cols-2 md:grid-cols-3 gap-x-4 md:gap-x-6 gap-y-10 md:gap-y-14">
-    {% for listing in listings %}
+<div class="flex flex-wrap items-end justify-between gap-x-8 gap-y-4 border-b border-line">
+    <nav id="kategori" aria-label="Kategori" class="flex flex-wrap gap-x-7 gap-y-1 scroll-mt-28">
+        {% for tab in tabs %}
+        <a href="{{ tab.href }}" hx-get="{{ tab.href }}" hx-target="#listing-results" hx-push-url="true" class="my-tab"{% if tab.active %} aria-current="page"{% endif %}>{{ tab.label }}</a>
+        {% endfor %}
+    </nav>
+    <div class="flex items-center gap-3 pb-3">
+        <label for="catalog-sort" class="label-caps !text-[10px]">Urutkan</label>
+        <select id="catalog-sort" name="sort" class="catalog-sort" form="catalog-filters"
+                hx-get="{% url 'listings:list' %}" hx-include="#catalog-filters" hx-trigger="change"
+                hx-target="#listing-results" hx-push-url="true" hx-sync="#catalog-filters:replace">
+            {% for value, label in sort_options %}<option value="{{ value }}"{% if query.sort == value %} selected{% endif %}>{{ label }}</option>{% endfor %}
+        </select>
+    </div>
+</div>
+
+{% if chips %}
+<div class="flex flex-wrap items-center gap-2 pt-5">
+    {% for label, href in chips %}
+    <a href="{{ href }}" class="tag" aria-label="Hapus filter {{ label }}">{{ label }} <span aria-hidden="true">×</span></a>
+    {% endfor %}
+    <a href="{% url 'listings:list' %}" class="label-caps !text-[10px] ml-2">Hapus semua</a>
+</div>
+{% endif %}
+
+{% if page.object_list %}
+<p class="text-xs text-stone pt-5">Menampilkan {{ page.start_index }}–{{ page.end_index }} dari {{ page.paginator.count }}</p>
+<ul class="grid grid-cols-2 md:grid-cols-3 gap-x-4 md:gap-x-6 gap-y-10 md:gap-y-14 pt-6">
+    {% for listing in page.object_list %}
     <li>{% include "listings/components/listing_card.html" %}</li>
     {% endfor %}
 </ul>
+
+{% if page.paginator.num_pages > 1 %}
+<nav aria-label="Halaman" class="flex items-center justify-between gap-4 border-t border-line mt-12 pt-6 text-sm">
+    {% if prev_href %}<a href="{{ prev_href }}" hx-get="{{ prev_href }}" hx-target="#listing-results" hx-push-url="true" class="label-caps !text-[10px]" rel="prev">← Sebelumnya</a>{% else %}<span class="label-caps !text-[10px] opacity-40">← Sebelumnya</span>{% endif %}
+    <ul class="flex items-center gap-4">
+        {% for link in page_links %}
+        <li>
+            {% if link.ellipsis %}<span aria-hidden="true">…</span>
+            {% else %}<a href="{{ link.href }}" hx-get="{{ link.href }}" hx-target="#listing-results" hx-push-url="true"{% if link.current %} aria-current="page" class="font-semibold underline underline-offset-4"{% endif %}>{{ link.number }}</a>{% endif %}
+        </li>
+        {% endfor %}
+    </ul>
+    {% if next_href %}<a href="{{ next_href }}" hx-get="{{ next_href }}" hx-target="#listing-results" hx-push-url="true" class="label-caps !text-[10px]" rel="next">Berikutnya →</a>{% else %}<span class="label-caps !text-[10px] opacity-40">Berikutnya →</span>{% endif %}
+</nav>
+{% endif %}
+
+{% elif is_filtered %}
+<div class="mt-8 py-20 text-center border border-line bg-white">
+    <p class="font-display text-3xl">Tidak ada pakaian yang cocok</p>
+    <p class="text-stone text-sm mt-3">Coba kata kunci lain atau kurangi beberapa filter.</p>
+    <a href="{% url 'listings:list' %}" class="btn btn-secondary mt-8">Hapus semua filter</a>
+</div>
 {% else %}
-<div class="py-20 text-center border border-line bg-white">
+<div class="mt-8 py-20 text-center border border-line bg-white">
     <p class="font-display text-3xl">Belum ada pakaian di katalog</p>
     <p class="text-stone text-sm mt-3">Coba lagi nanti, atau jadilah yang pertama memasang barang.</p>
 </div>
 {% endif %}
+
+{% if partial %}{% include "listings/components/count.html" with oob=True %}{% endif %}
