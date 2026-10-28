@@ -4,7 +4,19 @@ from django.utils import timezone
 from profiles.validators import validate_external_https_url
 # Create your models here.
 
+
+class GuideQuerySet(models.QuerySet):
+    def published(self):
+        return self.filter(
+            status='DISETUJUI',
+            is_published=True,
+            date_published__lte=timezone.now(),
+        )
+
+
 class Guide(models.Model):
+    objects = GuideQuerySet.as_manager()
+
     # Pilihan Status
     STATUS_CHOICES = (
         ('PENDING', 'Pending'),
@@ -35,6 +47,15 @@ class Guide(models.Model):
     #Penanggalan
     date_submitted = models.DateTimeField(auto_now_add=True)
     date_published = models.DateTimeField(blank=True, null=True)
+
+    @property
+    def is_scheduled(self):
+        return (
+            self.status == 'DISETUJUI'
+            and self.is_published
+            and self.date_published is not None
+            and self.date_published > timezone.now()
+        )
     
     class Meta:
         db_table = "sustainable_guide"
@@ -65,7 +86,4 @@ class Guide(models.Model):
     
     #untuk ubah status ketika disetujui
     def save(self, *args, **kwargs):
-        if self.status == 'DISETUJUI' and not self.is_published:
-            self.is_published = True
-            self.date_published = timezone.now()
         super().save(*args, **kwargs)
