@@ -156,7 +156,14 @@ class ModerationWorkflowAndSecurityTests(TestCase):
         response = self.client.get(url)
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, '<img src="x" onerror="alert(1)">')
-        self.assertContains(response, '&lt;img src=&quot;x&quot; onerror=&quot;alert(1)&quot;&gt;')
+        self.assertContains(response, '&lt;img src="x" onerror="alert(1)"&gt;')
+
+    def test_moderation_preview_removes_mixed_case_javascript_links(self):
+        self.pending_guide.konten = '[Klik](JaVaScRiPt:alert(1))'
+        self.pending_guide.save()
+        response = self.client.get(reverse('moderations:jurnal_list'), {'id': self.pending_guide.id})
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('href="javascript:', response.context['selected_content_html'].lower())
     
     def testAdminDelete(self):
         self.client.post(reverse('moderations:jurnal_delete', args=[self.pending_guide.id]))

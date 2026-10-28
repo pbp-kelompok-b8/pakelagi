@@ -1,10 +1,9 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import login_required, user_passes_test
 from django.contrib import messages
-from django.utils.html import escape
-import markdown
 from .models import Guide
 from .forms import GuideForm
+from .rendering import render_guide_markdown
 
 # Create your views here.
 
@@ -13,7 +12,7 @@ from .forms import GuideForm
 #=x=x=x=x=x=x=x=x=x==x=x=x=x=x=x=x=x=x
 
 def guide_list(request):
-    published_guides = Guide.objects.filter(status='DISETUJUI', is_published=True).order_by('-date_published')
+    published_guides = Guide.objects.published().order_by('-date_published')
     
     # Untuk filter kategory
     category_filter = request.GET.get('category')
@@ -31,21 +30,11 @@ def guide_list(request):
     return render(request, 'sustainableguides/guide_list.html', context)
 
 def guide_detail(request, id):
-    guide = get_object_or_404(Guide, id=id, status='DISETUJUI', is_published=True)
-    
-    # Initialize Markdown format
-    md = markdown.Markdown(extensions=['toc', 'tables', 'nl2br'])
-    
-    # KEAMANAN XSS: Escape tag HTML mentah sebelum di-convert ke Markdown,
-    # lalu netralisir skema javascript: jika ada di dalam link Markdown
-    safe_konten = escape(guide.konten)
-    content_html = md.convert(safe_konten).replace('href="javascript:', 'href="#blocked-javascript:')
-    
-    # Ekstrak daftar isi untuk jadi bagian dari table of content
-    table_of_contents = md.toc
+    guide = get_object_or_404(Guide.objects.published(), id=id)
+    content_html, table_of_contents = render_guide_markdown(guide.konten)
     
     # Untuk Panduan Lainnya
-    other_guides = Guide.objects.filter(status='DISETUJUI', is_published=True).exclude(id=guide.id).order_by('?')[:3]
+    other_guides = Guide.objects.published().exclude(id=guide.id).order_by('?')[:3]
     
     context = {
         'guide': guide,

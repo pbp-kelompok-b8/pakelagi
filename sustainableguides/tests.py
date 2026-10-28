@@ -156,6 +156,25 @@ class GuidePublicViewsTests(TestCase):
         self.assertContains(response, '&lt;script&gt;')
         self.assertNotContains(response, 'href="javascript:alert(1)"')
 
+    def test_markdown_links_from_valid_form_are_sanitized_in_detail(self):
+        form = GuideForm(data={
+            'category': 'PERAWATAN',
+            'title': 'Tautan berbahaya',
+            'ringkasan': 'Ringkasan',
+            'konten': '[Klik](JaVaScRiPt:alert(1))',
+        })
+        self.assertTrue(form.is_valid(), form.errors)
+        guide = form.save(commit=False)
+        guide.author = self.user
+        guide.status = 'DISETUJUI'
+        guide.is_published = True
+        guide.date_published = timezone.now()
+        guide.save()
+
+        response = self.client.get(reverse('sustainableguides:detail', args=[guide.id]))
+        self.assertEqual(response.status_code, 200)
+        self.assertNotIn('href="javascript:', response.context['content_html'].lower())
+
 
 class GuideMemberCRUDAndAuthTests(TestCase):
     """Menguji CRUD draf oleh member serta otorisasi kepemilikan dan status draf."""

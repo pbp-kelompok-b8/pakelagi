@@ -65,13 +65,16 @@
         setTimeout(() => document.getElementById('modal-container').innerHTML = '', 200)
     }
     
-    const publishForm = document.getElementById('publish-form');
-    if (publishForm) {
-        publishForm.addEventListener('htmx:afterRequest', function(evt) {
-            // evt.detail.successful bernilai 'true' jika server membalas dengan status sukses (200 OK)
-            if (evt.detail.successful) {
-                closeModal();
-            }
-        });
-    }
+    // HTMX executes this script again whenever the modal is opened.
+    // Keep declarations local so reopening does not redeclare a global const.
+    (function () {
+        const publishForm = document.getElementById('publish-form');
+        if (publishForm) {
+            publishForm.addEventListener('htmx:afterRequest', function(evt) {
+                if (evt.detail.successful) {
+                    closeModal();
+                }
+            });
+        }
+    })();
 </script>

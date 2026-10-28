@@ -1,10 +1,13 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import user_passes_test
-from django.utils.html import escape, strip_tags
+from django import forms
+from django.core.exceptions import ValidationError
+from django.db.models import Q
+from django.utils.html import strip_tags
 from django.contrib import messages
 from django.utils import timezone
-import markdown
 from sustainableguides.models import Guide
+from sustainableguides.rendering import render_guide_markdown
 # Create your views here.
 
 # =x=x=x=x=x=x=x==x=x=x=x=
@@ -32,9 +35,11 @@ def jurnal_moderation(request):
     # Hitung untuk tiap jenis item
     count_pending = all_guides.filter(status='PENDING').count()
     count_approved = all_guides.filter(status='DISETUJUI').count()
-    count_published = all_guides.filter(status='DISETUJUI', is_published=True).count()
+    count_published = all_guides.published().count()
     count_rejected = all_guides.filter(status='DITOLAK').count()
-    waiting_publish_guides = all_guides.filter(status='DISETUJUI', is_published=False)
+    waiting_publish_guides = all_guides.filter(status='DISETUJUI').filter(
+        Q(is_published=False) | Q(date_published__gt=timezone.now())
+    )
     
     # Tangkap parameter filter tab dari URL (Default: 'pending' / DRAF MASUK)
     active_tab = request.GET.get('tab', 'pending').lower()
@@ -42,7 +47,7 @@ def jurnal_moderation(request):
     if active_tab == 'approved':
         filtered_guides = all_guides.filter(status='DISETUJUI')
     elif active_tab == 'published':
-        filtered_guides = all_guides.filter(status='DISETUJUI', is_published=True)
+        filtered_guides = all_guides.published()
     elif active_tab == 'rejected':
         filtered_guides = all_guides.filter(status='DITOLAK')
     else:
@@ -62,9 +67,7 @@ def jurnal_moderation(request):
     # Render Markdown untuk draf yang sedang dipilih di panel kanan
     selected_content_html = ""
     if selected_guide:
-        md = markdown.Markdown(extensions=['toc', 'tables', 'nl2br'])
-        safe_konten = escape(selected_guide.konten)
-        selected_content_html = md.convert(safe_konten).replace('href="javascript:', 'href="#blocked-javascript:')
+        selected_content_html, _ = render_guide_markdown(selected_guide.konten)
     
     context = {
         'active_tab': active_tab,
@@ -149,6 +152,10 @@ def get_publish_modal(request, id):
 def publish_jurnal_action(request, id):
     guide = get_object_or_404(Guide, id=id)
     if request.method == 'POST':
+        if guide.status != 'DISETUJUI':
+            messages.error(request, "Hanya panduan yang disetujui yang bisa diterbitkan.")
+            return redirect('moderations:jurnal_list')
+
         publish_type = request.POST.get('publish_type')
         
         if publish_type == 'now':
@@ -158,14 +165,17 @@ def publish_jurnal_action(request, id):
             messages.success(request, f"Panduan '{guide.title}' berhasil diterbitkan sekarang!")
         
         elif publish_type == 'schedule':
-            schedule_date = request.POST.get('schedule_date')
-            if schedule_date:
+            try:
+                schedule_date = forms.DateTimeField().clean(request.POST.get('schedule_date'))
+                if schedule_date <= timezone.now():
+                    raise ValidationError("Waktu publikasi harus di masa mendatang.")
+            except ValidationError:
+                messages.error(request, "Isi tanggal dan waktu publikasi yang valid di masa mendatang.")
+            else:
                 guide.is_published = True
                 guide.date_published = schedule_date
                 guide.save()
                 messages.success(request, f"Panduan '{guide.title}' dijadwalkan terbit pada {schedule_date}.")
-            else:
-                messages.error(request, "Tanggal dan waktu harus diisi untuk opsi penjadwalan.")
     next_tab = request.GET.get('tab', 'approved')
     return redirect(f"/moderation/guides/?tab={next_tab}&id={guide.id}")
 
@@ -177,7 +187,7 @@ def toggle_publish_action(request, id):
         if guide.status == 'DISETUJUI':
             # Balikkan statusnya (True jadi False, False jadi True)
             guide.is_published = not guide.is_published
-            if guide.is_published and not guide.date_published:
+            if guide.is_published:
                 guide.date_published = timezone.now()
             guide.save()
             

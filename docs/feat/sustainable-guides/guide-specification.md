@@ -85,7 +85,7 @@ Mengacu pada standar keamanan aplikasi web (Tutorial 05 PBP), modul ini menerapk
    * Metode `clean_image_url()` memvalidasi skema tautan secara ketat dan menolak skema berbahaya seperti `javascript:alert(1)` maupun protokol tidak terenkripsi (`http://`), dengan mewajibkan awalan `https://`[cite: 3, 4].
 2. **Sanitasi Output & Render Markdown (`views.py`):**
    * Karena template `guide_detail.html` menggunakan filter `|safe` untuk merender HTML hasil konversi Markdown (`{{ content_html|safe }}` dan `{{ table_of_contents|safe }}`)[cite: 4], teks mentah dari database terlebih dahulu dibungkus dengan fungsi `escape(guide.konten)` sebelum diproses oleh `md.convert()`. Langkah ini memastikan apabila terdapat data lama di database yang mengandung tag `<script>`, karakter `<` dan `>` tetap diubah menjadi entitas aman (`&lt;` dan `&gt;`)[cite: 3].
-   * Hasil konversi HTML juga disaring menggunakan `.replace('href="javascript:', 'href="#blocked-javascript:')` untuk mencegah eksekusi XSS melalui sintaks tautan Markdown `[Teks](javascript:...)`[cite: 3].
+    * Fungsi bersama `render_guide_markdown()` di `sustainableguides/rendering.py` menyaring HTML hasil Markdown dan TOC menggunakan `nh3`, dengan allowlist elemen/atribut serta protokol `http`, `https`, dan `mailto`. Skema berbahaya, termasuk `JaVaScRiPt:` dengan huruf campuran, dibuang dari tautan dan gambar. Fungsi yang sama dipakai oleh detail publik dan preview moderator.
 3. **Kontrol Akses & Isolasi Kepemilikan Data:**
    * Query pengambilan objek pada `edit_draft` dan `delete_draft` menggunakan `get_object_or_404(Guide, id=id, author=request.user)` sehingga pengguna lain yang mencoba menembak URL secara paksa akan langsung mendapatkan respons `404 Not Found`.
    * Pengecekan kondisi `if guide.status != 'PENDING'` diterapkan langsung di level *view* untuk mencegah modifikasi draf yang sudah disetujui atau ditolak melalui *request* POST langsung.
@@ -98,6 +98,13 @@ Pengujian otomatis diimplementasikan di dalam `sustainableguides/tests.py` yang 
 1. **`GuideFormAndSecurityTests`:** Menguji validasi data form normal, pembuktian bahwa `strip_tags` berhasil membersihkan tag `<script>` dan `<iframe>`, penolakan terhadap *payload* khusus tag HTML (`<img onerror=...>`), serta penolakan skema URL `javascript:` dan `http://`[cite: 3].
 2. **`GuidePublicViewsTests`:** Menguji visibilitas katalog publik (memastikan draf `PENDING` dan draf `DISETUJUI` yang belum terbit tidak bocor ke publik), pengujian filter kategori, pengujian akses halaman detail (hanya mengembalikan 200 OK jika `is_published=True`, selain itu 404), dan pengujian ketahanan halaman detail terhadap *Stored XSS* pada konten Markdown[cite: 3, 4].
 3. **`GuideMemberCRUDAndAuthTests`:** Menguji pengalihan (*redirect* 302) bagi pengunjung anonim, isolasi daftar draf antar-pengguna, pembuatan draf baru, pembaruan draf saat `PENDING`, pemblokiran aksi *edit/delete* oleh pengguna bukan pemilik (404), serta penguncian aksi *edit/delete* ketika status draf sudah berubah menjadi `DISETUJUI`.
+
+### 6.1 Regresi keamanan dan publikasi terjadwal
+
+* `sustainableguides/test_rendering.py` menguji allowlist URL, pelestarian tabel/heading/TOC, dan escaping HTML mentah.
+* `sustainableguides/test_publication.py` menguji visibilitas artikel terjadwal di katalog, featured, detail, rekomendasi, dan dasbor. Query bersama `Guide.objects.published()` mensyaratkan `DISETUJUI`, `is_published=True`, dan `date_published <= timezone.now()`. Artikel terjadwal otomatis terlihat ketika waktunya tiba tanpa memerlukan job tambahan.
+* Waktu penjadwalan divalidasi sebagai datetime sadar zona waktu dan harus di masa mendatang. Hanya artikel yang sudah disetujui yang dapat diterbitkan.
+* Jalankan tes Python dengan `python manage.py test sustainableguides moderations` dan regresi pembukaan ulang modal HTMX dengan `node --test moderations/test_publish_modal.js`.
 
 ---
 
