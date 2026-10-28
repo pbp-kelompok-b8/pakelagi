@@ -13,4 +13,8 @@ urlpatterns = [
     # Endpoint Aksi (POST) untuk Setujui / Tolak / Hapus
     path('jurnal/<int:id>/review/', review_jurnal_action, name='jurnal_review'),
     path('jurnal/<int:id>/delete/', delete_jurnal_action, name='jurnal_delete'),
+    
+    # Halaman Utama Moderasi Laporan (Menangani list, filter, dan preview kanan)
+    path('reports/', report_moderation, name='reports_list')
+    
 ]
