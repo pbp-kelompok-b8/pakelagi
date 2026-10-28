@@ -77,8 +77,48 @@ class CategoryBrowserChecks(StaticLiveServerTestCase):
                 expect(image).to_be_visible()
             self.page.wait_for_function("""() => [...document.querySelectorAll('.category-card img')]
                 .every(image => image.complete && image.naturalWidth > 0)""")
+            self.page.evaluate("document.fonts.ready")
             self.page.evaluate("window.scrollTo(0, 0)")
             self.page.screenshot(path=str(Path(directory) / name), full_page=True)
+            self.page.locator(".category-page").screenshot(
+                path=str(Path(directory) / name.replace(".png", "-content.png")),
+                style=".site-header { position: static !important; }",
+            )
+
+    def test_figma_asset_slots_and_content_geometry(self):
+        self.open_categories()
+        for width, image_width, image_height, suffix, grid_top in (
+            (1440, 256, 320, ".svg", 404),
+            (390, 171, 213.75, "-mobile.svg", 288),
+        ):
+            self.page.set_viewport_size({"width": width, "height": 1000})
+            self.page.evaluate("document.fonts.ready")
+            page_box = self.page.locator(".category-page").bounding_box()
+            grid_box = self.page.locator(".category-grid").bounding_box()
+            self.assertAlmostEqual(grid_box["y"] - page_box["y"], grid_top, places=1)
+            self.assertEqual(grid_box["x"], 48 if width == 1440 else 16)
+            for category in Listing.Category.values:
+                image = self.page.locator(f'[data-category="{category}"] img')
+                image.scroll_into_view_if_needed()
+                self.page.wait_for_function("""image => image.complete && image.naturalWidth > 0""",
+                                            arg=image.element_handle())
+                slug = category.lower().replace(" ", "-")
+                self.assertTrue(image.evaluate("image => image.currentSrc").endswith(f"/{slug}{suffix}"))
+                box = image.bounding_box()
+                self.assertAlmostEqual(box["width"], image_width, places=1)
+                self.assertAlmostEqual(box["height"], image_height, places=1)
+                caption = self.page.locator(f'[data-category="{category}"] .category-caption h3').bounding_box()
+                self.assertAlmostEqual(caption["y"] - box["y"] - box["height"], 16, places=1)
+            arrow = self.page.locator(".category-catalog-link img")
+            arrow.scroll_into_view_if_needed()
+            self.assertTrue(arrow.evaluate("image => image.complete && image.naturalWidth > 0"))
+            self.assertAlmostEqual(arrow.bounding_box()["width"], 11.5, places=1)
+            self.assertAlmostEqual(arrow.bounding_box()["height"], 8.833333, places=1)
+            heading = self.page.locator("#category-browse-title")
+            if width == 1440:
+                expect(heading).to_be_visible()
+            else:
+                expect(heading).to_be_hidden()
 
     def test_desktop_navigation_cards_catalog_and_history(self):
         self.page.goto(self.live_server_url + "/")
