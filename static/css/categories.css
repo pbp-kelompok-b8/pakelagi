@@ -1,0 +1,174 @@
+/* Halaman kategori: gunakan token, font, dan komponen dasar proyek. */
+.category-head {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    padding: 2rem 1.5rem 1.5rem;
+}
+
+.category-breadcrumb {
+    display: flex;
+    gap: .75rem;
+    color: var(--stone);
+    font-size: .8125rem;
+    line-height: 1.25rem;
+    letter-spacing: .002em;
+}
+
+.category-page h1 {
+    font-size: 3rem;
+    font-weight: 300;
+    line-height: 4.75rem;
+    letter-spacing: -.015em;
+}
+
+.category-intro {
+    color: var(--stone);
+    font-size: .9375rem;
+    line-height: 1.5rem;
+}
+
+.category-browse {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 1.5rem;
+    padding: 1rem 1rem 3rem;
+}
+
+.category-eyebrow,
+.category-caption p {
+    color: var(--stone);
+    font-size: .6875rem;
+    font-weight: 500;
+    line-height: 1rem;
+    letter-spacing: .14em;
+    text-transform: uppercase;
+}
+
+.category-page #category-browse-title {
+    display: none;
+    font-size: 3rem;
+    font-weight: 400;
+    line-height: 3.5rem;
+    letter-spacing: -.01em;
+}
+
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.5rem 1rem;
+    width: 100%;
+}
+
+.category-card {
+    display: block;
+    min-width: 0;
+}
+
+.category-artwork {
+    display: block;
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--sand);
+}
+
+.category-artwork img {
+    display: block;
+    width: 100%;
+    height: auto;
+    transition: transform 200ms ease;
+}
+
+.category-caption {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .25rem;
+    padding-top: 1rem;
+}
+
+.category-page .category-caption h3 {
+    font-size: 1.5rem;
+    font-weight: 400;
+    line-height: 2rem;
+    letter-spacing: 0;
+    overflow-wrap: anywhere;
+}
+
+.category-caption p {
+    white-space: nowrap;
+}
+
+.category-catalog-link {
+    font-weight: 500;
+    line-height: 1rem;
+}
+
+.category-catalog-arrow {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    width: 1rem;
+    height: 1rem;
+    flex-shrink: 0;
+}
+
+.category-card:hover .category-artwork img,
+.category-card:focus-visible .category-artwork img {
+    transform: scale(1.025);
+}
+
+.category-card:hover h3,
+.category-card:focus-visible h3 {
+    text-decoration: underline;
+    text-underline-offset: .25em;
+}
+
+@media (min-width: 768px) {
+    .category-head {
+        gap: 1.25rem;
+        padding: 3rem;
+    }
+
+    .category-page h1 { font-size: 4.5rem; }
+
+    .category-browse {
+        gap: 2rem;
+        padding: 2rem 3rem 5rem;
+    }
+
+    .category-section-head {
+        display: flex;
+        flex-direction: column;
+        gap: .75rem;
+    }
+
+    .category-page #category-browse-title { display: block; }
+
+    .category-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 1.5rem 1rem;
+    }
+
+    .category-caption {
+        flex-direction: row;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: .75rem;
+    }
+
+    .category-page .category-caption h3 { font-size: 1.625rem; }
+}
+
+@media (min-width: 1280px) {
+    .category-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
+@media (max-width: 339px) {
+    .category-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .category-artwork img { transition: none; }
+}
