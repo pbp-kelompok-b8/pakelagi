@@ -89,8 +89,8 @@ Hasil pada branch Category:
 - Baseline katalog awal: 68 test lulus.
 - Baseline setelah test regresi kategori pertama: 73 test lulus.
 - Halaman baru dan regression katalog setelah penyelarasan Figma: 88 test lulus.
-- Suite Django penuh sebelum penyelarasan Figma: 396 test lulus. Angka ini tidak mencakup aplikasi Favorites
-  yang sengaja berada di branch terpisah.
+- Suite Django penuh setelah penyelarasan Figma: 397 test lulus. Angka ini tidak
+  mencakup aplikasi Favorites yang sengaja berada di branch terpisah.
 - Tidak ada perubahan model tanpa migration; tidak diperlukan migration baru.
 
 Test navigasi lama pada `listings.test_manage` diperbarui dari ekspektasi anchor
