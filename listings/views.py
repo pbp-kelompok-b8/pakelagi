@@ -13,6 +13,7 @@ from listings.filters import (SORT_LABELS, TAG_LABELS, build_querystring, change
                               get_catalog_filter, get_filter_chips, is_filtered)
 from listings.forms import ListingForm
 from listings.models import MAX_PRICE, Listing
+from favorites.presentation import with_favorite_state
 from profiles.access import has_complete_profile, member_required
 from profiles.models import Profile
 from profiles.profile_contacts import contact_context
@@ -65,13 +66,14 @@ def build_page_links(catalog_filter, page):
     return links
 
 
+@cache_control(private=True, no_store=True)
 @require_GET
 def listing_list(request):
     catalog_filter = get_catalog_filter(request.GET)
 
     # Katalog publik hanya yang Available. Sold dan Hidden tidak pernah tampil di sini.
     available = Listing.objects.filter(status=Listing.Status.AVAILABLE)
-    results = filter_listings(available, catalog_filter)
+    results = with_favorite_state(filter_listings(available, catalog_filter), request.user)
     page = Paginator(results, CATALOG_PAGE_SIZE).get_page(get_page_number(request))
 
     # Daftar kota untuk dropdown. Kota yang sama (beda huruf besar-kecil) cukup muncul sekali.
@@ -152,7 +154,7 @@ def listing_list(request):
 @cache_control(private=True, no_store=True)
 @require_GET
 def listing_detail(request, pk):
-    listing = get_object_or_404(Listing.objects.select_related("seller"), pk=pk)
+    listing = get_object_or_404(with_favorite_state(Listing.objects.select_related("seller"), request.user), pk=pk)
     viewer = request.user
     is_owner = viewer.is_authenticated and viewer.pk == listing.seller_id
 
@@ -171,14 +173,16 @@ def listing_detail(request, pk):
         contact = contact_context(request, profile)
 
     seller_listings = Listing.objects.filter(seller_id=listing.seller_id, status=Listing.Status.AVAILABLE)
-    return render(request, "listings/detail.html", {
+    response = render(request, "listings/detail.html", {
         "listing": listing,
         "seller_profile": profile,
         "is_owner": is_owner,
-        "more_from_seller": seller_listings.exclude(pk=listing.pk)[:4],
+        "more_from_seller": with_favorite_state(seller_listings.exclude(pk=listing.pk), viewer)[:4],
         "seller_active_count": seller_listings.count(),
         **contact,
     })
+    patch_vary_headers(response, ["Cookie"])
+    return response
 
 
 def get_manageable_listing(request, pk, owner_only=False):

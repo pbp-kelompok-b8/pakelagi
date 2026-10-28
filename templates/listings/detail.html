@@ -1,11 +1,11 @@
 {% extends "base.html" %}
-{% load i18n listing_extras %}
+{% load i18n listing_extras favorite_extras %}
 
 {% block title %}{{ listing.title }}{% endblock %}
 {% block meta_description %}{{ listing.title }} — {{ listing.price|rupiah }}, {{ listing.condition }}, {{ listing.city }}. {{ listing.description|truncatewords:20 }}{% endblock %}
 
 {% block content %}
-<section class="container-page py-8 md:py-14" aria-labelledby="listing-title">
+<section class="container-page py-8 md:py-14" aria-labelledby="listing-title" hx-history="false">
     <nav aria-label="Breadcrumb" class="text-xs text-stone mb-8">
         <a href="{% url 'main:show_main' %}">Beranda</a> /
         <a href="{% url 'listings:list' %}">Katalog</a> /
@@ -35,6 +35,7 @@
                 <h1 id="listing-title" class="text-4xl md:text-5xl leading-tight break-words">{{ listing.title }}</h1>
                 <p class="text-2xl pt-2">{{ listing.price|rupiah }}</p>
                 <p class="text-xs text-stone">Harga dari penjual · pembayaran &amp; serah terima di luar Pakelagi</p>
+                {% favorite_button listing slot="detail" %}
             </div>
 
             <dl class="border-t border-line text-sm">

@@ -48,6 +48,7 @@ INSTALLED_APPS = [
     'accounts.apps.AccountsConfig',
     'profiles.apps.ProfilesConfig',
     'listings.apps.ListingsConfig', 
+    'favorites.apps.FavoritesConfig',
     'sustainableguides',
     'moderations',
 ]
@@ -75,6 +76,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'favorites.presentation.favorite_context',
             ],
         },
     },

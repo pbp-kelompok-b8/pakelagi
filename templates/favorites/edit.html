@@ -1,0 +1,10 @@
+{% extends "base.html" %}
+
+{% block title %}Edit catatan favorit{% endblock %}
+{% block content %}
+<section class="container-page py-10 md:py-16 max-w-2xl" hx-history="false">
+    <h1 class="text-4xl mb-4">Edit catatan pribadi</h1>
+    <p class="mb-8">{{ favorite.listing.title }}</p>
+    {% include "favorites/components/note_form.html" %}
+</section>
+{% endblock %}

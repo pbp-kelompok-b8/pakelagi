@@ -6,15 +6,13 @@
 {% block extra_css %}<link rel="stylesheet" href="{% static 'css/listings.css' %}">{% endblock %}
 
 {% block content %}
-<section class="container-page py-8 md:py-14" aria-labelledby="catalog-title">
+<section class="container-page py-8 md:py-14" aria-labelledby="catalog-title" hx-history="false">
     <nav aria-label="Breadcrumb" class="text-xs text-stone mb-8">
         <a href="{% url 'main:show_main' %}">Beranda</a> / <span aria-current="page">Katalog</span>
     </nav>
 
-    {# Satu form GET untuk seluruh katalog: tanpa JavaScript ia tetap berfungsi (tombol "Terapkan"); dengan HTMX hanya #listing-results yang diganti. #}
-    <form id="catalog-filters" method="get" action="{% url 'listings:list' %}" class="catalog"
-          hx-get="{% url 'listings:list' %}" hx-target="#listing-results" hx-push-url="true"
-          hx-trigger="change, submit, input changed delay:500ms from:#catalog-q" hx-sync="this:replace">
+    {# Kartu berada di luar form GET agar form POST favorit tidak bersarang. #}
+    <div class="catalog">
 
         <div class="flex flex-wrap items-end justify-between gap-x-8 gap-y-6 pb-8 md:pb-10 border-b border-line">
             <div class="flex flex-wrap items-end gap-x-5 gap-y-2">
@@ -23,18 +21,24 @@
             </div>
             <div class="w-full md:w-80">
                 <label for="catalog-q" class="sr-only">Cari judul atau brand</label>
-                <input type="search" id="catalog-q" name="q" value="{{ query.q }}" maxlength="100" autocomplete="off"
+                <input type="search" id="catalog-q" name="q" value="{{ query.q }}" maxlength="100" autocomplete="off" form="catalog-filters"
                        placeholder="Cari judul atau brand" class="catalog-search">
             </div>
         </div>
 
         <div class="grid gap-10 lg:grid-cols-[14rem_minmax(0,1fr)] lg:gap-12 pt-8">
-            <aside aria-label="Filter">{% include "listings/components/filters.html" %}</aside>
+            <aside aria-label="Filter">
+                <form id="catalog-filters" method="get" action="{% url 'listings:list' %}"
+                      hx-get="{% url 'listings:list' %}" hx-target="#listing-results" hx-push-url="true"
+                      hx-trigger="change, submit, input changed delay:500ms from:#catalog-q" hx-sync="this:replace">
+                    {% include "listings/components/filters.html" %}
+                </form>
+            </aside>
             <div id="listing-results" class="min-w-0" aria-live="polite">
                 {% include "listings/components/results.html" %}
             </div>
         </div>
-    </form>
+    </div>
 </section>
 {% endblock %}
 
@@ -63,6 +67,7 @@
     // Parameter kosong dan urutan bawaan dibuang dari permintaan HTMX supaya URL yang dibagikan tetap ringkas,
     // misal "?size=M" dan bukan "?q=&size=M&price_min=&sort=terbaru"
     function bersihkanParameter(event) {
+        if (event.detail.elt.id !== 'catalog-filters' && event.detail.elt.id !== 'catalog-sort') return;
         const params = event.detail.parameters;
 
         for (const nama of Object.keys(params)) {
