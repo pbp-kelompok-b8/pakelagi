@@ -1,6 +1,9 @@
 {% extends "base.html" %}
+{% load static %}
 
 {% block title %}Kategori{% endblock %}
+{% block meta_description %}Jelajahi pakaian preloved Pakelagi menurut kategori Top, Bottom, Dress, Outerwear, dan Modest Wear. Lihat jumlah barang yang masih tersedia.{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/categories.css' %}">{% endblock %}
 {% block content %}
 <section class="container-page py-8 md:py-14" aria-labelledby="category-title">
     <nav aria-label="Breadcrumb" class="text-xs text-stone mb-8">
@@ -8,5 +11,26 @@
     </nav>
     <h1 id="category-title" class="text-5xl md:text-7xl">Kategori</h1>
     <p class="text-stone text-sm md:text-base leading-7 max-w-xl mt-5">Temukan pakaian preloved sesuai gayamu. Mulai dari kategori pilihan, lalu jelajahi barang yang masih tersedia.</p>
+
+    <ul class="category-grid" aria-label="Kategori pakaian">
+        {% for category in categories %}
+        <li>
+            <a href="{{ category.href }}" class="category-card" data-category="{{ category.value }}"
+               aria-labelledby="category-{{ category.slug }}-label" aria-describedby="category-{{ category.slug }}-count">
+                <div class="category-artwork">
+                    <img src="{% static category.image %}" alt="" width="400" height="500" loading="lazy">
+                </div>
+                <div class="category-caption">
+                    <h2 id="category-{{ category.slug }}-label">{{ category.label }}</h2>
+                    <p id="category-{{ category.slug }}-count">{{ category.count }} item</p>
+                </div>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <div class="border-t border-line mt-10 md:mt-12 pt-8">
+        <a href="{% url 'listings:list' %}" class="btn btn-secondary">Lihat seluruh katalog <span aria-hidden="true">&rarr;</span></a>
+    </div>
 </section>
 {% endblock %}

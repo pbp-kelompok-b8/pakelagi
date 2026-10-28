@@ -1,0 +1,83 @@
+/* Halaman kategori: gunakan token, font, dan komponen dasar proyek. */
+.category-grid {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 2rem 1rem;
+    margin-top: 2.5rem;
+}
+
+.category-card {
+    display: block;
+    min-width: 0;
+}
+
+.category-artwork {
+    aspect-ratio: 4 / 5;
+    overflow: hidden;
+    background: var(--sand);
+}
+
+.category-artwork img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    transition: transform 200ms ease;
+}
+
+.category-caption {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: .4rem;
+    padding-top: 1rem;
+}
+
+.category-caption h2 {
+    font-size: 1.5rem;
+    overflow-wrap: anywhere;
+}
+
+.category-caption p {
+    color: var(--stone);
+    font-size: .75rem;
+    white-space: nowrap;
+}
+
+.category-card:hover .category-artwork img,
+.category-card:focus-visible .category-artwork img {
+    transform: scale(1.025);
+}
+
+.category-card:hover h2,
+.category-card:focus-visible h2 {
+    text-decoration: underline;
+    text-underline-offset: .25em;
+}
+
+@media (min-width: 768px) {
+    .category-grid {
+        grid-template-columns: repeat(3, minmax(0, 1fr));
+        gap: 2.5rem 1.5rem;
+        margin-top: 3rem;
+    }
+
+    .category-caption {
+        flex-direction: row;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: .75rem;
+    }
+}
+
+@media (min-width: 1280px) {
+    .category-grid { grid-template-columns: repeat(5, minmax(0, 1fr)); }
+}
+
+@media (max-width: 339px) {
+    .category-grid { grid-template-columns: minmax(0, 1fr); }
+}
+
+@media (prefers-reduced-motion: reduce) {
+    .category-artwork img { transition: none; }
+}
