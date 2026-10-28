@@ -1,10 +1,16 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500">
-  <rect width="400" height="500" fill="#EDE7DC"/>
-  <path d="M24 38h352M24 462h352" fill="none" stroke="#DDD7CC"/>
-  <ellipse cx="200" cy="407" rx="116" ry="12" fill="#DDD7CC"/>
-  <path d="m162 103-57 26-44 88 57 28 20-40-7 174h138l-7-174 20 40 57-28-44-88-57-26z" fill="#F7F4EE" stroke="#A39D92" stroke-width="2" stroke-linejoin="round"/>
-  <path d="m162 103 38 24 38-24-16 39h-44z" fill="#E3E8E1" stroke="#A39D92" stroke-width="2"/>
-  <path d="m162 103 19 46 19-22 19 22 19-46M200 145v232M107 133l31 72M293 133l-31 72M137 365h126M70 205l50 24M280 229l50-24" fill="none" stroke="#A39D92" stroke-width="1.5"/>
-  <path d="M219 182h26v33h-26z" fill="#EDE7DC" stroke="#A39D92" stroke-width="1.5"/>
-  <g fill="#A39D92"><circle cx="207" cy="177" r="2"/><circle cx="207" cy="216" r="2"/><circle cx="207" cy="255" r="2"/><circle cx="207" cy="294" r="2"/><circle cx="207" cy="333" r="2"/></g>
+<svg width="256" height="320" viewBox="0 0 256 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g clip-path="url(#clip0_230_919)">
+<path d="M256 0H0V320H256V0Z" fill="#E3DDD2"/>
+<path d="M128 66.56V58.88C129.519 58.88 131.004 58.4296 132.267 57.5857C133.53 56.7418 134.514 55.5424 135.095 54.139C135.676 52.7357 135.829 51.1915 135.532 49.7017C135.236 48.212 134.504 46.8435 133.43 45.7694C132.356 44.6954 130.988 43.9639 129.498 43.6676C128.008 43.3713 126.464 43.5233 125.061 44.1046C123.657 44.6859 122.458 45.6703 121.614 46.9332C120.77 48.1962 120.32 49.6811 120.32 51.2" stroke="#1A1C1A" stroke-opacity="0.35" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M81.9199 79.36L128 64L174.08 79.36" stroke="#1A1C1A" stroke-opacity="0.35" stroke-width="2.5" stroke-linecap="round"/>
+<path d="M95.9999 75.52L76.7999 83.2L49.9199 126.72L71.6799 139.52L89.5999 115.2V256H166.4V115.2L184.32 139.52L206.08 126.72L179.2 83.2L160 75.52C138.667 88.32 117.333 88.32 95.9999 75.52Z" fill="#F6F2EA"/>
+<path d="M89.6001 243.2H166.4H89.6001Z" fill="black"/>
+<path d="M89.6001 243.2H166.4" stroke="black" stroke-opacity="0.1" stroke-width="2"/>
+<path d="M128 305.92C170.416 305.92 204.8 304.201 204.8 302.08C204.8 299.959 170.416 298.24 128 298.24C85.5847 298.24 51.2002 299.959 51.2002 302.08C51.2002 304.201 85.5847 305.92 128 305.92Z" fill="black" fill-opacity="0.05"/>
+</g>
+<defs>
+<clipPath id="clip0_230_919">
+<rect width="256" height="320" fill="white"/>
+</clipPath>
+</defs>
 </svg>

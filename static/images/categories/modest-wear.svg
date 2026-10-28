@@ -1,9 +1,18 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500">
-  <rect width="400" height="500" fill="#EDE7DC"/>
-  <path d="M24 38h352M24 462h352" fill="none" stroke="#DDD7CC"/>
-  <ellipse cx="200" cy="431" rx="119" ry="12" fill="#DDD7CC"/>
-  <path d="m160 110-39 21-46 172 39 14 25-82-17 182q78 17 156 0l-17-182 25 82 39-14-46-172-39-21z" fill="#9DAD9A" stroke="#788374" stroke-width="2" stroke-linejoin="round"/>
-  <path d="M160 110q40 44 80 0M200 150v265M144 240l-9 163M256 240l9 163M130 405q70 14 140 0M83 291l33 13M284 304l33-13" fill="none" stroke="#788374" stroke-width="1.5"/>
-  <path d="M176 76q24-14 48 0l20 73-17 63-25-32-29-13-17-25z" fill="#F7F4EE" stroke="#A39D92" stroke-width="1.5" stroke-linejoin="round"/>
-  <path d="M183 88q-5 38 27 63l17 61M220 87q-13 28 8 59" fill="none" stroke="#DDD7CC" stroke-width="2"/>
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="256" height="320" viewBox="0 0 256 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Image/Modest &#226;&#128;&#148; Terracotta" clip-path="url(#clip0_0_132)">
+<path id="Vector" d="M256 0H0V320H256V0Z" fill="#ECE1D8"/>
+<path id="Vector_2" d="M128 66.56V58.88C129.519 58.88 131.004 58.4296 132.267 57.5857C133.53 56.7418 134.514 55.5423 135.095 54.139C135.677 52.7357 135.829 51.1915 135.532 49.7017C135.236 48.2119 134.505 46.8435 133.431 45.7694C132.357 44.6954 130.988 43.9639 129.498 43.6676C128.009 43.3712 126.464 43.5233 125.061 44.1046C123.658 44.6859 122.458 45.6703 121.614 46.9332C120.77 48.1962 120.32 49.681 120.32 51.2" stroke-width="2.5" stroke-linecap="round" stroke="#1A1C1A" stroke-opacity="0.35"/>
+<path id="Vector_3" d="M81.92 79.36L128 64L174.08 79.36" stroke-width="2.5" stroke-linecap="round" stroke="#1A1C1A" stroke-opacity="0.35"/>
+<path id="Vector_4" d="M106.24 69.12L71.68 81.92L39.68 171.52L64 180.48L83.2 135.68L75.52 289.28H180.48L172.8 135.68L192 180.48L216.32 171.52L184.32 81.92L149.76 69.12C135.253 80.2133 120.747 80.2133 106.24 69.12Z" fill="#A8644C"/>
+<g id="Vector_5">
+<path d="M128 85.76V289.28Z" fill="black"/>
+<path d="M128 85.76V289.28" stroke-width="2" stroke="black" stroke-opacity="0.08"/>
+</g>
+<path id="Vector_6" d="M128 305.92C170.415 305.92 204.8 304.201 204.8 302.08C204.8 299.959 170.415 298.24 128 298.24C85.5845 298.24 51.2 299.959 51.2 302.08C51.2 304.201 85.5845 305.92 128 305.92Z" fill="black" fill-opacity="0.05"/>
+</g>
+<defs>
+<clipPath id="clip0_0_132">
+<rect width="256" height="320" fill="white"/>
+</clipPath>
+</defs>
 </svg>

@@ -27,6 +27,7 @@ def category_index(request):
         "slug": slugify(value),
         "count": counts.get(value, 0),
         "image": f"images/categories/{slugify(value)}.svg",
+        "image_mobile": f"images/categories/{slugify(value)}-mobile.svg",
         "href": catalog_url + "?" + urlencode({"category": value}),
     } for value, label in Listing.Category.choices]
     return render(request, "categories/index.html", {"categories": categories})

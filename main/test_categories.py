@@ -102,9 +102,20 @@ class CategoryPageTests(TestCase):
         for card in response.context["categories"]:
             self.assertTrue(card["image"].startswith("images/categories/"))
             self.assertIsNotNone(finders.find(card["image"]))
+            self.assertIsNotNone(finders.find(card["image_mobile"]))
+            self.assertContains(response, f'srcset="/static/{card["image_mobile"]}"')
             self.assertContains(response, f'data-category="{card["value"]}"')
         self.assertNotContains(response, 'hx-target="#listing-results"')
-        self.assertContains(response, '<a href="/listings/" class="btn btn-secondary">Lihat seluruh katalog')
+        self.assertContains(response, '<a href="/listings/" class="btn btn-text category-catalog-link">')
+
+    def test_page_uses_figma_intro_section_heading_and_local_arrow(self):
+        response = self.client.get("/categories/")
+        self.assertContains(response, "Temukan pakaian yang ingin kamu pakai lagi. Mulai dari kategori pilihanmu.")
+        self.assertContains(response, "Belanja per kategori")
+        self.assertContains(response, "Temukan bentukmu")
+        self.assertContains(response, 'src="/static/images/categories/arrow-right.svg"')
+        self.assertIsNotNone(finders.find("images/categories/arrow-right.svg"))
+        self.assertNotContains(response, "figma.com/api/mcp/asset")
 
     def test_category_page_does_not_expose_listing_details(self):
         create_listing(make_user("seller"), title="Judul privat yang tidak perlu", city="Kota rahasia",

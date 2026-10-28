@@ -1,9 +1,20 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="400" height="500" viewBox="0 0 400 500">
-  <rect width="400" height="500" fill="#DDD7CC"/>
-  <path d="M24 38h352M24 462h352" fill="none" stroke="#CCC5B9"/>
-  <ellipse cx="200" cy="425" rx="118" ry="12" fill="#CCC5B9"/>
-  <path d="m163 84-47 27-43 183 43 12 24-91-11 194h142l-11-194 24 91 43-12-43-183-47-27z" fill="#1F3D33" stroke="#172E26" stroke-width="2" stroke-linejoin="round"/>
-  <path d="m163 84 37 34 37-34-6 67-31 37-31-37z" fill="#3F5D51"/>
-  <path d="m163 84 20 79 17-45 17 45 20-79M200 188v219M155 256l25 4v42l-28-3M245 256l-25 4v42l28-3M82 282l36 10M282 292l36-10M135 396h130" fill="none" stroke="#738A7E" stroke-width="1.5"/>
-  <g fill="#AAB4A5"><circle cx="208" cy="211" r="3"/><circle cx="208" cy="254" r="3"/><circle cx="208" cy="297" r="3"/><circle cx="208" cy="340" r="3"/></g>
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="256" height="320" viewBox="0 0 256 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Image/Coat &#226;&#128;&#148; Navy" clip-path="url(#clip0_0_148)">
+<path id="Vector" d="M256 0H0V320H256V0Z" fill="#DCDEE1"/>
+<path id="Vector_2" d="M128 66.56V58.88C129.519 58.88 131.004 58.4296 132.267 57.5857C133.53 56.7418 134.514 55.5423 135.095 54.139C135.677 52.7357 135.829 51.1915 135.532 49.7017C135.236 48.2119 134.505 46.8435 133.431 45.7694C132.357 44.6954 130.988 43.9639 129.498 43.6676C128.009 43.3712 126.464 43.5233 125.061 44.1046C123.658 44.6859 122.458 45.6703 121.614 46.9332C120.77 48.1962 120.32 49.681 120.32 51.2" stroke-width="2.5" stroke-linecap="round" stroke="#1A1C1A" stroke-opacity="0.35"/>
+<path id="Vector_3" d="M81.92 79.36L128 64L174.08 79.36" stroke-width="2.5" stroke-linecap="round" stroke="#1A1C1A" stroke-opacity="0.35"/>
+<path id="Vector_4" d="M97.28 69.12L69.12 80.64L53.76 192L47.36 281.6L70.4 284.16L76.8 195.2L81.92 281.6H174.08L179.2 195.2L185.6 284.16L208.64 281.6L202.24 192L186.88 80.64L158.72 69.12L128 125.44L97.28 69.12Z" fill="#2F3A4C"/>
+<g id="Vector_5">
+<path d="M128 125.44V281.6Z" fill="black"/>
+<path d="M128 125.44V281.6" stroke-width="2" stroke="black" stroke-opacity="0.18"/>
+</g>
+<path id="Vector_6" d="M135.68 168.96C137.094 168.96 138.24 167.814 138.24 166.4C138.24 164.986 137.094 163.84 135.68 163.84C134.266 163.84 133.12 164.986 133.12 166.4C133.12 167.814 134.266 168.96 135.68 168.96Z" fill="black" fill-opacity="0.2"/>
+<path id="Vector_7" d="M135.68 207.36C137.094 207.36 138.24 206.214 138.24 204.8C138.24 203.386 137.094 202.24 135.68 202.24C134.266 202.24 133.12 203.386 133.12 204.8C133.12 206.214 134.266 207.36 135.68 207.36Z" fill="black" fill-opacity="0.2"/>
+<path id="Vector_8" d="M128 305.92C170.415 305.92 204.8 304.201 204.8 302.08C204.8 299.959 170.415 298.24 128 298.24C85.5845 298.24 51.2 299.959 51.2 302.08C51.2 304.201 85.5845 305.92 128 305.92Z" fill="black" fill-opacity="0.05"/>
+</g>
+<defs>
+<clipPath id="clip0_0_148">
+<rect width="256" height="320" fill="white"/>
+</clipPath>
+</defs>
 </svg>
