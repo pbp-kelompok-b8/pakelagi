@@ -20,7 +20,7 @@ class ModerationAuthorizationTests(TestCase):
             status='PENDING'
         )
     
-    def tesAnonimusdanmemberblockdarimoderation(self):
+    def testAnonimusdanmemberblockdarimoderation(self):
         # Pengunjung belum login -> Redirect ke halaman login
         res_anon = self.client.get(reverse('moderations:jurnal_list'))
         self.assertEqual(res_anon.status_code, 302)
