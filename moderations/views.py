@@ -4,10 +4,10 @@ from django.views.decorators.http import require_POST, require_GET
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.db import IntegrityError
 from django.utils.html import strip_tags
 from django.contrib import messages
 from django.core.paginator import Paginator
-from django.db.models import Count, Q
 from django.views.decorators.http import require_POST, require_GET
 from django.urls import reverse
 import markdown
@@ -287,7 +287,11 @@ def review_report_action(request, pk):
     else:
         report.status= status
         ReportModeratorNote.objects.create(report_id=report, moderator_id=request.user, note=note_text )
-        report.save(update_fields=["status", "updated_at"])
+        try:
+            report.save(update_fields=["status", "updated_at"])
+        except (IntegrityError):
+            messages.error(request, "Pelapor telah membuat laporan baru pada listing yang sama")
+            return redirect(f"{reverse('moderations:reports_list')}?tab={status}&id={report.pk}")
         messages.success(request, "Keputusan tersimpan.")
         return redirect(f"{reverse('moderations:reports_list')}?tab={status}&id={report.pk}")
     return redirect(f"{reverse('moderations:reports_list')}?tab={report.status}&id={report.pk}")

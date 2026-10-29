@@ -18,6 +18,7 @@
                 <a href="{% url 'profiles:profile_edit' %}">Profil</a>
                 <a href="{% url 'listings:mine' %}" aria-current="page">Listing saya <span aria-hidden="true">→</span></a>
                 <a href="{% url 'profiles:profile' %}">Etalase saya</a>
+                <a href="{% url 'reports:list' %}">Laporan saya</a>
                 <form method="post" action="{% url 'accounts:logout' %}" class="border-t border-b border-line">{% csrf_token %}<button type="submit" class="!border-0">Keluar</button></form>
             </nav>
         </aside>

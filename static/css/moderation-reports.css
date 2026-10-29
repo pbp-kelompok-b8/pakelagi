@@ -50,7 +50,7 @@
 .mr-status--open { color: var(--terracotta); }
 .mr-status--reviewing { padding: .45rem .75rem; border: 1px solid var(--line); background: var(--white); color: var(--ink); }
 .mr-status--resolved { padding: .45rem .75rem; background: var(--sage); color: var(--bottle); }
-.mr-status--rejected { color: var(--stone); text-decoration: line-through; }
+.mr-status--rejected { color: var(--error); text-decoration: line-through; }
 
 .mr-foot { display: flex; flex-wrap: wrap; align-items: center; justify-content: space-between; gap: 1rem; padding-top: 1.5rem; color: var(--stone); font-size: .8125rem; }
 .mr-pages { display: flex; align-items: center; gap: 1.1rem; font-size: .9375rem; color: var(--ink); }
