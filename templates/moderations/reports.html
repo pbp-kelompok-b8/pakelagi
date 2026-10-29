@@ -134,9 +134,18 @@
                 <fieldset class="mr-status-set">
                     <legend class="label-caps pb-3">Ubah status</legend>
                     <div class="flex flex-wrap gap-2">
-                        {% for value, label in status_choices %}
-                        <label class="mr-status-opt"><input type="radio" name="status" value="{{ value }}"{% if r.status == value %} checked{% endif %} required><span>{{ label }}</span></label>
-                        {% endfor %}
+                        {% if r.status in 'resolved rejected' %}
+                            {% for value, label in status_editable %}
+                            <label class="mr-status-opt mr-status-blocked"><span>{{ label }}</span></label>
+                            {% endfor %}
+                            {% for value, label in status_closed %}
+                            <label class="mr-status-opt"><input type="radio" name="status" value="{{ value }}"{% if r.status == value %} checked{% endif %} required><span>{{ label }}</span></label>
+                            {% endfor %}
+                        {% else %}
+                            {% for value, label in status_choices %}
+                            <label class="mr-status-opt"><input type="radio" name="status" value="{{ value }}"{% if r.status == value %} checked{% endif %} required><span>{{ label }}</span></label>
+                            {% endfor %}
+                        {% endif %}
                     </div>
                 </fieldset>
 

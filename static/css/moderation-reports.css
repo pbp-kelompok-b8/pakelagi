@@ -78,6 +78,9 @@
 .mr-status-opt:hover span { border-color: var(--ink); }
 .mr-status-opt input:checked + span { background: var(--ink); border-color: var(--ink); color: var(--white); }
 .mr-status-opt input:focus-visible + span { outline: 2px solid var(--terracotta); outline-offset: 3px; }
+.mr-status-blocked { background: var(--stone-soft); }
+.mr-status-blocked:hover span { border-color: transparent; }
+
 
 .mr-panel textarea { width: 100%; min-height: 6.5rem; padding: 1rem; border: 1px solid var(--line); background: var(--white); resize: vertical; font: inherit; }
 .mr-panel textarea:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 3px; border-color: var(--ink); }

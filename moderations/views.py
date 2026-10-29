@@ -213,6 +213,11 @@ def toggle_publish_action(request, id):
 # =x=x=x=x=x=x=x==x=x=x=x=
 # Moderasi untuk Laporan
 # =x=x=x=x=x=x=x==x=x=x=x=
+
+# Helper consts
+STATUS_CLOSED = [('resolved','Resolved'),('rejected','Rejected')]
+STATUS_EDITABLE = [('open','Open'),('reviewing','Reviewing')]
+
 @user_passes_test(is_admin, login_url='accounts:login')
 @require_GET
 def report_moderation(request):
@@ -261,15 +266,14 @@ def report_moderation(request):
     context = {
         'active_tab': active_tab,
         'reports': filtered_reports,
-        'pending_guides': all_reports.filter(status='PENDING'),
-        'approved_guides': all_reports.filter(status='DISETUJUI'),
-        'rejected_guides': all_reports.filter(status='DITOLAK'),
         'count_open': count_open,
         'count_reviewing': count_reviewing,
         'count_resolved': count_resolved,
         'count_rejected': count_rejected,
         'selected_report': selected_report,
         'page': page_obj,
+        'status_closed': STATUS_CLOSED,
+        'status_editable': STATUS_EDITABLE,
         'status_choices': Report.STATUS,
     }
     return render(request, 'moderations/reports.html', context)
@@ -280,18 +284,21 @@ def review_report_action(request, pk):
     report = get_object_or_404(Report, pk=pk)
     status = request.POST.get("status")
     note_text = request.POST.get("moderator_note", "").strip()[:1000]
+    if (status in dict(STATUS_EDITABLE) and report.status in dict(STATUS_CLOSED)):
+        messages.error(request, "Laporan yang sudah diproses tidak dapat dibuka kembali")
     if status not in dict(Report.STATUS):
         messages.error(request, "Status tidak valid.")
     elif status == "rejected" and not note_text:
         messages.error(request, "Catatan moderator wajib diisi bila laporan ditolak.")
     else:
         report.status= status
-        ReportModeratorNote.objects.create(report_id=report, moderator_id=request.user, note=note_text )
         try:
             report.save(update_fields=["status", "updated_at"])
         except (IntegrityError):
             messages.error(request, "Pelapor telah membuat laporan baru pada listing yang sama")
             return redirect(f"{reverse('moderations:reports_list')}?tab={status}&id={report.pk}")
+        if note_text:
+            ReportModeratorNote.objects.create(report_id=report, moderator_id=request.user, note=note_text )
         messages.success(request, "Keputusan tersimpan.")
         return redirect(f"{reverse('moderations:reports_list')}?tab={status}&id={report.pk}")
     return redirect(f"{reverse('moderations:reports_list')}?tab={report.status}&id={report.pk}")
