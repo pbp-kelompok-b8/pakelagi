@@ -27,5 +27,4 @@ urlpatterns = [
     path('moderation/', include('moderations.urls')),
     path("", include("main.urls")),
     path('reports/', include('reports.urls')),
-    path('listings/', include('listings.urls')),
 ]

@@ -155,7 +155,7 @@
                     <p class="text-xs text-stone mt-3">Tidak terlihat oleh pelapor maupun penjual. Wajib diisi bila status Rejected.</p>
                 </div>
 
-                <button type="submit" class="btn btn-primary btn-block">Simpan keputusan</button>
+                <button type="submit" class="btn btn-primary btn-block" onclick="this.disabled=true; this.form.submit();">Simpan keputusan</button>
             </form>
 
             {% if r.listing %}

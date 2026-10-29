@@ -23,7 +23,7 @@ def get_editable_report(request, pk):
 
 def render_reports(request, form=None, listing=None, report=None):
     reports = (Report.objects.filter(reporter=request.user)
-               .select_related("listing").defer("moderator_note"))
+               .select_related("listing"))
     counts = reports.aggregate(total=Count("pk"), open=Count("pk", filter=Q(status="open")))
     page = Paginator(reports, REPORTS_PAGE_SIZE).get_page(request.GET.get("page"))
 
