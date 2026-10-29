@@ -286,7 +286,7 @@ def review_report_action(request, pk):
     note_text = request.POST.get("moderator_note", "").strip()[:1000]
     if (status in dict(STATUS_EDITABLE) and report.status in dict(STATUS_CLOSED)):
         messages.error(request, "Laporan yang sudah diproses tidak dapat dibuka kembali")
-    if status not in dict(Report.STATUS):
+    elif status not in dict(Report.STATUS):
         messages.error(request, "Status tidak valid.")
     elif status == "rejected" and not note_text:
         messages.error(request, "Catatan moderator wajib diisi bila laporan ditolak.")
