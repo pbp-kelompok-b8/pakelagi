@@ -8,32 +8,6 @@ REASON_HINTS = {
     "Prohibited Item": "Barang yang dilarang.",
     "Other": "Alasan lain.",
 }
-
-class ReportModerationForm(ModelForm):
-    moderator_note = CharField(
-        label="Catatan Moderator",
-        widget=Textarea(attrs={
-                            "placeholder": "Tuliskan alasan keputusan untuk tim..",
-                            "rows": 4,
-                        }),
-        required=True
-    )
-    class Meta:
-        model = Report
-        fields = [
-            'status',
-        ]
-        labels = {
-            'status': 'status laporan',
-        }
-        widgets = {
-            'status': RadioSelect(
-                attrs={
-                    "required" : True,
-                    "class": "status-select",
-                }
-            ),
-        }
         
 class ReportForm(ModelForm):
     class Meta:

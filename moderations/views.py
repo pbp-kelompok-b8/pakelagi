@@ -14,7 +14,6 @@ import markdown
 from sustainableguides.models import Guide
 from listings.models import Listing
 from reports.models import Report, ReportModeratorNote
-from reports.forms import ReportModerationForm
 from django.utils import timezone
 from sustainableguides.models import Guide
 from sustainableguides.rendering import render_guide_markdown

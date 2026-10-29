@@ -74,7 +74,6 @@ class Report(models.Model):
     reason = models.CharField(max_length=20, choices=REASONS)
     description = models.TextField(blank=False, null=False, validators=[MinLengthValidator(10)])
     status = models.CharField(max_length=10, choices=STATUS, default='open')
-    moderator_note = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(blank=True, null=True, auto_now=True)
     
