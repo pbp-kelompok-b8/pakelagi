@@ -14,16 +14,7 @@ from reports.models import Report
 
 REPORTS_PAGE_SIZE = 10
 
-
-def is_htmx_partial(request):
-    # Same rule as the catalog: browser "back" needs the full page, not a fragment.
-    return (request.headers.get("HX-Request") == "true"
-            and request.headers.get("HX-History-Restore-Request") != "true")
-
-
 def get_editable_report(request, pk):
-    # Someone else's report -> 404 (not 403), so IDs can't be guessed.
-    # Returns (report, None) if it can be changed, else (None, redirect response).
     report = get_object_or_404(Report, pk=pk, reporter=request.user)
     if not report.is_editable:
         messages.error(request, "Laporan yang sudah ditinjau moderator tidak bisa diubah atau dihapus.")
@@ -31,8 +22,6 @@ def get_editable_report(request, pk):
     return report, None
 
 def render_reports(request, form=None, listing=None, report=None):
-    # Satu halaman untuk tiga keadaan: daftar saja, form buat, atau form ubah.
-    # defer() menjaga catatan moderator tetap di luar memori, jadi tidak mungkin bocor lewat template.
     reports = (Report.objects.filter(reporter=request.user)
                .select_related("listing").defer("moderator_note"))
     counts = reports.aggregate(total=Count("pk"), open=Count("pk", filter=Q(status="open")))
@@ -57,7 +46,6 @@ def render_reports(request, form=None, listing=None, report=None):
 def report_list(request):
     return render_reports(request)
 
-
 @member_required
 @require_http_methods(["GET", "POST"])
 def report_create(request, listing_id):
@@ -68,7 +56,6 @@ def report_create(request, listing_id):
         messages.error(request, "Kamu tidak bisa melaporkan listing milikmu sendiri.")
         return redirect("listings:detail", pk=listing.pk)
 
-    # Instance terisi lebih dulu supaya Report.clean() (listing sendiri, hidden, duplikat) ikut berjalan.
     form = ReportForm(
         request.POST if request.method == "POST" else None,
         instance=Report(reporter=request.user, listing=listing),

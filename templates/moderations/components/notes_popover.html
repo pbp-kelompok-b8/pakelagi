@@ -1,25 +1,33 @@
 <div class="popover-notes-container p-3 bg-white border rounded shadow-sm text-sm">
-  <div class="font-semibold text-gray-800 border-b pb-1 mb-2">
-    Catatan Moderasi (#{{ report.id }})
-  </div>
-
-  {% if notes %}
-    <div class="space-y-2 max-h-60 overflow-y-auto">
-      {% for item in notes %}
-        <div class="note-card bg-gray-50 p-2 rounded border border-gray-100">
-          <div class="flex justify-between text-xs text-gray-500 mb-1">
-            <span class="font-bold text-gray-700">
-              {{ item.moderator.get_full_name|default:item.moderator.username }}
-            </span>
-            <span>{{ item.created_at|date:"d M Y, H:i" }}</span>
-          </div>
-          <p class="text-gray-800 text-xs leading-relaxed whitespace-pre-line">
-            {{ item.note }}
-          </p>
-        </div>
-      {% endfor %}
+    <div class="font-semibold text-gray-800 border-b pb-1 mb-2">
+      Catatan Moderasi (#RPT-{{ report.pk|stringformat:"s"|slice:":4"|upper }})
     </div>
-  {% else %}
-    <p class="text-xs text-gray-500 italic">Belum ada catatan moderasi.</p>
-  {% endif %}
+
+    {% if notes %}
+      <div class="space-y-2 max-h-60 overflow-y-auto">
+        {% for item in notes %}
+          <div class="note-card bg-gray-50 p-2 rounded border border-gray-100">
+            <div class="flex justify-between text-xs text-gray-500 mb-1">
+              <span class="font-bold text-gray-700">
+                {{ item.moderator_id.profile.display_name|default:item.moderator_id.username }}
+              </span>
+              <span>{{ item.created_at|date:"d M Y, H:i" }}</span>
+            </div>
+            <p class="text-gray-800 text-xs leading-relaxed whitespace-pre-line">
+              {{ item.note }}
+            </p>
+          </div>
+        {% endfor %}
+      </div>
+    {% else %}
+      <p class="text-xs text-gray-500 italic">Belum ada catatan moderasi.</p>
+    {% endif %}
+
+    <!-- Tombol Tutup dengan HTMX -->
+    <button 
+    type="button"
+    hx-on:click="document.getElementById('popover-target-{{ report.id }}').innerHTML = ''"
+    class="text-gray-400 hover:text-gray-700 font-bold text-lg px-2 cursor-pointer">
+    &times;
+    </button>
 </div>

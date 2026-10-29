@@ -6,7 +6,9 @@ from django.core.exceptions import ValidationError
 from django.db.models import Q
 from django.utils.html import strip_tags
 from django.contrib import messages
-from django.db import transaction
+from django.core.paginator import Paginator
+from django.db.models import Count, Q
+from django.views.decorators.http import require_POST, require_GET
 from django.urls import reverse
 import markdown
 from sustainableguides.models import Guide
@@ -251,9 +253,14 @@ def report_moderation(request):
         # Otomatis pilih item pertama dari tab yang sedang aktif jika belum ada yang diklik
         selected_report = filtered_reports.first()
         
+    # Paginasi (misal 10 report per halaman)
+    paginator = Paginator(filtered_reports, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+        
     context = {
         'active_tab': active_tab,
-        'guides': filtered_reports,
+        'reports': filtered_reports,
         'pending_guides': all_reports.filter(status='PENDING'),
         'approved_guides': all_reports.filter(status='DISETUJUI'),
         'rejected_guides': all_reports.filter(status='DITOLAK'),
@@ -262,6 +269,8 @@ def report_moderation(request):
         'count_resolved': count_resolved,
         'count_rejected': count_rejected,
         'selected_report': selected_report,
+        'page': page_obj,
+        'status_choices': Report.STATUS,
     }
     return render(request, 'moderations/reports.html', context)
 
@@ -277,7 +286,7 @@ def review_report_action(request, pk):
         messages.error(request, "Catatan moderator wajib diisi bila laporan ditolak.")
     else:
         report.status= status
-        ReportModeratorNote.objects.create(report_id=report.pk, moderator_id=request.user.pk, note=note_text )
+        ReportModeratorNote.objects.create(report_id=report, moderator_id=request.user, note=note_text )
         report.save(update_fields=["status", "updated_at"])
         messages.success(request, "Keputusan tersimpan.")
         return redirect(f"{reverse('moderations:reports_list')}?tab={status}&id={report.pk}")
@@ -297,8 +306,8 @@ def report_listing_action(request, pk):
 @user_passes_test(is_admin, login_url='accounts:login')
 @require_GET
 def report_moderator_note_details(request, report_id):
-    report = get_object_or_404(Report, report_id)
-    notes = ReportModeratorNote.objects.filter(report=report).select_related('moderator').order_by('-created_at')
+    report = get_object_or_404(Report, id=report_id)
+    notes = ReportModeratorNote.objects.filter(report_id=report).select_related('moderator_id').order_by('-created_at')
     return render(request, 'moderations/components/notes_popover.html', {
         'report': report,
         'notes': notes
