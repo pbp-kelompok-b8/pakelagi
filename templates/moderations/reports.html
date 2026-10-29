@@ -1,1 +1,12 @@
 {% extends "moderations/base_moderation.html" %}
+
+<button 
+  class="btn-link text-xs underline"
+  hx-get="{% url 'report_notes_popover' report.id %}"
+  hx-target="#popover-target-{{ report.id }}"
+  hx-trigger="click">
+  Lihat Catatan
+</button>
+
+<!-- Container Popover -->
+<div id="popover-target-{{ report.id }}"></div>
