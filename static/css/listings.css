@@ -1,73 +1,457 @@
-/* Halaman form listing (.listing-editor) dan "Listing saya" (.my-listings). Token warna dari base.css. */
+/*
+    listings.css: gaya untuk modul Clothing Listings.
 
-/* Form */
-.listing-editor .field label { display: block; margin-bottom: .5rem; color: var(--stone); font-size: .75rem; font-weight: 600; text-transform: uppercase; letter-spacing: .09em; }
+    Isi:
+    1. Form listing        (.listing-editor, .form-section-title)
+    2. Chip pilihan        (.chip)
+    3. Kartu kondisi       (.cond-card, .cond-bar)
+    4. Checkbox tag        (.check-option)
+    5. "Listing saya"      (.account-nav, .my-tab, .row-action)
+    6. Katalog             (.catalog-*, .chip-link, .filter-panel)
+    7. Saran lokasi        (#location-results, .location-*)
+
+    Catatan:
+    - Warna dan font memakai token dari base.css, contoh var(--ink), var(--line), var(--terracotta).
+    - Sebagian kelas juga dipakai halaman lain (ditandai "Dipakai juga oleh ..."),
+      jadi jangan dihapus hanya karena terlihat tidak dipakai di halaman listing.
+    - Urutan aturan sengaja dipertahankan: pada selector yang sama kuat, aturan paling bawah menang.
+*/
+
+
+/* ==========================================================
+   1. Form listing
+   Dipakai oleh: listings/form.html. .listing-editor juga dipakai reports/list.html.
+   ========================================================== */
+
+.listing-editor .field label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: var(--stone);
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.09em;
+}
+
+/* Input teks: hanya garis bawah, tanpa kotak (gaya desain Pakelagi) */
 .listing-editor .field input[type="url"],
 .listing-editor .field input[type="text"],
-.listing-editor .field input[type="number"] { width: 100%; min-width: 0; padding: .65rem 0 .75rem; background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; font: inherit; }
-.listing-editor .field textarea { width: 100%; min-height: 8rem; padding: 1rem; border: 1px solid var(--line); background: transparent; resize: vertical; font: inherit; }
-.listing-editor .field-help { margin-top: .5rem; color: var(--stone); font-size: .75rem; line-height: 1.65; }
-.listing-editor .has-error input, .listing-editor .has-error textarea { border-color: var(--error); }
-.listing-editor input:focus-visible, .listing-editor textarea:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 3px; }
-.listing-editor .errorlist { margin-top: .5rem; color: var(--error); font-size: .8rem; }
-.form-section-title { display: flex; align-items: center; gap: 1rem; width: 100%; margin-bottom: 1.75rem; font-family: var(--font-display); font-size: 1.6rem; font-weight: 600; }
-.form-section-title span { color: var(--terracotta); font-family: var(--font-sans); font-size: .75rem; font-weight: 600; letter-spacing: .1em; }
-
-/* Chip pilihan (kategori, ukuran): radio asli disembunyikan, tetap bisa difokus keyboard */
-.chip { position: relative; cursor: pointer; }
-.chip input { position: absolute; opacity: 0; width: 1px; height: 1px; }
-.chip span { display: block; padding: .65rem 1rem; border: 1px solid var(--line); font-size: .7rem; font-weight: 600; text-transform: uppercase; letter-spacing: .08em; }
-.chip input:checked + span { background: var(--ink); border-color: var(--ink); color: white; }
-.chip input:focus-visible + span { outline: 2px solid var(--terracotta); outline-offset: 3px; }
-
-/* Kartu kondisi: indikator empat garis + penjelasan */
-.cond-card { display: grid; grid-template-columns: auto 5rem 7.5rem 1fr; align-items: center; gap: 1rem; padding: 1rem 1.25rem; border: 1px solid var(--line); background: rgba(255,255,255,.4); cursor: pointer; font-size: .8rem; }
-.cond-card:has(input:checked) { background: var(--white); border-color: var(--ink); }
-.cond-card:has(input:focus-visible) { outline: 2px solid var(--terracotta); outline-offset: 3px; }
-.cond-card input { width: 1rem; height: 1rem; accent-color: var(--terracotta); }
-.cond-bar { display: flex; gap: 3px; }
-.cond-bar i { display: block; width: 1rem; height: 2px; background: var(--line); }
-.cond-bar[data-level="4"] i, .cond-bar[data-level="3"] i:nth-child(-n+3), .cond-bar[data-level="2"] i:nth-child(-n+2), .cond-bar[data-level="1"] i:nth-child(1) { background: var(--ink); }
-.cond-card .cond-hint { color: var(--stone); }
-@media (max-width: 640px) { .cond-card { grid-template-columns: auto 1fr; } .cond-card .cond-bar, .cond-card .cond-hint { grid-column: 2; } }
-
-/* Checkbox tag keberlanjutan */
-.check-option { display: flex; align-items: flex-start; gap: .75rem; cursor: pointer; }
-.check-option input { width: 1rem; height: 1rem; margin-top: .2rem; accent-color: var(--terracotta); flex-shrink: 0; }
-
-/* "Listing saya" */
-.account-nav a, .account-nav button { display: flex; justify-content: space-between; width: 100%; padding: 1rem 0; border-top: 1px solid var(--line); color: var(--stone); text-align: left; }
-.account-nav a[aria-current="page"] { color: var(--terracotta-dark); }
-.my-tab { padding-bottom: 1rem; border-bottom: 2px solid transparent; font-size: .7rem; font-weight: 600; letter-spacing: .14em; text-transform: uppercase; color: var(--stone); }
-.my-tab[aria-current="page"] { color: var(--ink); border-bottom-color: var(--terracotta); }
-.my-tab small { margin-left: .4rem; font-size: .7rem; letter-spacing: 0; }
-.row-action { padding: 0 0 .15rem; border: 0; border-bottom: 1px solid currentColor; background: none; color: var(--ink); font: inherit; font-size: .6875rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; cursor: pointer; }
-.row-action:hover { color: var(--terracotta); }
-.row-action--danger { color: var(--error); }
-
-/* Katalog: pencarian, filter, dan status memuat */
-.catalog-search { width: 100%; padding: .65rem 0 .75rem; background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; font: inherit; }
-.catalog-search:focus-visible, .catalog-input:focus-visible, .catalog-sort:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 3px; }
-.catalog-input { width: 100%; min-width: 0; padding: .5rem 0 .6rem; background: transparent; border: 0; border-bottom: 1px solid var(--ink); border-radius: 0; font: inherit; font-size: .875rem; }
-.catalog-sort { background: transparent; border: 0; font: inherit; font-size: .75rem; font-weight: 600; letter-spacing: .08em; text-transform: uppercase; cursor: pointer; }
-.chip-link { padding: .4rem .7rem; border: 1px solid var(--line); font-size: .7rem; letter-spacing: .04em; }
-.chip-link:hover { border-color: var(--ink); }
-.filter-panel > summary { list-style: none; }
-.filter-panel > summary::-webkit-details-marker { display: none; }
-.filter-panel > summary::after { content: "+"; margin-left: auto; padding-left: 1rem; }
-.filter-panel[open] > summary::after { content: "−"; }
-@media (min-width: 1024px) {
-    .filter-panel > summary { pointer-events: none; }
-    .filter-panel > summary a { pointer-events: auto; }
-    .filter-panel > summary::after { content: none !important; }
+.listing-editor .field input[type="number"] {
+    width: 100%;
+    min-width: 0;
+    padding: 0.65rem 0 0.75rem;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--ink);
+    border-radius: 0;
+    font: inherit;
 }
-/* HTMX menambahkan class htmx-request pada form selama permintaan berjalan */
-.catalog.htmx-request #listing-results { opacity: .5; transition: opacity .15s; }
 
-/* Saran lokasi (Nominatim) di form listing */
-#location-results:empty { display: none; }
-#location-results { position: relative; z-index: 10; margin-top: .25rem; }
-.location-box { background: var(--white); border: 1px solid var(--line); }
-.location-option { display: block; width: 100%; padding: .75rem 1rem; text-align: left; border-bottom: 1px solid var(--line); }
-.location-option:hover, .location-option:focus-visible { background: var(--sand); outline: none; }
-.location-note { padding: .75rem 1rem; background: var(--sand); font-size: .75rem; color: var(--stone); }
+/* Textarea tetap berbingkai supaya area tulisnya jelas */
+.listing-editor .field textarea {
+    width: 100%;
+    min-height: 8rem;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    background: transparent;
+    resize: vertical;
+    font: inherit;
+}
+
+.listing-editor .field-help {
+    margin-top: 0.5rem;
+    color: var(--stone);
+    font-size: 0.75rem;
+    line-height: 1.65;
+}
+
+/* Kolom yang gagal validasi */
+.listing-editor .has-error input,
+.listing-editor .has-error textarea {
+    border-color: var(--error);
+}
+
+.listing-editor input:focus-visible,
+.listing-editor textarea:focus-visible {
+    outline: 2px solid var(--terracotta);
+    outline-offset: 3px;
+}
+
+.listing-editor .errorlist {
+    margin-top: 0.5rem;
+    color: var(--error);
+    font-size: 0.8rem;
+}
+
+/* Judul bagian form: "01 Foto", "02 Tentang pakaian", dst. */
+.form-section-title {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    width: 100%;
+    margin-bottom: 1.75rem;
+    font-family: var(--font-display);
+    font-size: 1.6rem;
+    font-weight: 600;
+}
+
+/* Nomor bagian ("01") di depan judul */
+.form-section-title span {
+    color: var(--terracotta);
+    font-family: var(--font-sans);
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.1em;
+}
+
+
+/* ==========================================================
+   2. Chip pilihan (kategori dan ukuran)
+   Dipakai oleh: listings/form.html, katalog (filters.html dan results.html).
+   Radio/checkbox aslinya disembunyikan tetapi tetap bisa difokus keyboard.
+   ========================================================== */
+
+.chip {
+    position: relative;
+    cursor: pointer;
+}
+
+.chip input {
+    position: absolute;
+    opacity: 0;
+    width: 1px;
+    height: 1px;
+}
+
+.chip span {
+    display: block;
+    padding: 0.65rem 1rem;
+    border: 1px solid var(--line);
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+}
+
+/* Terpilih */
+.chip input:checked + span {
+    background: var(--ink);
+    border-color: var(--ink);
+    color: white;
+}
+
+.chip input:focus-visible + span {
+    outline: 2px solid var(--terracotta);
+    outline-offset: 3px;
+}
+
+
+/* ==========================================================
+   3. Kartu kondisi (Like New, Good, Fair, Needs Repair)
+   Dipakai oleh: listings/form.html.
+   Satu kartu = radio + indikator empat garis + nama + penjelasan.
+   ========================================================== */
+
+.cond-card {
+    display: grid;
+    grid-template-columns: auto 5rem 7.5rem 1fr;   /* radio | garis | nama | penjelasan */
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--line);
+    background: rgba(255, 255, 255, 0.4);
+    cursor: pointer;
+    font-size: 0.8rem;
+}
+
+/* Kartu yang sedang terpilih atau difokus (:has = "yang berisi ...") */
+.cond-card:has(input:checked) {
+    background: var(--white);
+    border-color: var(--ink);
+}
+
+.cond-card:has(input:focus-visible) {
+    outline: 2px solid var(--terracotta);
+    outline-offset: 3px;
+}
+
+.cond-card input {
+    width: 1rem;
+    height: 1rem;
+    accent-color: var(--terracotta);
+}
+
+.cond-card .cond-hint {
+    color: var(--stone);
+}
+
+/* Indikator empat garis: abu-abu semua, lalu sebagian diwarnai sesuai data-level (4 = paling baik) */
+.cond-bar {
+    display: flex;
+    gap: 3px;
+}
+
+.cond-bar i {
+    display: block;
+    width: 1rem;
+    height: 2px;
+    background: var(--line);
+}
+
+.cond-bar[data-level="4"] i,
+.cond-bar[data-level="3"] i:nth-child(-n+3),
+.cond-bar[data-level="2"] i:nth-child(-n+2),
+.cond-bar[data-level="1"] i:nth-child(1) {
+    background: var(--ink);
+}
+
+/* Layar kecil: garis dan penjelasan pindah ke baris sendiri di bawah nama */
+@media (max-width: 640px) {
+    .cond-card {
+        grid-template-columns: auto 1fr;
+    }
+
+    .cond-card .cond-bar,
+    .cond-card .cond-hint {
+        grid-column: 2;
+    }
+}
+
+
+/* ==========================================================
+   4. Checkbox tag keberlanjutan
+   Dipakai oleh: listings/form.html, filters.html. Juga dipakai reports/list.html.
+   ========================================================== */
+
+.check-option {
+    display: flex;
+    align-items: flex-start;
+    gap: 0.75rem;
+    cursor: pointer;
+}
+
+.check-option input {
+    width: 1rem;
+    height: 1rem;
+    margin-top: 0.2rem;
+    accent-color: var(--terracotta);
+    flex-shrink: 0;
+}
+
+
+/* ==========================================================
+   5. "Listing saya"
+   Dipakai oleh: listings/mine.html, results.html (.my-tab).
+   .account-nav juga dipakai profiles/form.html dan reports/list.html;
+   .row-action juga dipakai reports/list.html.
+   ========================================================== */
+
+/* Menu samping "Akun saya" */
+.account-nav a,
+.account-nav button {
+    display: flex;
+    justify-content: space-between;
+    width: 100%;
+    padding: 1rem 0;
+    border-top: 1px solid var(--line);
+    color: var(--stone);
+    text-align: left;
+}
+
+.account-nav a[aria-current="page"] {
+    color: var(--terracotta-dark);
+}
+
+/* Tab status (Semua, Tersedia, Terjual, Disembunyikan) dan tab kategori katalog */
+.my-tab {
+    padding-bottom: 1rem;
+    border-bottom: 2px solid transparent;
+    font-size: 0.7rem;
+    font-weight: 600;
+    letter-spacing: 0.14em;
+    text-transform: uppercase;
+    color: var(--stone);
+}
+
+.my-tab[aria-current="page"] {
+    color: var(--ink);
+    border-bottom-color: var(--terracotta);
+}
+
+/* Angka jumlah di belakang nama tab */
+.my-tab small {
+    margin-left: 0.4rem;
+    font-size: 0.7rem;
+    letter-spacing: 0;
+}
+
+/* Tindakan di baris tabel: UBAH, HAPUS, TANDAI TERJUAL (tombol maupun tautan) */
+.row-action {
+    padding: 0 0 0.15rem;
+    border: 0;
+    border-bottom: 1px solid currentColor;
+    background: none;
+    color: var(--ink);
+    font: inherit;
+    font-size: 0.6875rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.row-action:hover {
+    color: var(--terracotta);
+}
+
+.row-action--danger {
+    color: var(--error);
+}
+
+
+/* ==========================================================
+   6. Katalog: pencarian, filter, dan status memuat
+   Dipakai oleh: listings/list.html, filters.html, results.html.
+   ========================================================== */
+
+/* Kolom cari di samping judul "Katalog" */
+.catalog-search {
+    width: 100%;
+    padding: 0.65rem 0 0.75rem;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--ink);
+    border-radius: 0;
+    font: inherit;
+}
+
+/* Input di sidebar filter (harga min/maks, dropdown kota) */
+.catalog-input {
+    width: 100%;
+    min-width: 0;
+    padding: 0.5rem 0 0.6rem;
+    background: transparent;
+    border: 0;
+    border-bottom: 1px solid var(--ink);
+    border-radius: 0;
+    font: inherit;
+    font-size: 0.875rem;
+}
+
+/* Pilihan "Urutkan" */
+.catalog-sort {
+    background: transparent;
+    border: 0;
+    font: inherit;
+    font-size: 0.75rem;
+    font-weight: 600;
+    letter-spacing: 0.08em;
+    text-transform: uppercase;
+    cursor: pointer;
+}
+
+.catalog-search:focus-visible,
+.catalog-input:focus-visible,
+.catalog-sort:focus-visible {
+    outline: 2px solid var(--terracotta);
+    outline-offset: 3px;
+}
+
+/* Tombol cepat rentang harga: "< 100rb", "100-250rb", "> 250rb" */
+.chip-link {
+    padding: 0.4rem 0.7rem;
+    border: 1px solid var(--line);
+    font-size: 0.7rem;
+    letter-spacing: 0.04em;
+}
+
+.chip-link:hover {
+    border-color: var(--ink);
+}
+
+/* Panel filter: <details> yang bisa dilipat di HP dan selalu terbuka di layar lebar */
+.filter-panel > summary {
+    list-style: none;
+}
+
+.filter-panel > summary::-webkit-details-marker {
+    display: none;
+}
+
+/* Penanda "+" saat tertutup dan "-" saat terbuka */
+.filter-panel > summary::after {
+    content: "+";
+    margin-left: auto;
+    padding-left: 1rem;
+}
+
+.filter-panel[open] > summary::after {
+    content: "−";
+}
+
+/* Layar lebar (>= 1024px): panel tidak perlu dilipat, jadi penandanya dihilangkan dan judulnya tidak bisa diklik.
+   Tautan "Reset" di dalamnya tetap bisa diklik. */
+@media (min-width: 1024px) {
+    .filter-panel > summary {
+        pointer-events: none;
+    }
+
+    .filter-panel > summary a {
+        pointer-events: auto;
+    }
+
+    .filter-panel > summary::after {
+        content: none !important;
+    }
+}
+
+/* HTMX menambahkan class htmx-request pada form selama permintaan berjalan: hasil dibuat agak pudar */
+.catalog.htmx-request #listing-results {
+    opacity: 0.5;
+    transition: opacity 0.15s;
+}
+
+
+/* ==========================================================
+   7. Saran lokasi (Nominatim) di form listing
+   Dipakai oleh: listings/form.html dan components/location_results.html.
+   ========================================================== */
+
+/* Kotak saran kosong = tidak terlihat sama sekali */
+#location-results:empty {
+    display: none;
+}
+
+#location-results {
+    position: relative;
+    z-index: 10;
+    margin-top: 0.25rem;
+}
+
+.location-box {
+    background: var(--white);
+    border: 1px solid var(--line);
+}
+
+/* Satu saran = satu tombol selebar kotak */
+.location-option {
+    display: block;
+    width: 100%;
+    padding: 0.75rem 1rem;
+    text-align: left;
+    border-bottom: 1px solid var(--line);
+}
+
+.location-option:hover,
+.location-option:focus-visible {
+    background: var(--sand);
+    outline: none;
+}
+
+/* Pesan di kotak saran: "Mencari lokasi...", "Pencarian sedang tidak tersedia", dan sejenisnya */
+.location-note {
+    padding: 0.75rem 1rem;
+    background: var(--sand);
+    font-size: 0.75rem;
+    color: var(--stone);
+}

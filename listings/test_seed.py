@@ -216,7 +216,6 @@ class SeedCommandTests(TestCase):
         self.assertFalse(user.has_usable_password())
         self.assertFalse(user.is_staff)
 
-
 class SeededSiteTests(TestCase):
     # Sesudah seed, halaman-halaman utama harus tampil benar dengan data nyata.
 

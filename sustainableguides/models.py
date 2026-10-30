@@ -65,7 +65,4 @@ class Guide(models.Model):
     
     #untuk ubah status ketika disetujui
     def save(self, *args, **kwargs):
-        if self.status == 'DISETUJUI' and not self.is_published:
-            self.is_published = True
-            self.date_published = timezone.now()
         super().save(*args, **kwargs)
