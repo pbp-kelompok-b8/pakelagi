@@ -1,3 +1,5 @@
+bang mau commit
+
 # Pakelagi
 
 Platform web listing pakaian preloved untuk komunitas Indonesia — Proyek Tengah Semester PBP 2026.
