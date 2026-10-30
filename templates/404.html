@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+
+{% block title %}Halaman tidak ditemukan{% endblock %}
+{% block meta_description %}Halaman yang kamu cari tidak ditemukan. Kembali ke beranda Pakelagi untuk melanjutkan penjelajahan.{% endblock %}
+
+{% block content %}
+<section class="container-page py-16 sm:py-24 text-center" aria-labelledby="not-found-title">
+    <p class="text-sm font-semibold tracking-widest text-terracotta mb-6">404</p>
+    <h1 id="not-found-title" class="font-display text-4xl sm:text-6xl leading-tight mb-6">Halaman tidak ditemukan</h1>
+    <p class="max-w-xl mx-auto text-stone leading-relaxed mb-8">
+        Maaf, halaman yang kamu cari tidak tersedia. Tautannya mungkin sudah berubah atau halaman telah dihapus.
+    </p>
+    <a href="{% url 'main:show_main' %}" class="btn btn-primary">Kembali ke beranda</a>
+</section>
+{% endblock %}

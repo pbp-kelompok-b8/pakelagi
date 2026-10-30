@@ -45,6 +45,12 @@ INSTALLED_APPS = [
     'django.contrib.messages',
     'django.contrib.staticfiles',
     'main',
+    'accounts.apps.AccountsConfig',
+    'profiles.apps.ProfilesConfig',
+    'listings.apps.ListingsConfig', 
+    'favorites.apps.FavoritesConfig',
+    'sustainableguides',
+    'moderations',
 ]
 
 MIDDLEWARE = [
@@ -70,6 +76,7 @@ TEMPLATES = [
                 'django.template.context_processors.request',
                 'django.contrib.auth.context_processors.auth',
                 'django.contrib.messages.context_processors.messages',
+                'favorites.presentation.favorite_context',
             ],
         },
     },
@@ -148,3 +155,7 @@ WHITENOISE_USE_FINDERS = True
 # https://docs.djangoproject.com/en/5.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+LOGIN_URL = 'accounts:login'
+LOGIN_REDIRECT_URL = 'main:show_main'
+LOGOUT_REDIRECT_URL = 'main:show_main'

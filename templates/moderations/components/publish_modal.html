@@ -1,0 +1,80 @@
+<div id="publish-modal-overlay" class="fixed inset-0 bg-black/60 z-50 flex justify-center items-center backdrop-blur-sm opacity-0 transition-opacity duration-300" style="animation: fadeIn 0.2s forwards;">
+    <div class="bg-white w-[90%] max-w-[480px] outline outline-1 outline-stone-300 shadow-2xl flex flex-col transform translate-y-4 transition-transform duration-300" style="animation: slideUp 0.3s forwards;">
+
+        {% comment %} Header Modal {% endcomment %}
+        <div class="px-8 pt-8 pb-6 border-b border-stone-200 flex justify-between items-start">
+            <div class="flex flex-col gap-1">
+                <div class="text-amber-700 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-widest">Aksi Publikasi</div>
+                <h3 class="text-zinc-900 text-3xl font-medium font-['Cormorant_Garamond'] leading-8">Terbitkan Panduan</h3>
+            </div>
+            <button type="button" onclick="closeModal()" class="text-stone-400 hover:text-zinc-900 transition-colors p-1">
+                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg>
+            </button>
+        </div>
+
+        {% comment %} FORM HTMX {% endcomment %}
+        <form id="publish-form" hx-post="{% url 'moderations:jurnal_publish' guide.id %}?tab={{ active_tab }}"
+              hx-target="#moderation-container" hx-select="#moderation-container" hx-swap="outerHTML"
+              class = "flex flex-col">
+              {% csrf_token %}
+            <div class="px-8 py-6 flex flex-col gap-6">
+                <p class="text-stone-600 text-base font-['Jost'] leading-6">
+                    Tentukan waktu publikasi untuk panduan <strong class="text-zinc-900">"{{ guide.title }}"</strong>.
+                </p>
+              {% comment %} Radio Option untuk scheduled atau now {% endcomment %}
+                <div class="flex flex-col gap-4">
+                    <label class="flex items-center gap-3 cursor-pointer p-3 outline outline-1 outline-stone-200 hover:bg-stone-50 transition-colors">
+                        <input type="radio" name="publish_type" value="now" class="w-4 h-4 text-amber-700 border-stone-300 cursor-pointer" checked onchange="document.getElementById('schedule_input').classList.add('hidden')">
+                        <span class="text-zinc-900 text-base font-medium font-['Jost']">Terbitkan Sekarang</span>
+                    </label>
+                    <label class="flex items-center gap-3 cursor-pointer p-3 outline outline-1 outline-stone-200 hover:bg-stone-50 transition-colors">
+                            <input type="radio" name="publish_type" value="schedule" class="w-4 h-4 text-amber-700 focus:ring-amber-700 border-stone-300 cursor-pointer" onchange="document.getElementById('schedule_input').classList.remove('hidden')">
+                            <span class="text-zinc-900 text-base font-medium font-['Jost']">Jadwalkan Waktu Publikasi</span>
+                        </label>
+                </div>
+
+                {% comment %} Date time selector {% endcomment %}
+                <div id="schedule_input" class="hidden flex flex-col gap-2 pt-2">
+                    <label class="text-stone-600 text-xs font-semibold font-['Jost'] uppercase tracking-wider">Pilih Tanggal & Waktu Terbit</label>
+                    <input type="datetime-local" name="schedule_date" class="w-full p-4 bg-transparent outline outline-1 outline-offset-[-1px] outline-stone-300 focus:outline-zinc-900 text-zinc-900 font-['Jost'] text-base">
+                </div>
+            </div>
+            {% comment %} Publish Button {% endcomment %}
+            <div class="px-8 py-6 bg-stone-100 border-t border-stone-200 flex justify-end gap-4">
+                <button type="button" onclick="closeModal()" class="px-6 py-3 text-zinc-900 text-xs font-semibold font-['Jost'] uppercase tracking-widest hover:bg-stone-200 transition-colors cursor-pointer">Batal</button>
+                <button type="submit" class="htmx-submit-btn px-8 py-3 bg-amber-700 hover:bg-amber-800 text-white text-xs font-semibold font-['Jost'] uppercase tracking-widest transition-colors cursor-pointer flex items-center justify-center min-w-[140px]">
+                    <span class="htmx-normal-text">Konfirmasi</span>
+                    <span class="htmx-loading-text hidden opacity-70">Memproses...</span>
+                </button>
+            </div>
+        </form>
+    </div>
+</div>
+
+<style>
+    @keyframes fadeIn { to { opacity: 1; } }
+    @keyframes slideUp { to { transform: translateY(0); } }
+    .htmx-request.htmx-submit-btn .htmx-normal-text { display: none; }
+    .htmx-request.htmx-submit-btn .htmx-loading-text { display: block; }
+    .htmx-request.htmx-submit-btn { pointer-events: none; }
+</style>
+<script>
+    function closeModal(){
+        const overlay = document.getElementById('publish-modal-overlay');
+        overlay.style.opacity = '0';
+        setTimeout(() => document.getElementById('modal-container').innerHTML = '', 200)
+    }
+    
+    // HTMX executes this script again whenever the modal is opened.
+    // Keep declarations local so reopening does not redeclare a global const.
+    (function () {
+        const publishForm = document.getElementById('publish-form');
+        if (publishForm) {
+            publishForm.addEventListener('htmx:afterRequest', function(evt) {
+                if (evt.detail.successful) {
+                    closeModal();
+                }
+            });
+        }
+    })();
+</script>

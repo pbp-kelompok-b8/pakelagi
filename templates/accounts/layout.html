@@ -1,0 +1,36 @@
+{% extends "base.html" %}
+
+{% block content %}
+<section class="container-page py-8 md:py-14" aria-labelledby="auth-title">
+    <div class="grid md:grid-cols-2 border border-line">
+        <aside class="p-8 lg:p-14 flex flex-col justify-center gap-8 {% block panel_color %}bg-bottle text-ivory{% endblock %}">
+            <p class="text-xs font-semibold uppercase tracking-widest">Pakelagi · Luxury Reuse</p>
+            {% block panel %}{% endblock %}
+        </aside>
+        <div class="p-6 sm:p-10 lg:p-14">
+            <div class="max-w-md mx-auto space-y-8">
+                {% block form_heading %}{% endblock %}
+                <form method="post" class="space-y-6">
+                    {% csrf_token %}
+                    {% block hidden_fields %}{% endblock %}
+                    {% if form.non_field_errors %}
+                    <div role="alert">{{ form.non_field_errors }}</div>
+                    {% endif %}
+                    {% for field in form %}
+                    <div class="field{% if field.errors %} has-error{% endif %}">
+                        {{ field.label_tag }}
+                        {{ field }}
+                        {% if field.help_text %}
+                        <div class="field-help" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</div>
+                        {% endif %}
+                        {% if field.errors %}<div role="alert">{{ field.errors }}</div>{% endif %}
+                    </div>
+                    {% endfor %}
+                    <button type="submit" class="btn btn-primary btn-block">{% block submit_label %}{% endblock %}</button>
+                </form>
+                {% block alternate_link %}{% endblock %}
+            </div>
+        </div>
+    </div>
+</section>
+{% endblock %}

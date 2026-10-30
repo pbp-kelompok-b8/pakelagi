@@ -1,0 +1,142 @@
+{% extends "base.html" %}
+{% load i18n listing_extras favorite_extras %}
+
+{% block title %}{{ listing.title }}{% endblock %}
+{% block meta_description %}{{ listing.title }} — {{ listing.price|rupiah }}, {{ listing.condition }}, {{ listing.city }}. {{ listing.description|truncatewords:20 }}{% endblock %}
+
+{% block content %}
+<section class="container-page py-8 md:py-14" aria-labelledby="listing-title" hx-history="false">
+    <nav aria-label="Breadcrumb" class="text-xs text-stone mb-8">
+        <a href="{% url 'main:show_main' %}">Beranda</a> /
+        <a href="{% url 'listings:list' %}">Katalog</a> /
+        {{ listing.get_category_display }} /
+        <span aria-current="page">{{ listing.title }}</span>
+    </nav>
+
+    <div class="grid gap-10 lg:gap-14 lg:grid-cols-[minmax(0,3fr)_minmax(0,2fr)]">
+
+        <!-- Foto -->
+        <div>
+            <div class="relative aspect-photo bg-sand overflow-hidden">
+                <span class="absolute inset-0 flex items-center justify-center px-4 text-center text-sm text-stone" aria-hidden="true">Foto tidak tersedia</span>
+                <img src="{{ listing.image_url }}" alt="{{ listing.title }}"
+                     class="absolute inset-0 w-full h-full object-cover" referrerpolicy="no-referrer" onerror="this.remove()">
+                {% if listing.status == 'Sold' %}<span class="tag tag-sold absolute top-4 left-4">Terjual</span>{% endif %}
+            </div>
+            <p class="text-xs text-stone mt-3">
+                Diunggah {% language 'id' %}{{ listing.created_at|date:"j F Y" }}{% endlanguage %} · Foto dari penjual
+            </p>
+        </div>
+
+        <!-- Informasi -->
+        <div class="min-w-0 space-y-8">
+            <div class="space-y-3">
+                {% if listing.brand %}<p class="label-caps !text-[11px]">{{ listing.brand }}</p>{% endif %}
+                <h1 id="listing-title" class="text-4xl md:text-5xl leading-tight break-words">{{ listing.title }}</h1>
+                <p class="text-2xl pt-2">{{ listing.price|rupiah }}</p>
+                <p class="text-xs text-stone">Harga dari penjual · pembayaran &amp; serah terima di luar Pakelagi</p>
+                {% favorite_button listing slot="detail" %}
+            </div>
+
+            <dl class="border-t border-line text-sm">
+                <div class="grid grid-cols-[7rem_1fr] gap-4 py-4 border-b border-line">
+                    <dt class="label-caps !text-[10px] self-center">Kategori</dt>
+                    <dd>{{ listing.get_category_display }}</dd>
+                </div>
+                <div class="grid grid-cols-[7rem_1fr] gap-4 py-4 border-b border-line">
+                    <dt class="label-caps !text-[10px] self-center">Ukuran</dt>
+                    <dd>{{ listing.size }}</dd>
+                </div>
+                <div class="grid grid-cols-[7rem_1fr] gap-4 py-4 border-b border-line">
+                    <dt class="label-caps !text-[10px] self-center">Kondisi</dt>
+                    <dd>{{ listing.condition }}</dd>
+                </div>
+                {% if listing.brand %}
+                <div class="grid grid-cols-[7rem_1fr] gap-4 py-4 border-b border-line">
+                    <dt class="label-caps !text-[10px] self-center">Brand</dt>
+                    <dd class="break-words">{{ listing.brand }}</dd>
+                </div>
+                {% endif %}
+                <div class="grid grid-cols-[7rem_1fr] gap-4 py-4 border-b border-line">
+                    <dt class="label-caps !text-[10px] self-center">Lokasi</dt>
+                    <dd class="break-words">{{ listing.city }}</dd>
+                </div>
+            </dl>
+
+            {% if listing.sustainability_tags %}
+            <div>
+                <p class="label-caps !text-[10px] mb-3">Tag keberlanjutan (dari penjual)</p>
+                <ul class="flex flex-wrap gap-2">
+                    {% for tag in listing.sustainability_tags %}<li class="tag tag-sustain">{{ tag }}</li>{% endfor %}
+                </ul>
+            </div>
+            {% endif %}
+
+            <!-- Kontak penjual: isi ditentukan profiles.profile_contacts.contact_context sesuai siapa yang melihat -->
+            {% if listing.status == 'Hidden' %}
+                <div class="bg-sand p-6 text-sm" role="note">Listing ini disembunyikan dan tidak tampil di katalog maupun profil publik.</div>
+            {% elif listing.status == 'Sold' %}
+                <div class="bg-sand p-6 text-sm" role="note">Barang ini sudah terjual, jadi kontak penjual tidak ditampilkan.</div>
+            {% elif is_owner %}
+                <div class="bg-sand p-6 text-sm" role="note">Ini listing milikmu. Pengunjung yang sudah masuk dapat melihat kontakmu di sini.</div>
+            {% elif not seller_profile %}
+                <div class="bg-sand p-6 text-sm" role="note">Penjual belum menambahkan kontak.</div>
+            {% else %}
+                <aside class="panel space-y-4" aria-label="Kontak penjual">
+                    <p class="label-caps !text-[10px]">Kontak penjual</p>
+                    {% if contact_invite_url %}
+                        <h2 class="font-display text-2xl">{{ contact_invite_label }}</h2>
+                        <p class="text-xs text-stone leading-relaxed">Demi privasi, kontak penjual hanya terlihat oleh member Pakelagi yang sudah melengkapi profil.</p>
+                        <a href="{{ contact_invite_url }}" class="btn btn-primary btn-block">{{ contact_invite_label }}</a>
+                    {% else %}
+                        {% if seller_contact.value %}<p class="font-display text-2xl break-words">{{ seller_contact.value }}</p>{% endif %}
+                        {% if seller_contact.url %}
+                            <a href="{{ seller_contact.url }}" {% if seller_profile.contact_type != 'email' %}target="_blank" rel="noopener noreferrer"{% endif %} class="btn btn-primary btn-block">{{ seller_contact.cta }}</a>
+                        {% endif %}
+                        {% if seller_contact.phone %}<p class="text-sm break-words">Telepon: {{ seller_contact.phone }}</p>{% endif %}
+                        {% if not seller_contact.value and not seller_contact.phone %}<p class="text-sm">Penjual belum menambahkan kontak.</p>{% endif %}
+                        <p class="text-xs text-stone leading-relaxed">Tips aman: bertemu di tempat umum dan periksa barang sebelum membayar. Pakelagi tidak memproses pembayaran.</p>
+                    {% endif %}
+                </aside>
+            {% endif %}
+
+            <!-- Penjual -->
+            <div class="border-t border-line pt-6 flex items-center gap-4">
+                <div class="relative w-14 h-14 shrink-0 bg-sand flex items-center justify-center overflow-hidden" aria-hidden="true">
+                    <span class="font-display text-2xl">{% if seller_profile %}{{ seller_profile.display_name|first|upper }}{% else %}P{% endif %}</span>
+                    {% if seller_profile.avatar_url %}<img src="{{ seller_profile.avatar_url }}" alt="" class="absolute inset-0 w-full h-full object-cover" referrerpolicy="no-referrer" onerror="this.remove()">{% endif %}
+                </div>
+                <div class="min-w-0 flex-1">
+                    <p class="label-caps !text-[10px]">Dijual oleh</p>
+                    <p class="font-display text-xl break-words">{% if seller_profile %}{{ seller_profile.display_name }}{% else %}Penjual Pakelagi{% endif %}</p>
+                    <p class="text-xs text-stone">{{ seller_active_count }} listing aktif</p>
+                </div>
+                {% if seller_profile %}
+                <a href="{% url 'profiles:profile_public' user_id=listing.seller_id %}" class="btn btn-text shrink-0">Lihat profil &rarr;</a>
+                {% endif %}
+            </div>
+
+            <div>
+                <p class="label-caps !text-[10px] mb-3">Deskripsi</p>
+                <p class="text-sm leading-7 whitespace-pre-line break-words">{{ listing.description }}</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+{% if more_from_seller %}
+<section class="border-t border-line" aria-labelledby="more-title">
+    <div class="container-page py-12 md:py-20">
+        <div class="flex flex-wrap items-end justify-between gap-4 mb-10">
+            <h2 id="more-title" class="text-3xl md:text-4xl">Lainnya dari {% if seller_profile %}{{ seller_profile.display_name }}{% else %}penjual ini{% endif %}</h2>
+            {% if seller_profile %}<a href="{% url 'profiles:profile_public' user_id=listing.seller_id %}" class="btn btn-text">Lihat profil penjual &rarr;</a>{% endif %}
+        </div>
+        <ul class="grid grid-cols-2 md:grid-cols-4 gap-x-4 md:gap-x-6 gap-y-10">
+            {% for listing in more_from_seller %}
+            <li>{% include "listings/components/listing_card.html" %}</li>
+            {% endfor %}
+        </ul>
+    </div>
+</section>
+{% endif %}
+{% endblock %}

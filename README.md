@@ -50,7 +50,7 @@ Model `Listing`. Inti aplikasi: katalog listing pakaian preloved dengan pencaria
 
 ### Modul 2 — User Profiles (Anggota 2)
 
-Model `Profile` (relasi 1–1 dengan Django `User`). Member mengatur display name, bio singkat, kota umum, serta metode kontak (`email` / `instagram` / `other`). Profil juga menyediakan tab ringkasan listing **Dijual** (status `Available`) dan **Terjual** (status `Sold`) milik pengguna. Ringkasan dapat dilihat publik, tetapi listing berstatus `Hidden` atau yang disembunyikan moderator tidak ditampilkan. Aturan privasi: contact value **hanya** ditampilkan kepada member yang sudah login, dan tidak boleh berisi alamat rumah.
+Model `Profile` (relasi 1–1 dengan Django `User`). Member membuat profil jika belum ada, membaca dan mengubah display name, bio singkat, kota umum, serta metode kontak (`email` / `instagram` / `other`), dan dapat menghapus data profilnya tanpa menghapus akun atau listing. Profil juga menyediakan tab ringkasan listing **Dijual** (status `Available`) dan **Terjual** (status `Sold`) milik pengguna. Ringkasan dapat dilihat publik, tetapi listing berstatus `Hidden` atau yang disembunyikan moderator tidak ditampilkan. Aturan privasi: contact value **hanya** ditampilkan kepada member yang sudah login, dan tidak boleh berisi alamat rumah.
 
 ### Modul 3 — Saved Favorites (Anggota 3)
 
@@ -63,6 +63,20 @@ Model `Guide`. Member dapat mengirim draf tips perawatan pakaian dan melihat dra
 ### Modul 5 — Reports & Moderation (Anggota 5)
 
 Model `Report`. Member melaporkan listing bermasalah (`Counterfeit`, `Misleading`, `Offensive`, `Prohibited Item`, `Other`), melihat report miliknya, serta memperbarui/menghapus report yang masih terbuka. Admin membaca semua report, memperbarui status (`Open` → `Reviewing` → `Resolved`/`Rejected`), menambahkan catatan moderasi privat, dan mengambil tindakan pada listing terkait.
+
+### Pemetaan operasi CRUD per modul
+
+Tabel ini menjelaskan aksi Create, Read, Update, dan Delete beserta letak/alur UI-nya. Path di bawah adalah URL yang direncanakan untuk implementasi; detail route dan batas akses dicatat juga di [spesifikasi bagian 8](docs/pakelagi-specification.md#8-halaman-dan-url-yang-direncanakan).
+
+| Modul/data | Create — membuat | Read — melihat | Update — mengubah | Delete — menghapus |
+|---|---|---|---|---|
+| **Clothing Listings** (`Listing`) | Member mengisi form `/listings/create/`. | Publik melihat katalog `/listings/` dan detail `/listings/<id>/`; pemilik melihat semua listing miliknya melalui `/listings/mine/`. | Pemilik mengedit melalui `/listings/<id>/edit/` atau mengubah status `Available`/`Sold`; admin dapat mengubah status menjadi `Hidden` melalui moderasi. | Pemilik atau admin menghapus melalui `/listings/<id>/delete/`. |
+| **User Profiles** (`Profile`) | Member membuat profil melalui `/profile/create/` (bila belum memiliki profil). | Member membaca profil sendiri di `/profile/`; publik membaca profil dan ringkasan listing melalui `/profile/<user_id>/`. Contact value hanya terlihat oleh member login. | Pemilik mengubah display name, bio, kota, dan kontak melalui `/profile/edit/`. | Pemilik menghapus data profilnya melalui `/profile/delete/`. Akun dan listing tidak ikut dihapus; profil publik tidak menampilkan informasi profil yang sudah dihapus. |
+| **Saved Favorites** (`Favorite`) | Member menambahkan listing dari halaman detail atau katalog dengan tombol favorite HTMX (POST). | Member melihat daftar privat melalui `/favorites/`. | Pemilik mengubah catatan pribadi melalui `/favorites/<id>/edit/`. | Pemilik menghapus favorite melalui aksi hapus di `/favorites/` atau endpoint `/favorites/<id>/delete/`. |
+| **Sustainable Guides** (`Guide`) | Member mengirim draf di `/guides/submit/`; admin membuat guide dari `/moderation/guides/create/`. | Pengirim melihat drafnya melalui `/guides/my-submissions/`; admin membaca semua guide/draf di `/moderation/guides/`; publik membaca guide terbit di `/guides/` dan `/guides/<slug>/`. | Pengirim mengubah draf hanya saat `Pending` melalui `/guides/submissions/<id>/edit/`; admin meninjau status draf dan mengedit konten/publikasi melalui halaman moderasi. | Pengirim menghapus drafnya hanya saat `Pending`; admin menghapus guide melalui `/moderation/guides/<id>/delete/`. |
+| **Reports & Moderation** (`Report`) | Member membuat report pada listing melalui `/reports/create/<listing_id>/`. | Member membaca report sendiri di `/reports/`; admin membaca semua report di `/moderation/reports/`. | Pelapor mengubah report selama `Open` di `/reports/<id>/edit/`; admin mengubah status dan catatan moderasi melalui `/moderation/reports/<id>/`. | Pelapor menghapus report selama `Open` melalui `/reports/<id>/delete/`. Admin menangani report dengan status, bukan menghapus jejak moderasi. |
+
+**Catatan profil:** penghapusan profil menghapus data `Profile` saja, bukan akun Django atau data listing/favorite/report. Profil dapat dibuat kembali. Untuk `Favorite`, tombol toggle yang sama dapat membuat favorite jika belum ada dan menghapusnya jika sudah ada; operasi tersebut tetap tunduk pada aturan unik user-listing.
 
 > Kategori, ukuran, kondisi, status, alasan report, dan tag keberlanjutan memakai pilihan terkontrol (*choices*) pada model/form — tidak perlu modul terpisah.
 
@@ -154,11 +168,11 @@ source env/bin/activate
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Salin file environment lalu sesuaikan nilainya
-cp .env.example .env   # buat .env.example jika belum ada
-
-# 5. Jalankan migration
+# 4. Jalankan migration (lokal tidak butuh file .env, langsung memakai SQLite)
 python manage.py migrate
+
+# 5. Isi data contoh: 5 penjual contoh dengan 50 listing tersedia + 10 terjual (lihat bagian "Seed data")
+python manage.py seed_listings
 
 # 6. (Opsional) buat superuser untuk akses admin/moderasi
 python manage.py createsuperuser
@@ -169,15 +183,42 @@ python manage.py runserver
 
 Aplikasi berjalan di `http://127.0.0.1:8000/`.
 
-Secara default (`PRODUCTION` tidak diset atau `false`), project memakai **SQLite** (`db.sqlite3`) agar mudah dijalankan lokal tanpa setup PostgreSQL. Di production/PWS, set `PRODUCTION=true` beserta `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` pada `.env` agar aplikasi memakai **PostgreSQL**.
+Secara default (`PRODUCTION` tidak diset atau `false`), project memakai **SQLite** (`db.sqlite3`) agar mudah dijalankan lokal tanpa setup PostgreSQL. Di production/PWS, buat file `.env` (dibaca otomatis oleh `settings.py` lewat `python-dotenv`; file ini tidak ikut Git) yang berisi `PRODUCTION=true` beserta `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` agar aplikasi memakai **PostgreSQL**.
 
 ### Seed data
 
 ```bash
-python manage.py loaddata fixtures/seed_listings.json
+python manage.py seed_listings
 ```
 
-> ⚠️ Fixture seed data (`fixtures/seed_listings.json`, minimal 50 listing sesuai §14 spesifikasi) **belum dibuat** — akan ditambahkan bertahap seiring modul masing-masing anggota selesai. Update perintah di atas begitu path fixture final tersedia.
+Perintah ini membuat data contoh untuk deployment pertama (spesifikasi §14):
+
+| Isi | Jumlah |
+|---|---|
+| Akun penjual contoh (`sample_nina`, `sample_raka`, `sample_tika`, `sample_bagas`, `sample_dewi`) beserta profilnya | 5 |
+| Listing **tersedia**, tepat 10 per kategori (Top, Bottom, Dress, Outerwear, Modest Wear) | 50 |
+| Listing **terjual**, untuk mengisi cuplikan "Baru saja terjual" di etalase profil | 10 |
+
+- **Aman dijalankan berulang.** Listing dikenali dari penjual dan judulnya, jadi menjalankannya lagi memperbarui data yang sama, tidak menggandakannya.
+- `python manage.py seed_listings --reset` menghapus dulu semua listing milik akun contoh lalu membuatnya ulang. Listing pengguna asli tidak pernah disentuh.
+- Akun contoh **tidak punya kata sandi** (tidak bisa dipakai login), dan kontaknya memakai `@example.com` (domain yang memang dicadangkan untuk contoh), jadi tidak ada data pribadi anggota kelompok.
+- Data sengaja bervariasi: ukuran XS sampai XXL, keempat kondisi, 12 kota, harga Rp 45.000 sampai Rp 450.000, dan beragam tag keberlanjutan. Koordinat kota sudah dibulatkan sekitar 1 km.
+- Foto memakai URL [Unsplash](https://unsplash.com/license) yang sudah dicek bisa diakses. Kalau suatu saat gagal dimuat, kartu menampilkan placeholder "Foto tidak tersedia".
+- Data dan fotonya didefinisikan di `listings/seed_data.py`.
+
+### Menjalankan test
+
+```bash
+python manage.py test
+```
+
+Test **tidak membutuhkan internet**: respons Nominatim di-mock. Untuk melihat cakupan (target kelompok minimal 80%):
+
+```bash
+pip install coverage
+coverage run manage.py test
+coverage report --include="listings/*,profiles/*,accounts/*" --omit="*/test_*.py,*/tests.py,*/migrations/*"
+```
 
 ---
 

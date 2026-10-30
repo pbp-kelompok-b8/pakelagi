@@ -1,0 +1,36 @@
+<nav aria-label="Kategori favorit" class="flex flex-wrap gap-x-7 gap-y-2 border-b border-line mb-8">
+    {% for tab in tabs %}
+    <a href="{{ tab.href }}" hx-get="{{ tab.href }}" hx-target="#favorite-results" hx-swap="innerHTML" hx-push-url="true" class="my-tab"{% if tab.active %} aria-current="page"{% endif %}>{{ tab.label }}</a>
+    {% endfor %}
+</nav>
+<p class="text-sm text-stone mb-6">{{ favorites|length }} dari {{ total_count }} favorit</p>
+{% if favorites %}
+<ul class="grid gap-10 md:grid-cols-2 lg:grid-cols-3">
+    {% for favorite in favorites %}
+    <li id="favorite-{{ favorite.pk }}" class="border border-line p-5 space-y-5">
+        {% include "listings/components/listing_card.html" with listing=favorite.listing hide_favorite=True %}
+        {% include "favorites/components/note.html" %}
+        <form method="post" action="{% url 'favorites:remove' favorite.listing_id %}"
+              hx-post="{% url 'favorites:remove' favorite.listing_id %}" hx-target="#favorite-results"
+              hx-swap="innerHTML" hx-push-url="false" hx-sync="this:drop" hx-disabled-elt="find button" data-favorite-action>
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{% url 'favorites:list' %}{% if category %}?category={{ category|urlencode }}{% endif %}">
+            <input type="hidden" name="surface" value="list">
+            <input type="hidden" name="category" value="{{ category }}">
+            <button type="submit" class="btn btn-secondary btn-sm">Hapus favorit</button>
+        </form>
+    </li>
+    {% endfor %}
+</ul>
+{% elif total_count %}
+<div class="py-16 text-center border border-line">
+    <h2 class="text-3xl">Belum ada favorit di kategori ini</h2>
+    <a href="{% url 'favorites:list' %}" hx-get="{% url 'favorites:list' %}" hx-target="#favorite-results" hx-push-url="true" class="btn btn-secondary mt-6">Lihat semua favorit</a>
+</div>
+{% else %}
+<div class="py-16 text-center border border-line">
+    <h2 class="text-3xl">Belum ada favorit</h2>
+    <p class="text-sm text-stone mt-3">Simpan pakaian pilihanmu dari katalog.</p>
+    <a href="{% url 'listings:list' %}" class="btn btn-primary mt-6">Jelajahi katalog</a>
+</div>
+{% endif %}

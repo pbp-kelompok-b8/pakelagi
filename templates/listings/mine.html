@@ -1,0 +1,89 @@
+{% extends "base.html" %}
+{% load static i18n listing_extras %}
+
+{% block title %}Listing saya{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/listings.css' %}">{% endblock %}
+
+{% block content %}
+<section class="container-page my-listings py-10 md:py-16" aria-labelledby="mine-title">
+    <div class="flex flex-wrap items-end justify-between gap-6 pb-10 md:pb-14">
+        <h1 id="mine-title" class="text-5xl md:text-7xl">Listing saya</h1>
+        <a href="{% url 'listings:create' %}" class="btn btn-primary">Posting barang</a>
+    </div>
+
+    <div class="grid gap-10 md:grid-cols-[11rem_minmax(0,1fr)] lg:grid-cols-[15rem_minmax(0,1fr)] md:gap-14 items-start">
+        <aside>
+            <nav aria-label="Akun saya" class="account-nav">
+                <p class="label-caps pb-5">Akun saya</p>
+                <a href="{% url 'profiles:profile_edit' %}">Profil</a>
+                <a href="{% url 'listings:mine' %}" aria-current="page">Listing saya <span aria-hidden="true">→</span></a>
+                <a href="{% url 'profiles:profile' %}">Etalase saya</a>
+                <form method="post" action="{% url 'accounts:logout' %}" class="border-t border-b border-line">{% csrf_token %}<button type="submit" class="!border-0">Keluar</button></form>
+            </nav>
+        </aside>
+
+        <div class="min-w-0">
+            <nav aria-label="Status listing" class="flex flex-wrap gap-x-8 gap-y-3 border-b border-line">
+                <a href="{% url 'listings:mine' %}" class="my-tab"{% if not tab %} aria-current="page"{% endif %}>Semua <small>{{ counts.all }}</small></a>
+                <a href="?status=tersedia" class="my-tab"{% if tab == 'tersedia' %} aria-current="page"{% endif %}>Tersedia <small>{{ counts.tersedia }}</small></a>
+                <a href="?status=terjual" class="my-tab"{% if tab == 'terjual' %} aria-current="page"{% endif %}>Terjual <small>{{ counts.terjual }}</small></a>
+                <a href="?status=disembunyikan" class="my-tab"{% if tab == 'disembunyikan' %} aria-current="page"{% endif %}>Disembunyikan <small>{{ counts.disembunyikan }}</small></a>
+            </nav>
+
+            {% if page.object_list %}
+            <ul>
+                {% for listing in page.object_list %}
+                <li class="border-b border-line py-5">
+                    <div class="flex flex-wrap items-center gap-x-6 gap-y-4">
+                        <div class="relative w-[4.5rem] h-[5.625rem] shrink-0 bg-sand overflow-hidden" aria-hidden="true">
+                            <img src="{{ listing.image_url }}" alt="" loading="lazy" class="absolute inset-0 w-full h-full object-cover" referrerpolicy="no-referrer" onerror="this.remove()">
+                        </div>
+                        <div class="min-w-0 flex-1 basis-48">
+                            {% if listing.brand %}<p class="label-caps !text-[10px] truncate">{{ listing.brand }}</p>{% endif %}
+                            <p class="font-display text-xl leading-snug break-words"><a href="{% url 'listings:detail' listing.pk %}">{{ listing.title }}</a></p>
+                        </div>
+                        <p class="text-sm whitespace-nowrap">{{ listing.price|rupiah }}</p>
+                        <p>
+                            {% if listing.status == 'Sold' %}<span class="tag tag-sold">Terjual</span>
+                            {% elif listing.status == 'Hidden' %}<span class="tag tag-accent">Disembunyikan</span>
+                            {% else %}<span class="tag">Tersedia</span>{% endif %}
+                        </p>
+                        <p class="text-xs text-stone whitespace-nowrap">{% language 'id' %}{{ listing.updated_at|date:"j M Y" }}{% endlanguage %}</p>
+                        <div class="flex flex-wrap items-center gap-x-5 gap-y-2 ml-auto">
+                            {% if listing.status == 'Available' %}
+                            <form method="post" action="{% url 'listings:status' listing.pk %}">{% csrf_token %}<input type="hidden" name="status" value="Sold"><button type="submit" class="row-action">Tandai terjual</button></form>
+                            {% elif listing.status == 'Sold' %}
+                            <form method="post" action="{% url 'listings:status' listing.pk %}">{% csrf_token %}<input type="hidden" name="status" value="Available"><button type="submit" class="row-action">Jual lagi</button></form>
+                            {% endif %}
+                            {% if listing.status != 'Sold' %}<a href="{% url 'listings:edit' listing.pk %}" class="row-action">Ubah</a>{% endif %}
+                            <a href="{% url 'listings:delete' listing.pk %}" class="row-action row-action--danger">Hapus</a>
+                        </div>
+                    </div>
+                    {% if listing.status == 'Hidden' %}
+                    <p class="mt-4 bg-terracotta-soft px-4 py-3 text-xs" role="note">Disembunyikan moderator — listing ini tidak tampil di katalog maupun profil publik. Perbaiki isinya lewat “Ubah”.</p>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+
+            <div class="flex flex-wrap items-center justify-between gap-4 pt-8 text-xs text-stone">
+                <p>Menampilkan {{ page.start_index }}–{{ page.end_index }} dari {{ page.paginator.count }} listing</p>
+                {% if page.paginator.num_pages > 1 %}
+                <nav aria-label="Halaman" class="flex items-center gap-4 text-sm">
+                    {% for number in page.paginator.page_range %}
+                    <a href="?{% if tab %}status={{ tab }}&amp;{% endif %}page={{ number }}"{% if number == page.number %} aria-current="page" class="font-semibold underline underline-offset-4"{% endif %}>{{ number }}</a>
+                    {% endfor %}
+                </nav>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="mt-10 py-20 text-center border border-line bg-white">
+                <p class="font-display text-3xl">{% if tab %}Belum ada listing di tab ini{% else %}Kamu belum punya listing{% endif %}</p>
+                <p class="text-stone text-sm mt-3">Pakaian yang tak terpakai bisa dipakai lagi oleh orang lain.</p>
+                <a href="{% url 'listings:create' %}" class="btn btn-primary mt-8">Posting barang</a>
+            </div>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}

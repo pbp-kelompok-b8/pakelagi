@@ -1,0 +1,7 @@
+<div class="field{% if field.errors %} has-error{% endif %}"{% if hint %} role="group" aria-label="{{ field.label }}" aria-describedby="{{ field.auto_id }}_hint"{% endif %}>
+    {{ field.label_tag }}
+    {{ field }}
+    {% if hint %}<p class="field-help" id="{{ field.auto_id }}_hint">{{ hint }}</p>{% endif %}
+    {% if field.help_text %}<p class="field-help" id="{{ field.auto_id }}_helptext">{{ field.help_text }}</p>{% endif %}
+    {% if field.errors %}<div role="alert">{{ field.errors }}</div>{% endif %}
+</div>

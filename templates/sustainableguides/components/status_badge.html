@@ -1,0 +1,15 @@
+{% load static %}
+{% if status == 'PENDING' %}
+<div class="px-2.5 py-1.5 outline outline-1 outline-offset-[-1px] outline-stone-300 flex inline-flex justify-start items-center gap-1.5">
+    <div class="text-zinc-900 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Pending</div>
+</div>
+{% elif status == 'DISETUJUI' %}
+<div class="px-2.5 py-1.5 bg-[#E3E8E1] flex inline-flex justify-start items-center gap-1.5">
+    <img src="{% static 'img/moderations/approved.svg' %}" alt="Approved" class="w-3 h-3">
+    <div class="text-[#2E4A3F] text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Disetujui</div>
+</div>
+{% elif status == 'DITOLAK' %}
+<div class="px-2.5 py-1.5 bg-red-50 outline outline-1 outline-offset-[-1px] outline-red-200 flex inline-flex justify-start items-center gap-1.5">
+    <div class="text-red-700 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Ditolak</div>
+</div>
+{% endif %}

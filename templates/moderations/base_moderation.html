@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Base Moderasi{% endblock %}
+
+{% block header %}
+{% with current=request.resolver_match.url_name %}
+<!-- Header Khusus Moderasi -->
+<header class="w-full px-6 md:px-12 bg-[#1F3D33] flex justify-between items-center overflow-x-auto">
+    
+    <!-- Kiri: Brand (Klik untuk kembali ke Beranda Publik) & Label Moderasi -->
+    <div class="flex justify-start items-center gap-5 py-5 md:py-0 shrink-0">
+        <a href="{% url 'main:show_main' %}" class="text-stone-100 hover:text-orange-300 transition-colors text-2xl font-semibold font-['Cormorant_Garamond'] uppercase leading-7 tracking-[7.28px]">
+            Pakelagi
+        </a>
+        <div class="text-orange-400 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">
+            Moderasi
+        </div>
+    </div>
+
+    <!-- Tengah: Navigasi Modul Moderasi -->
+    <nav class="flex justify-start items-center gap-8 md:gap-10 mx-6" aria-label="Navigasi Moderasi">
+        <a href="{% url 'moderations:ringkasan' %}" 
+           class="pt-7 pb-6 inline-flex flex-col justify-start items-start transition-colors {% if current == 'ringkasan' %}border-b-2 border-orange-400 text-stone-100{% else %}text-stone-100/60 hover:text-stone-100{% endif %}">
+            <span class="text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Ringkasan</span>
+        </a>
+        
+        <a href="#" class="pt-7 pb-6 inline-flex flex-col justify-start items-start text-stone-100/60 hover:text-stone-100 transition-colors">
+            <span class="text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Laporan</span>
+        </a>
+        
+        <a href="{% url 'moderations:jurnal_list' %}" 
+           class="pt-7 pb-6 inline-flex flex-col justify-start items-start transition-colors {% if current == 'jurnal_list' %}border-b-2 border-orange-400 text-stone-100{% else %}text-stone-100/60 hover:text-stone-100{% endif %}">
+            <span class="text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Panduan</span>
+        </a>
+        
+        <a href="#" class="pt-7 pb-6 inline-flex flex-col justify-start items-start text-stone-100/60 hover:text-stone-100 transition-colors">
+            <span class="text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Listing</span>
+        </a>
+        
+        <a href="#" class="pt-7 pb-6 inline-flex flex-col justify-start items-start text-stone-100/60 hover:text-stone-100 transition-colors">
+            <span class="text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Pengguna</span>
+        </a>
+    </nav>
+
+    <!-- Kanan: Identitas Admin -->
+    <div class="hidden sm:flex justify-start items-center gap-3 shrink-0">
+        <div class="size-8 bg-amber-700 flex justify-center items-center overflow-hidden">
+            <div class="text-white text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">
+                {{ request.user.username|slice:":2"|upper }}
+            </div>
+        </div>
+        <div class="text-stone-100 text-xs font-normal font-['Jost'] leading-5 tracking-tight">
+            {{ request.user.username }} &nbsp;·&nbsp; Admin
+        </div>
+    </div>
+
+</header>
+{% endwith %}
+{% endblock %}
+
+{% block footer %}
+<!-- Footer Khusus Moderasi -->
+<footer class="w-full px-6 md:px-12 py-6 bg-stone-100 border-t border-stone-300 flex flex-col sm:flex-row justify-between items-start sm:items-center gap-2 overflow-hidden">
+    <div class="text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight">
+        © 2026 Pakelagi &nbsp;·&nbsp; Ruang moderasi
+    </div>
+    <div class="text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight">
+        Catatan moderasi bersifat privat dan hanya terlihat oleh admin.
+    </div>
+</footer>
+{% endblock %}
