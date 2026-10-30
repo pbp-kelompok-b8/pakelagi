@@ -7,6 +7,7 @@ class FavoriteNoteForm(forms.ModelForm):
     class Meta:
         model = Favorite
         fields = ["note"]
+        labels = {"note": "Catatan pribadi"}
         widgets = {
-            "note": forms.Textarea(attrs={"rows": 4, "maxlength": 1000, "class": "w-full border border-line p-3"}),
+            "note": forms.Textarea(attrs={"rows": 3, "maxlength": 1000, "class": "favorite-note-input"}),
         }

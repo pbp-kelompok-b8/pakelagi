@@ -13,6 +13,7 @@
             if (!form) return;
             if (!saved && control.dataset.canSave !== 'true') {
                 control.replaceChildren();
+                control.hidden = true;
                 return;
             }
             const action = saved ? form.dataset.removeUrl : form.dataset.addUrl;
@@ -21,7 +22,10 @@
             const button = form.querySelector('button');
             button.setAttribute('aria-pressed', String(saved));
             button.setAttribute('aria-label', saved ? 'Hapus dari favorit' : 'Simpan ke favorit');
-            button.querySelector('svg').setAttribute('fill', saved ? 'currentColor' : 'none');
+            const icon = button.querySelector('[data-saved-icon]');
+            if (icon) icon.src = saved ? icon.dataset.savedIcon : icon.dataset.unsavedIcon;
+            const label = button.querySelector('[data-favorite-label]');
+            if (label) label.textContent = saved ? 'Tersimpan di Favorit' : 'Simpan ke Favorit';
             // HTMX menyimpan handler URL; proses ulang jika atribut aksi berubah.
             if (window.htmx) htmx.process(form);
         });
