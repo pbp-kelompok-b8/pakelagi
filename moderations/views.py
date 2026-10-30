@@ -30,7 +30,34 @@ def is_admin(user):
 # =x=x=x=x=x=x=x==x=x=x=x=
 @user_passes_test(is_admin, login_url='accounts:login')
 def ringkasan_moderation(request):
-    return render(request, 'moderations/ringkasan.html')
+    all_guides = Guide.objects.select_related('author').order_by('-date_submitted')
+    count_guides_pending = all_guides.filter(status='PENDING').count()
+    count_guides_approved = all_guides.filter(status='DISETUJUI').count()
+    count_guides_published = all_guides.published().count()
+    count_guides_rejected = all_guides.filter(status='DITOLAK').count()
+    waiting_publish_guides = all_guides.filter(status='DISETUJUI').filter(
+        Q(is_published=False) | Q(date_published__gt=timezone.now())
+    ).count()
+    
+    all_reports = Report.objects.order_by('updated_at')
+    count_report_open = all_reports.filter(status='open').count()
+    count_report_reviewing = all_reports.filter(status='reviewing').count()
+    count_report_resolved = all_reports.filter(status='resolved').count()
+    count_report_rejected = all_reports.filter(status='rejected').count()
+
+    context = {
+        "count_guides_pending":count_guides_pending,
+        "count_guides_approved":count_guides_approved,
+        "count_guides_published":count_guides_published,
+        "count_guides_rejected":count_guides_rejected,
+        "waiting_publish_guides":waiting_publish_guides,
+        
+        "count_report_open":count_report_open,
+        "count_report_reviewing":count_report_reviewing,
+        "count_report_resolved":count_report_resolved,
+        "count_report_rejected":count_report_rejected,
+    }
+    return render(request, 'moderations/ringkasan.html', context)
 
 # =x=x=x=x=x=x=x==x=x=x=x=
 # Moderasi untuk jurnal

@@ -3,24 +3,114 @@
 {% block title %}Moderasi Ringkasan{% endblock %}
 
 {% block content %}
-<div class="w-full min-h-[75vh] bg-stone-100 px-6 md:px-12 py-20 flex flex-col justify-center items-center text-center">
-    <div class="max-w-md flex flex-col items-center gap-4">
-        <div class="text-amber-700 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-widest">
-            Ruang Moderasi
-        </div>
-        <h1 class="text-zinc-900 text-5xl font-medium font-['Cormorant_Garamond'] leading-tight">
-            Halaman Ringkasan Belum Diimplementasikan
+<div class="w-full min-h-screen bg-stone-100 flex flex-col justify-start items-start overflow-hidden">
+
+    {# Header halaman #}
+    <div class="self-stretch px-6 md:px-12 pt-16 pb-12 flex flex-col sm:flex-row justify-between items-start sm:items-end gap-4">
+        <h1 class="text-zinc-900 text-5xl md:text-7xl font-medium font-['Cormorant_Garamond'] leading-tight md:leading-[76px]">
+            Ringkasan
         </h1>
-        <p class="text-stone-600 text-sm font-normal font-['Jost'] leading-6">
-            Modul statistik ringkasan sedang dalam tahap pengembangan. Silakan pilih tab modul di bagian atas untuk mulai melakukan moderasi.
+        <p class="text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight">
+            Gambaran cepat antrean moderasi hari ini.
         </p>
-        <div class="pt-4">
-            <a href="{% url 'moderations:jurnal_list' %}" class="px-8 py-3.5 bg-amber-700 hover:bg-amber-800 transition-colors inline-flex justify-center items-center">
-                <span class="text-white text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-widest">
-                    Ke Moderasi Panduan
-                </span>
+    </div>
+
+    {# Perlu tindakan #}
+    <div class="self-stretch px-6 md:px-12 pb-12 flex flex-col gap-4">
+        <div class="text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">
+            Perlu tindakan
+        </div>
+        <div class="self-stretch grid grid-cols-1 md:grid-cols-3 gap-4">
+
+            <a href="{% url 'moderations:reports_list' %}?tab=open"
+               class="group p-6 md:p-8 bg-white outline outline-1 outline-offset-[-1px] outline-stone-300 hover:outline-amber-700 transition-colors flex flex-col gap-3">
+                <span class="text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Laporan terbuka</span>
+                <span class="text-amber-700 text-6xl font-medium font-['Cormorant_Garamond'] leading-none">{{ count_report_open }}</span>
+                <span class="text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight group-hover:text-amber-700 transition-colors">Belum ditinjau moderator →</span>
+            </a>
+
+            <a href="{% url 'moderations:jurnal_list' %}?tab=pending"
+               class="group p-6 md:p-8 bg-white outline outline-1 outline-offset-[-1px] outline-stone-300 hover:outline-amber-700 transition-colors flex flex-col gap-3">
+                <span class="text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Draf panduan masuk</span>
+                <span class="text-amber-700 text-6xl font-medium font-['Cormorant_Garamond'] leading-none">{{ count_guides_pending }}</span>
+                <span class="text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight group-hover:text-amber-700 transition-colors">Menunggu tinjauan →</span>
+            </a>
+
+            <a href="{% url 'moderations:jurnal_list' %}?tab=pending"
+               class="group p-6 md:p-8 bg-white outline outline-1 outline-offset-[-1px] outline-stone-300 hover:outline-amber-700 transition-colors flex flex-col gap-3">
+                <span class="text-stone-600 text-xs font-semibold font-['Jost'] uppercase leading-4 tracking-wider">Menunggu terbit</span>
+                <span class="text-amber-700 text-6xl font-medium font-['Cormorant_Garamond'] leading-none">{{ waiting_publish_guides }}</span>
+                <span class="text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight group-hover:text-amber-700 transition-colors">Disetujui, belum tayang →</span>
             </a>
         </div>
+    </div>
+
+    {# Dua kolom: Laporan | Panduan #}
+    <div class="self-stretch px-6 md:px-12 pb-24 grid grid-cols-1 lg:grid-cols-2 gap-12">
+
+        {# ===== Laporan ===== #}
+        <section aria-labelledby="ringkasan-laporan" class="flex flex-col">
+            <div class="pb-4 flex justify-between items-end border-b border-stone-300">
+                <h2 id="ringkasan-laporan" class="text-zinc-900 text-4xl font-medium font-['Cormorant_Garamond'] leading-10">Laporan</h2>
+                <a href="{% url 'moderations:reports_list' %}"
+                   class="pb-1 text-zinc-900 hover:text-amber-700 text-xs font-semibold font-['Jost'] underline uppercase leading-4 tracking-wider transition-colors">
+                    Kelola laporan
+                </a>
+            </div>
+
+            <a href="{% url 'moderations:reports_list' %}?tab=open"
+               class="py-5 border-b border-stone-300 flex justify-between items-center hover:bg-stone-200/40 transition-colors px-2">
+                <span class="text-zinc-900 text-base font-normal font-['Jost'] leading-6">Terbuka</span>
+                <span class="text-amber-700 text-2xl font-medium font-['Cormorant_Garamond']">{{ count_report_open }}</span>
+            </a>
+            <a href="{% url 'moderations:reports_list' %}?tab=reviewing"
+               class="py-5 border-b border-stone-300 flex justify-between items-center hover:bg-stone-200/40 transition-colors px-2">
+                <span class="text-zinc-900 text-base font-normal font-['Jost'] leading-6">Sedang ditinjau</span>
+                <span class="text-zinc-900 text-2xl font-medium font-['Cormorant_Garamond']">{{ count_report_reviewing }}</span>
+            </a>
+            <a href="{% url 'moderations:reports_list' %}?tab=resolved"
+               class="py-5 border-b border-stone-300 flex justify-between items-center hover:bg-stone-200/40 transition-colors px-2">
+                <span class="text-zinc-900 text-base font-normal font-['Jost'] leading-6">Selesai</span>
+                <span class="text-zinc-900 text-2xl font-medium font-['Cormorant_Garamond']">{{ count_report_resolved }}</span>
+            </a>
+            <a href="{% url 'moderations:reports_list' %}?tab=rejected"
+               class="py-5 border-b border-stone-300 flex justify-between items-center hover:bg-stone-200/40 transition-colors px-2">
+                <span class="text-zinc-900 text-base font-normal font-['Jost'] leading-6">Ditolak</span>
+                <span class="text-zinc-900 text-2xl font-medium font-['Cormorant_Garamond']">{{ count_report_rejected }}</span>
+            </a>
+        </section>
+
+        {# ===== Panduan ===== #}
+        <section aria-labelledby="ringkasan-panduan" class="flex flex-col">
+            <div class="pb-4 flex justify-between items-end border-b border-stone-300">
+                <h2 id="ringkasan-panduan" class="text-zinc-900 text-4xl font-medium font-['Cormorant_Garamond'] leading-10">Panduan</h2>
+                <a href="{% url 'moderations:jurnal_list' %}"
+                   class="pb-1 text-zinc-900 hover:text-amber-700 text-xs font-semibold font-['Jost'] underline uppercase leading-4 tracking-wider transition-colors">
+                    Kelola panduan
+                </a>
+            </div>
+
+            <a href="{% url 'moderations:jurnal_list' %}?tab=pending"
+               class="py-5 border-b border-stone-300 flex justify-between items-center hover:bg-stone-200/40 transition-colors px-2">
+                <span class="text-zinc-900 text-base font-normal font-['Jost'] leading-6">Draf masuk</span>
+                <span class="text-amber-700 text-2xl font-medium font-['Cormorant_Garamond']">{{ count_guides_pending }}</span>
+            </a>
+            <a href="{% url 'moderations:jurnal_list' %}?tab=approved"
+               class="py-5 border-b border-stone-300 flex justify-between items-center hover:bg-stone-200/40 transition-colors px-2">
+                <span class="text-zinc-900 text-base font-normal font-['Jost'] leading-6">Disetujui</span>
+                <span class="text-zinc-900 text-2xl font-medium font-['Cormorant_Garamond']">{{ count_guides_approved }}</span>
+            </a>
+            <a href="{% url 'moderations:jurnal_list' %}?tab=published"
+               class="py-5 border-b border-stone-300 flex justify-between items-center hover:bg-stone-200/40 transition-colors px-2">
+                <span class="text-zinc-900 text-base font-normal font-['Jost'] leading-6">Terbit</span>
+                <span class="text-zinc-900 text-2xl font-medium font-['Cormorant_Garamond']">{{ count_guides_published }}</span>
+            </a>
+            <a href="{% url 'moderations:jurnal_list' %}?tab=rejected"
+               class="py-5 border-b border-stone-300 flex justify-between items-center hover:bg-stone-200/40 transition-colors px-2">
+                <span class="text-zinc-900 text-base font-normal font-['Jost'] leading-6">Ditolak</span>
+                <span class="text-zinc-900 text-2xl font-medium font-['Cormorant_Garamond']">{{ count_guides_rejected }}</span>
+            </a>
+        </section>
     </div>
 </div>
 {% endblock %}
