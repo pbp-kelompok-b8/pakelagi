@@ -532,9 +532,10 @@ class NavigationLinkTests(TestCase):
         for href in ('href="/categories/"', 'href="/guides/"'):
             with self.subTest(href=href):
                 self.assertEqual(html.count(href), 2)  # menu desktop + menu HP
-        for label in (">Katalog<", ">Kategori<", ">Jurnal<", ">Penjual<"):
+        for label in (">Katalog<", ">Kategori<", ">Jurnal<"):
             with self.subTest(label=label):
                 self.assertEqual(html.count(label), 2)
+        self.assertNotIn(">Penjual<", html)
 
     def test_moderation_link_is_shown_to_staff_only(self):
         self.assertNotContains(self.client.get("/"), ">Moderasi<")
