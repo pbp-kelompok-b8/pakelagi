@@ -1,10 +1,19 @@
 from django.shortcuts import render, redirect, get_object_or_404
 from django.contrib.auth.decorators import user_passes_test
+from django.views.decorators.http import require_POST, require_GET
 from django import forms
 from django.core.exceptions import ValidationError
 from django.db.models import Q
+from django.db import IntegrityError
 from django.utils.html import strip_tags
 from django.contrib import messages
+from django.core.paginator import Paginator
+from django.views.decorators.http import require_POST, require_GET
+from django.urls import reverse
+import markdown
+from sustainableguides.models import Guide
+from listings.models import Listing
+from reports.models import Report, ReportModeratorNote
 from django.utils import timezone
 from sustainableguides.models import Guide
 from sustainableguides.rendering import render_guide_markdown
@@ -21,7 +30,34 @@ def is_admin(user):
 # =x=x=x=x=x=x=x==x=x=x=x=
 @user_passes_test(is_admin, login_url='accounts:login')
 def ringkasan_moderation(request):
-    return render(request, 'moderations/ringkasan.html')
+    all_guides = Guide.objects.select_related('author').order_by('-date_submitted')
+    count_guides_pending = all_guides.filter(status='PENDING').count()
+    count_guides_approved = all_guides.filter(status='DISETUJUI').count()
+    count_guides_published = all_guides.published().count()
+    count_guides_rejected = all_guides.filter(status='DITOLAK').count()
+    waiting_publish_guides = all_guides.filter(status='DISETUJUI').filter(
+        Q(is_published=False) | Q(date_published__gt=timezone.now())
+    ).count()
+    
+    all_reports = Report.objects.order_by('updated_at')
+    count_report_open = all_reports.filter(status='open').count()
+    count_report_reviewing = all_reports.filter(status='reviewing').count()
+    count_report_resolved = all_reports.filter(status='resolved').count()
+    count_report_rejected = all_reports.filter(status='rejected').count()
+
+    context = {
+        "count_guides_pending":count_guides_pending,
+        "count_guides_approved":count_guides_approved,
+        "count_guides_published":count_guides_published,
+        "count_guides_rejected":count_guides_rejected,
+        "waiting_publish_guides":waiting_publish_guides,
+        
+        "count_report_open":count_report_open,
+        "count_report_reviewing":count_report_reviewing,
+        "count_report_resolved":count_report_resolved,
+        "count_report_rejected":count_report_rejected,
+    }
+    return render(request, 'moderations/ringkasan.html', context)
 
 # =x=x=x=x=x=x=x==x=x=x=x=
 # Moderasi untuk jurnal
@@ -136,7 +172,7 @@ def delete_jurnal_action(request, id):
         messages.success(request, f"Panduan '{title}' berhasil dihapus secara permanen.")
         
     next_tab = request.GET.get('tab', 'pending')
-    return redirect(f"/moderation/guides/?tab={next_tab}")
+    return redirect(f"{reverse('moderations:jurnal_list')}?tab={next_tab}")
 
 # Fungsi untuk publishing
 @user_passes_test(is_admin, login_url='accounts:login')
@@ -198,3 +234,118 @@ def toggle_publish_action(request, id):
 
     next_tab = request.GET.get('tab', 'approved')
     return redirect(f"/moderation/guides/?tab={next_tab}&id={guide.id}")
+
+
+# =x=x=x=x=x=x=x==x=x=x=x=
+# Moderasi untuk Laporan
+# =x=x=x=x=x=x=x==x=x=x=x=
+
+# Helper consts
+STATUS_CLOSED = [('resolved','Resolved'),('rejected','Rejected')]
+STATUS_EDITABLE = [('open','Open'),('reviewing','Reviewing')]
+
+@user_passes_test(is_admin, login_url='accounts:login')
+@require_GET
+def report_moderation(request):
+# Fungsi ini untuk menampilkan dashboard moderasi laporan
+    all_reports = Report.objects.order_by('updated_at')
+    
+    # Kumpulan report untuk masing-masing status
+    report_open = all_reports.filter(status='open')
+    report_reviewing = all_reports.filter(status='reviewing')
+    report_resolved = all_reports.filter(status='resolved')
+    report_rejected = all_reports.filter(status='rejected')
+    
+    # Hitung untuk tiap jenis item berdasarkan status laporan
+    count_open = report_open.count()
+    count_reviewing = report_reviewing.count()
+    count_resolved = report_resolved.count()
+    count_rejected = report_rejected.count()
+    
+    # Tangkap parameter filter tab dari URL (Default: 'open' / LAPORAN MASIH TERBUKA)
+    active_tab = request.GET.get('tab', 'open').lower()
+    
+    if active_tab == 'reviewing':
+        filtered_reports = report_reviewing
+    elif active_tab == 'resolved':
+        filtered_reports = report_resolved
+    elif active_tab == 'rejected':
+        filtered_reports = report_rejected
+    else:
+        active_tab = 'open'
+        filtered_reports = report_open
+        
+    # Tentukan draf mana yang ditampilkan di panel preview sebelah kanan
+    try:
+        selected_report = all_reports.filter(id=request.GET.get('id')).first()
+    except (ValueError, ValidationError):  # id bukan UUID valid
+            selected_report = None
+    if selected_report == None: 
+        # Otomatis pilih item pertama dari tab yang sedang aktif jika belum ada yang diklik
+        selected_report = filtered_reports.first()
+        
+    # Paginasi (misal 10 report per halaman)
+    paginator = Paginator(filtered_reports, 10)
+    page_number = request.GET.get('page', 1)
+    page_obj = paginator.get_page(page_number)
+        
+    context = {
+        'active_tab': active_tab,
+        'reports': filtered_reports,
+        'count_open': count_open,
+        'count_reviewing': count_reviewing,
+        'count_resolved': count_resolved,
+        'count_rejected': count_rejected,
+        'selected_report': selected_report,
+        'page': page_obj,
+        'status_closed': STATUS_CLOSED,
+        'status_editable': STATUS_EDITABLE,
+        'status_choices': Report.STATUS,
+    }
+    return render(request, 'moderations/reports.html', context)
+
+@user_passes_test(is_admin, login_url='accounts:login')
+@require_POST
+def review_report_action(request, pk):
+    report = get_object_or_404(Report, pk=pk)
+    status = request.POST.get("status")
+    note_text = request.POST.get("moderator_note", "").strip()[:1000]
+    if (status in dict(STATUS_EDITABLE) and report.status in dict(STATUS_CLOSED)):
+        messages.error(request, "Laporan yang sudah diproses tidak dapat dibuka kembali")
+    elif status not in dict(Report.STATUS):
+        messages.error(request, "Status tidak valid.")
+    elif status == "rejected" and not note_text:
+        messages.error(request, "Catatan moderator wajib diisi bila laporan ditolak.")
+    else:
+        report.status= status
+        try:
+            report.save(update_fields=["status", "updated_at"])
+        except (IntegrityError):
+            messages.error(request, "Pelapor telah membuat laporan baru pada listing yang sama")
+            return redirect(f"{reverse('moderations:reports_list')}?tab={status}&id={report.pk}")
+        if note_text:
+            ReportModeratorNote.objects.create(report_id=report, moderator_id=request.user, note=note_text )
+        messages.success(request, "Keputusan tersimpan.")
+        return redirect(f"{reverse('moderations:reports_list')}?tab={status}&id={report.pk}")
+    return redirect(f"{reverse('moderations:reports_list')}?tab={report.status}&id={report.pk}")
+
+@user_passes_test(is_admin, login_url='accounts:login')
+@require_POST
+def report_listing_action(request, pk):
+    report = get_object_or_404(Report.objects.select_related("listing"), pk=pk)
+    action = request.POST.get("action")
+    if report.listing and action in ("hide", "restore"):
+        report.listing.status = Listing.Status.HIDDEN if action == "hide" else Listing.Status.AVAILABLE
+        report.listing.save(update_fields=["status", "updated_at"])
+        messages.success(request, "Listing disembunyikan." if action == "hide" else "Listing dipulihkan.")
+    return redirect(f"{reverse('moderations:reports_list')}?tab={report.status}&id={report.pk}")
+
+@user_passes_test(is_admin, login_url='accounts:login')
+@require_GET
+def report_moderator_note_details(request, report_id):
+    report = get_object_or_404(Report, id=report_id)
+    notes = ReportModeratorNote.objects.filter(report_id=report).select_related('moderator_id').order_by('-created_at')
+    return render(request, 'moderations/components/notes_popover.html', {
+        'report': report,
+        'notes': notes
+    })

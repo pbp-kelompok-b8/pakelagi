@@ -1,0 +1,69 @@
+/* Halaman "Laporan saya" (.reports-page). Token warna dan komponen dasar (.btn, .field, .label-caps) dari base.css. */
+
+/* Kepala halaman */
+.reports-head { display: flex; flex-wrap: wrap; align-items: flex-end; justify-content: space-between; gap: 1rem 2rem; padding-bottom: 2.5rem; }
+.reports-meta { color: var(--stone); font-size: .8125rem; }
+
+/* Tiga kolom: navigasi | form | riwayat */
+.reports-layout { display: grid; gap: 3rem; align-items: start; }
+@media (min-width: 768px) {
+    .reports-layout { grid-template-columns: 11rem minmax(0, 1fr); }
+    .reports-layout > section { grid-column: 2; }
+}
+@media (min-width: 1200px) {
+    .reports-layout { grid-template-columns: minmax(10rem, 15rem) minmax(0, 34rem) minmax(0, 1fr); gap: clamp(2rem, 4vw, 5rem); }
+    .reports-layout > section { grid-column: auto; }
+}
+
+/* Navigasi akun */
+.reports-nav .label-caps { padding-bottom: 1.25rem; }
+.reports-nav a, .reports-nav button { display: flex; justify-content: space-between; width: 100%; padding: 1rem 0; border-top: 1px solid var(--line); color: var(--stone); text-align: left; font: inherit; }
+.reports-nav a:hover, .reports-nav button:hover { color: var(--ink); }
+.reports-nav a[aria-current="page"] { color: var(--terracotta); }
+.reports-nav form { border-bottom: 1px solid var(--line); }
+
+/* Panel form */
+.report-form { display: flex; flex-direction: column; gap: 2rem; padding: 1.5rem; background: var(--white); border: 1px solid var(--line); }
+@media (min-width: 768px) { .report-form { padding: 3rem; } }
+.report-form__title { font-size: 2.25rem; }
+
+/* Kartu listing yang dilaporkan */
+.report-target { display: flex; gap: 1rem; padding: 1rem; background: var(--ivory); }
+.report-target__photo { position: relative; flex-shrink: 0; width: 4.25rem; aspect-ratio: 4 / 5; background: var(--sand); overflow: hidden; }
+.report-target__photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; }
+.report-target__title { font-family: var(--font-display); font-size: 1.25rem; line-height: 1.3; overflow-wrap: anywhere; }
+.report-target__meta { color: var(--stone); font-size: .8125rem; }
+
+/* Daftar alasan (radio) */
+.report-reasons { min-width: 0; }
+.report-reasons legend { padding-bottom: .75rem; }
+.report-reason { position: relative; display: flex; align-items: flex-start; gap: 1rem; padding: 1.1rem 0; border-bottom: 1px solid var(--line); cursor: pointer; }
+.report-reason:first-of-type { padding-top: .75rem; }
+.report-reason input { appearance: none; flex-shrink: 0; width: 1.25rem; height: 1.25rem; margin-top: .15rem; border: 1.5px solid var(--ink); border-radius: 50%; background: var(--white); cursor: pointer; }
+.report-reason input:checked { border-color: var(--terracotta); background: radial-gradient(circle, var(--terracotta) 0 .3rem, transparent .32rem); }
+.report-reason input:focus-visible { outline: 2px solid var(--terracotta); outline-offset: 3px; }
+.report-reason__text { display: flex; flex-direction: column; gap: .15rem; }
+.report-reason__label { font-size: 1rem; }
+.report-reason__hint { color: var(--stone); font-size: .8125rem; }
+
+/* Textarea penjelasan memakai gaya .field dari base.css; label dibuat konsisten */
+.report-form .field textarea { min-height: 8rem; background: var(--white); }
+
+/* Riwayat */
+.report-history__heading { padding-bottom: 1.25rem; border-bottom: 1px solid var(--line); }
+.report-item { padding: 1.5rem 0; border-bottom: 1px solid var(--line); }
+.report-item__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 1rem; }
+.report-item__title { font-family: var(--font-display); font-size: 1.5rem; line-height: 1.25; overflow-wrap: anywhere; }
+.report-item__meta { margin-top: .5rem; color: var(--stone); font-size: .8125rem; }
+.report-item__desc { margin-top: .75rem; font-size: .9375rem; overflow-wrap: anywhere; }
+.report-item__actions { display: flex; gap: 1.5rem; margin-top: 1rem; }
+.report-action { padding-bottom: .1rem; border-bottom: 1px solid currentColor; color: var(--ink); font-size: .6875rem; font-weight: 600; letter-spacing: .12em; text-transform: uppercase; }
+.report-action:hover { color: var(--terracotta); }
+.report-action--danger { color: var(--error); }
+
+/* Lencana status: selalu berupa teks, warna hanya pelengkap */
+.report-status { display: inline-flex; align-items: center; gap: .4rem; flex-shrink: 0; padding: .45rem .75rem; border: 1px solid var(--line); font-size: .6875rem; font-weight: 600; letter-spacing: .14em; line-height: 1; text-transform: uppercase; color: var(--ink); }
+.report-status--open { background: var(--white); border-color: var(--line); }
+.report-status--reviewing { background: var(--white); border-color: var(--line); }
+.report-status--resolved { background: var(--sage); border-color: var(--sage); color: var(--bottle); }
+.report-status--rejected { padding-inline: 0; border-color: transparent; color: var(--terracotta); }

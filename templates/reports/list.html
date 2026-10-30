@@ -1,0 +1,123 @@
+{% extends "base.html" %}
+{% load static i18n %}
+
+{% block title %}Laporan saya{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/listings.css' %}">{% endblock %}
+
+{% block content %}
+<section class="container-page listing-editor py-10 md:py-16" aria-labelledby="reports-title">
+    <div class="flex flex-wrap items-end justify-between gap-6 pb-10 md:pb-14">
+        <h1 id="reports-title" class="text-5xl md:text-7xl">Laporan saya</h1>
+        <p class="text-xs text-stone">{{ counts.total }} laporan · {{ counts.open }} masih terbuka</p>
+    </div>
+
+    <div class="grid gap-10 md:grid-cols-[11rem_minmax(0,1fr)] lg:grid-cols-[13rem_minmax(0,24rem)_minmax(0,1fr)] lg:gap-12 items-start">
+
+        {# Kolom 1: menu akun #}
+        <aside>
+            <nav aria-label="Akun saya" class="account-nav">
+                <p class="label-caps pb-5">Akun saya</p>
+                <a href="{% url 'profiles:profile_edit' %}">Profil</a>
+                <a href="{% url 'listings:mine' %}">Listing saya</a>
+                <a href="{% url 'profiles:profile' %}">Etalase saya</a>
+                <a href="{% url 'reports:list' %}" aria-current="page">Laporan saya <span aria-hidden="true">→</span></a>
+                <form method="post" action="{% url 'accounts:logout' %}" class="border-t border-b border-line">{% csrf_token %}<button type="submit" class="!border-0">Keluar</button></form>
+            </nav>
+        </aside>
+
+        {# Kolom 2: form laporan (atau ajakan bila belum memilih listing) #}
+        <div class="min-w-0 md:col-start-2 lg:col-start-auto">
+            {% if form %}
+            <form method="post" action="{{ request.path }}" class="panel space-y-6" aria-labelledby="report-form-title" novalidate>
+                {% csrf_token %}
+                <h2 id="report-form-title" class="font-display text-3xl">{% if report %}Ubah laporan{% else %}Ada yang tidak sesuai?{% endif %}</h2>
+
+                {# Kartu listing yang dilaporkan #}
+                <div class="bg-ivory flex gap-4 p-3">
+                    {% if listing %}
+                    <div class="relative w-12 h-16 shrink-0 bg-sand overflow-hidden" aria-hidden="true">
+                        <img src="{{ listing.image_url }}" alt="" class="absolute inset-0 w-full h-full object-cover" referrerpolicy="no-referrer" onerror="this.remove()">
+                    </div>
+                    <div class="min-w-0">
+                        {% if listing.brand %}<p class="label-caps !text-[10px] truncate">{{ listing.brand }}</p>{% endif %}
+                        <p class="font-display text-xl leading-snug break-words">{{ listing.title }}</p>
+                        <p class="text-xs text-stone">Dijual oleh {{ seller_name }} · {{ listing.city }}</p>
+                    </div>
+                    {% else %}
+                    <div class="min-w-0 py-2">
+                        <p class="font-display text-xl leading-snug break-words">{{ report.listing_title|default:"Listing" }}</p>
+                        <p class="text-xs text-stone">Listing sudah dihapus penjual.</p>
+                    </div>
+                    {% endif %}
+                </div>
+
+                {% if form.non_field_errors %}
+                <div role="alert" class="border border-error p-4 text-sm text-error">{{ form.non_field_errors }}</div>
+                {% endif %}
+
+                <fieldset class="space-y-0">
+                    <legend class="label-caps mb-3">Alasan</legend>
+                    {% for value, hint, selected in form.reason_options %}
+                    <label class="check-option items-center border-b border-line py-3 first:pt-0">
+                        <input type="radio" name="reason" value="{{ value }}"{% if selected %} checked{% endif %}>
+                        <span><span class="block text-sm">{{ value }}</span><span class="block text-xs text-stone">{{ hint }}</span></span>
+                    </label>
+                    {% endfor %}
+                    {% if form.reason.errors %}<div role="alert">{{ form.reason.errors }}</div>{% endif %}
+                </fieldset>
+
+                {% include "listings/components/field.html" with field=form.description hint="Wajib diisi, minimal 10 karakter. Hanya admin yang membaca laporanmu." %}
+
+                <button type="submit" class="btn btn-primary btn-block">{% if report %}Simpan perubahan{% else %}Kirim laporan{% endif %}</button>
+                <p class="text-center"><a href="{% if report %}{% url 'reports:list' %}{% else %}{% url 'listings:detail' listing.pk %}{% endif %}" class="btn btn-text">Batal</a></p>
+            </form>
+            {% else %}
+            <div class="panel space-y-4">
+                <h2 class="font-display text-3xl">Ada yang tidak sesuai?</h2>
+                <p class="text-sm text-stone">Buka halaman listing yang bermasalah, lalu klik “Laporkan listing ini”. Laporanmu hanya dibaca moderator.</p>
+                <a href="{% url 'listings:list' %}" class="btn btn-secondary">Jelajahi katalog</a>
+            </div>
+            {% endif %}
+        </div>
+
+        {# Kolom 3: riwayat laporan #}
+        <div class="min-w-0 md:col-span-2 lg:col-span-1">
+            <p class="label-caps pb-3 border-b border-line">Riwayat laporan</p>
+            {% if page.object_list %}
+            <ul>
+                {% for item in page.object_list %}
+                <li class="border-b border-line py-5 space-y-2">
+                    <div class="flex items-start justify-between gap-4">
+                        <p class="font-display text-xl leading-snug break-words">
+                            {% if item.listing %}<a href="{% url 'listings:detail' item.listing.pk %}">{{ item.listing.title }}</a>
+                            {% else %}{{ item.listing_title|default:"Listing" }} <span class="tag">Listing dihapus</span>{% endif %}
+                        </p>
+                        {# Status selalu teks, bukan hanya warna #}
+                        <span class="tag shrink-0{% if item.status == 'open' %} tag-accent{% endif %}">{{ item.get_status_display }}</span>
+                    </div>
+                    <p class="text-xs text-stone">{{ item.get_reason_display }} · {% language 'id' %}{{ item.created_at|date:"j M Y" }}{% endlanguage %}</p>
+                    <p class="text-sm text-stone whitespace-pre-line break-words">{{ item.description|truncatewords:30 }}</p>
+                    {% if item.is_editable %}
+                    <div class="flex gap-5 pt-1">
+                        <a href="{% url 'reports:edit' item.pk %}" class="row-action">Ubah laporan</a>
+                        <a href="{% url 'reports:delete' item.pk %}" class="row-action row-action--danger">Hapus</a>
+                    </div>
+                    {% endif %}
+                </li>
+                {% endfor %}
+            </ul>
+
+            {% if page.paginator.num_pages > 1 %}
+            <nav aria-label="Halaman" class="flex items-center gap-4 pt-6 text-sm">
+                {% for number in page.paginator.page_range %}
+                <a href="?page={{ number }}"{% if number == page.number %} aria-current="page" class="font-semibold underline underline-offset-4"{% endif %}>{{ number }}</a>
+                {% endfor %}
+            </nav>
+            {% endif %}
+            {% else %}
+            <p class="py-10 text-sm text-stone">Kamu belum membuat laporan.</p>
+            {% endif %}
+        </div>
+    </div>
+</section>
+{% endblock %}
