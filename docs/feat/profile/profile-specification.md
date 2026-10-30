@@ -23,7 +23,7 @@ Ini adalah dokumen perencanaan, bukan implementasi. Template HTML di direktori `
 - Etalase profil sendiri dan orang lain memakai struktur yang sama; edit dilakukan melalui menu akun menuju `/profile/edit/`.
 - Template `auth-verifyphone.html` hanya referensi desain untuk kemungkinan pengembangan mendatang.
 - Pengguna baru wajib membuat profil dengan `display_name` sebelum mengakses fitur yang mensyaratkan member. Bio dan field lain tidak diwajibkan untuk menyelesaikan onboarding.
-- Profil dan akun adalah konsep berbeda. Menghapus profil tidak menghapus akun. Penghapusan akun beserta listing/data terkait adalah fitur mendatang, bukan MVP.
+- Profil dan akun adalah konsep berbeda. Menghapus profil tidak menghapus akun. Penghapusan akun bukan MVP; alur dan kebijakan untuk pengembangan mendatang ditetapkan pada [spesifikasi penghapusan akun](account-deletion-specification.md).
 - Hanya halaman 404 yang menjadi deliverable error page saat ini.
 - Tailwind CSS mengikuti acuan UI pada template project; halaman implementasi menggunakan kerangka bersama Django template.
 
@@ -93,7 +93,7 @@ Avatar, sampul, dan nomor telepon opsional masuk MVP sesuai keputusan produk ter
 - Fitur hapus profil tetap bagian dari CRUD profil MVP, meskipun bukan prioritas implementasi tahap pertama.
 - Menghapus profil hanya menghapus record profil; akun Django dan listing, favorite, serta report tetap ada.
 - Cascade hanya berlaku dari user yang dihapus ke profil terkait. Penghapusan user bukan konsekuensi dari menghapus profil.
-- Penghapusan akun yang kelak menghapus listing dan data terkait memerlukan alur dan kebijakan tersendiri; tidak diimplementasikan atau dijanjikan oleh fitur ini.
+- Penghapusan akun adalah aksi terpisah dari penghapusan profil. Implementasi awal mencakup akun Django, profil, pencabutan sesi, dan pembatasan konfirmasi; integrasi modul lain masih tertunda. Alur dan status lengkap mengikuti [spesifikasi penghapusan akun](account-deletion-specification.md).
 
 ## 5. Alur pengguna
 
@@ -217,6 +217,7 @@ Rute dapat disesuaikan implementasinya selama perilaku dan batas akses dipenuhi.
 | Profil saya | `/profile/` | Member |
 | Edit profil | `/profile/edit/` | Pemilik/member |
 | Hapus profil | `/profile/delete/` | Pemilik; prioritas lanjutan dalam lingkup MVP |
+| Konfirmasi hapus akun | `/accounts/delete/` | Pemilik akun non-staff/non-superuser, termasuk profil belum lengkap |
 | Profil publik | `/profile/<user_id>/` | Semua; mengikuti privasi dan aturan listing utama |
 | Halaman tidak ditemukan | handler 404 | Semua |
 
@@ -275,7 +276,7 @@ Template implementasi mengikuti `base.html`, komponen header/footer, token dan f
 - [X] Email akun tersimpan sebagai field Django User, tetap opsional, tidak terverifikasi, dan bukan kontak publik otomatis.
 - [ ] Kontak publik tidak terlihat guest dan tidak boleh berisi alamat rumah. Pembatasan visibilitas sudah diterapkan; validasi alamat hanya berbasis pola dan belum mencakup semua kemungkinan alamat.
 - [ ] Menghapus profil tidak menghapus akun, listing, favorite, atau report; penghapusan profil dapat diikuti pembuatan ulang. Fitur hapus profil belum tersedia.
-- [X] Penghapusan akun massal beserta listing tidak tersedia dalam MVP.
+- [ ] Kontrak penuh penghapusan akun mengikuti [spesifikasi penghapusan akun](account-deletion-specification.md); akun/profil telah diimplementasikan, tetapi integrasi modul data terkait belum tersedia.
 
 ### Halaman 404
 
@@ -298,11 +299,11 @@ Catatan tahap implementasi etalase: modul listing/favorite belum tersedia pada b
 - [X] Nomor tampil sebagai “Telepon” tanpa badge verifikasi atau WhatsApp; email kontak tidak diambil otomatis dari email akun.
 - [X] Guest dan user belum onboarding tidak menerima kontak/telepon di HTML, atribut, partial HTMX, atau respons data. Ajakan login/onboarding mempertahankan tujuan aman.
 - [X] Instagram/email/other menghasilkan CTA yang sesuai; kontak kosong dan nomor-saja memiliki fallback yang benar.
-- [X] Semua permukaan etalase mengecualikan Hidden/moderasi, termasuk hitungan dan cuplikan serta ketika pemilik membukanya.
-- [X] Dijual default, Terjual terpisah; hitungan total sesuai status, bukan jumlah kartu termuat.
-- [X] Kedua tab memuat 8 barang, label sisa tepat, serta tombol hilang pada akhir daftar; uji 0, 1, 8, 9, dan lebih dari 16 hasil.
-- [X] Urutan terbaru/harga deterministik; tab, urutan, dan posisi pemuatan dapat dipulihkan lewat URL/riwayat dan bekerja tanpa JavaScript.
-- [X] Cuplikan maksimal empat Sold berdasarkan waktu transisi Sold, hanya pada tab Dijual; tautan menuju tab Terjual.
+- [ ] Semua permukaan etalase mengecualikan Hidden/moderasi, termasuk hitungan dan cuplikan serta ketika pemilik membukanya.
+- [ ] Dijual default, Terjual terpisah; hitungan total sesuai status, bukan jumlah kartu termuat.
+- [ ] Kedua tab memuat 8 barang, label sisa tepat, serta tombol hilang pada akhir daftar; uji 0, 1, 8, 9, dan lebih dari 16 hasil.
+- [ ] Urutan terbaru/harga deterministik; tab, urutan, dan posisi pemuatan dapat dipulihkan lewat URL/riwayat dan bekerja tanpa JavaScript.
+- [ ] Cuplikan maksimal empat Sold berdasarkan waktu transisi Sold, hanya pada tab Dijual; tautan menuju tab Terjual.
 - [ ] Favorit hanya dapat ditambahkan untuk Available milik orang lain; request langsung tetap diperiksa dan favorite tidak duplikat.
 - [ ] Favorite lama pada Sold tetap ada dan dapat dihapus pemilik; tidak ada aksi tambah pada Sold/listing sendiri.
 - [ ] Perubahan status bersamaan diperiksa ulang pada daftar dan aksi; kegagalan pemuatan mempertahankan kartu dan dapat dicoba ulang.
@@ -315,7 +316,7 @@ Catatan tahap implementasi etalase: modul listing/favorite belum tersedia pada b
 - Pemulihan/reset password kecuali bila nanti ditetapkan sebagai bagian terpisah dari autentikasi.
 - Upload file gambar ke Pakelagi, penyimpanan/pemrosesan gambar di server, serta jaminan ukuran/format file eksternal. Avatar dan cover berbasis URL HTTPS termasuk MVP.
 - Verifikasi kepemilikan nomor telepon, badge “Nomor terverifikasi”, dan integrasi WhatsApp.
-- Penghapusan akun beserta listing dan data terkait.
+- Implementasi penghapusan akun; rancangan perilakunya dicatat pada [spesifikasi penghapusan akun](account-deletion-specification.md).
 - Halaman custom 403/500.
 - Implementasi front-end terpisah dengan React; aplikasi tetap menggunakan Django Templates.
 

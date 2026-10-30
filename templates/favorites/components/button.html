@@ -1,8 +1,10 @@
-<div id="{{ component_id }}" class="favorite-control relative z-10" data-listing-id="{{ listing.pk }}" data-can-save="{% if listing.status == 'Available' %}true{% else %}false{% endif %}" hx-history="false">
+{% load static %}
+<div id="{{ component_id }}" class="favorite-control favorite-control--{{ slot }} relative z-10" data-listing-id="{{ listing.pk }}" data-can-save="{% if listing.status == 'Available' %}true{% else %}false{% endif %}" hx-history="false"{% if not show_button %} hidden{% endif %}>
 {% if show_button %}
     {% if invite_url %}
-    <a href="{{ invite_url }}" class="btn btn-secondary btn-sm bg-white" aria-label="{{ invite_label }}">
-        <span aria-hidden="true">♡</span><span class="sr-only">{{ invite_label }}</span>
+    <a href="{{ invite_url }}" class="favorite-toggle" aria-label="{{ invite_label }}">
+        <span class="favorite-toggle-icon"><img src="{% static 'images/favorites/heart.svg' %}" alt=""></span>
+        {% if slot == 'detail' %}<span>Simpan ke Favorit</span>{% else %}<span class="sr-only">{{ invite_label }}</span>{% endif %}
     </a>
     {% else %}
     {% url 'favorites:add' listing.pk as add_url %}
@@ -15,10 +17,10 @@
         {% csrf_token %}
         <input type="hidden" name="next" value="{{ return_to }}">
         <input type="hidden" name="slot" value="{{ slot }}">
-        <button type="submit" class="btn btn-secondary btn-sm bg-white" aria-pressed="{{ saved|yesno:'true,false' }}"
+        <button type="submit" class="favorite-toggle" aria-pressed="{{ saved|yesno:'true,false' }}"
                 aria-label="{% if saved %}Hapus dari favorit{% else %}Simpan ke favorit{% endif %}">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="{% if saved %}currentColor{% else %}none{% endif %}" stroke="currentColor" stroke-width="1.5" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
-            <span class="htmx-indicator" aria-hidden="true">…</span>
+            <span class="favorite-toggle-icon"><img src="{% if saved %}{% static 'images/favorites/heart-filled.svg' %}{% else %}{% static 'images/favorites/heart.svg' %}{% endif %}" data-saved-icon="{% static 'images/favorites/heart-filled.svg' %}" data-unsaved-icon="{% static 'images/favorites/heart.svg' %}" alt=""></span>
+            {% if slot == 'detail' %}<span data-favorite-label>{% if saved %}Tersimpan di Favorit{% else %}Simpan ke Favorit{% endif %}</span>{% endif %}
         </button>
     </form>
     {% endif %}

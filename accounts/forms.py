@@ -31,6 +31,13 @@ class RegistrationForm(UserCreationForm):
     }
 
 
+class AccountDeletionForm(forms.Form):
+    username = forms.CharField(label="Username saat ini", max_length=150, strip=False,
+                               widget=forms.TextInput(attrs={"autocomplete": "username"}))
+    password = forms.CharField(label="Password saat ini", strip=False,
+                               widget=forms.PasswordInput(attrs={"autocomplete": "current-password"}))
+
+
 class LoginForm(AuthenticationForm):
     error_messages = {
         "invalid_login": "Username atau kata sandi salah.",

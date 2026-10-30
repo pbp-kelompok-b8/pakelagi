@@ -71,6 +71,40 @@ class FavoriteHtmxTests(FavoriteTestCase):
         favorite.refresh_from_db()
         self.assertEqual(favorite.note, "Awal")
 
+    def test_cancel_note_editor_returns_saved_note_without_writing(self):
+        favorite = self.save_favorite(note="Catatan tersimpan")
+        response = self.client.get(reverse("favorites:edit", args=[favorite.pk]), {
+            "view": "note", "next": self.list_url + "?category=Top",
+        }, HTTP_HX_REQUEST="true")
+        self.assertTemplateUsed(response, "favorites/components/note.html")
+        self.assertTemplateNotUsed(response, "base.html")
+        self.assertNotContains(response, "textarea")
+        self.assertContains(response, "Catatan tersimpan")
+        self.assertContains(response, "next=/favorites/%3Fcategory%3DTop")
+        favorite.refresh_from_db()
+        self.assertEqual(favorite.note, "Catatan tersimpan")
+
+    def test_cancel_note_editor_cannot_read_another_members_note(self):
+        favorite = self.save_favorite(note="Rahasia")
+        self.client.force_login(self.other)
+        response = self.client.get(reverse("favorites:edit", args=[favorite.pk]), {
+            "view": "note",
+        }, HTTP_HX_REQUEST="true")
+        self.assertEqual(response.status_code, 404)
+        self.assertNotContains(response, "Rahasia", status_code=404)
+
+    def test_remove_updates_header_summary_and_sold_count(self):
+        self.save_favorite()
+        Listing.objects.filter(pk=self.listing.pk).update(status=Listing.Status.SOLD)
+        response = self.client.get(self.list_url)
+        self.assertEqual(response.context["sold_count"], 1)
+        self.assertContains(response, "1 pakaian tersimpan")
+        self.assertContains(response, "1 sudah terjual")
+        response = self.client.post(self.action_url("remove"), {"surface": "list"}, HTTP_HX_REQUEST="true")
+        self.assertEqual(response.context["sold_count"], 0)
+        self.assertContains(response, "0 pakaian tersimpan")
+        self.assertNotContains(response, "1 sudah terjual")
+
     def test_htmx_expired_session_uses_full_page_redirect(self):
         self.client.logout()
         response = self.client.post(self.action_url("add"), {"next": "/listings/?category=Top"},

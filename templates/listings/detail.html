@@ -35,7 +35,6 @@
                 <h1 id="listing-title" class="text-4xl md:text-5xl leading-tight break-words">{{ listing.title }}</h1>
                 <p class="text-2xl pt-2">{{ listing.price|rupiah }}</p>
                 <p class="text-xs text-stone">Harga dari penjual · pembayaran &amp; serah terima di luar Pakelagi</p>
-                {% favorite_button listing slot="detail" %}
             </div>
 
             <dl class="border-t border-line text-sm">
@@ -99,6 +98,8 @@
                     {% endif %}
                 </aside>
             {% endif %}
+
+            {% favorite_button listing slot="detail" %}
 
             <!-- Penjual -->
             <div class="border-t border-line pt-6 flex items-center gap-4">
