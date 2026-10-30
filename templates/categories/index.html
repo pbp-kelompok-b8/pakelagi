@@ -1,0 +1,48 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Kategori{% endblock %}
+{% block meta_description %}Jelajahi pakaian preloved Pakelagi menurut kategori Top, Bottom, Dress, Outerwear, dan Modest Wear. Lihat jumlah barang yang masih tersedia.{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@300;400&display=swap">
+<link rel="stylesheet" href="{% static 'css/categories.css' %}">
+{% endblock %}
+{% block content %}
+<div class="category-page">
+<section class="container-page category-head" aria-labelledby="category-title">
+    <nav aria-label="Breadcrumb" class="category-breadcrumb">
+        <a href="{% url 'main:show_main' %}">Beranda</a> <span aria-hidden="true">/</span> <span aria-current="page">Kategori</span>
+    </nav>
+    <h1 id="category-title">Kategori</h1>
+    <p class="category-intro">Temukan pakaian yang ingin kamu pakai lagi. Mulai dari kategori pilihanmu.</p>
+</section>
+
+<section class="container-page category-browse" aria-labelledby="category-browse-title">
+    <div class="category-section-head">
+        <p class="category-eyebrow">Belanja per kategori</p>
+        <h2 id="category-browse-title">Temukan bentukmu</h2>
+    </div>
+    <ul class="category-grid" aria-label="Kategori pakaian">
+        {% for category in categories %}
+        <li>
+            <a href="{{ category.href }}" class="category-card" data-category="{{ category.value }}"
+               aria-labelledby="category-{{ category.slug }}-label" aria-describedby="category-{{ category.slug }}-count">
+                <picture class="category-artwork">
+                    <source media="(max-width: 767px)" srcset="{% static category.image_mobile %}">
+                    <img src="{% static category.image %}" alt="" width="256" height="320" loading="lazy">
+                </picture>
+                <div class="category-caption">
+                    <h3 id="category-{{ category.slug }}-label">{{ category.label }}</h3>
+                    <p id="category-{{ category.slug }}-count">{{ category.count }} item</p>
+                </div>
+            </a>
+        </li>
+        {% endfor %}
+    </ul>
+
+    <a href="{% url 'listings:list' %}" class="btn btn-text category-catalog-link">
+        Lihat seluruh katalog <span class="category-catalog-arrow" aria-hidden="true"><img src="{% static 'images/categories/arrow-right.svg' %}" alt="" width="11.5" height="8.833333"></span>
+    </a>
+</section>
+</div>
+{% endblock %}

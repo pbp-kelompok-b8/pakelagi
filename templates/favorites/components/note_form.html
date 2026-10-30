@@ -1,0 +1,19 @@
+{% load static %}
+{% firstof return_to favorites_return_to '/favorites/' as note_return %}
+<div id="favorite-note-{{ favorite.pk }}" class="favorite-note favorite-note--editing" hx-history="false">
+    <form method="post" action="{% url 'favorites:edit' favorite.pk %}"
+          hx-post="{% url 'favorites:edit' favorite.pk %}" hx-target="#favorite-note-{{ favorite.pk }}" hx-swap="outerHTML"
+          hx-push-url="false" hx-sync="this:drop" hx-disabled-elt="find button" data-favorite-action>
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ note_return }}">
+        {{ form.non_field_errors }}
+        <label for="{{ form.note.id_for_label }}" class="favorite-note-label"><span class="favorite-icon favorite-icon--lock"><img src="{% static 'images/favorites/lock.svg' %}" alt=""></span>{{ form.note.label }}</label>
+        {{ form.note }}
+        {{ form.note.errors }}
+        <p class="favorite-note-help">Opsional, maksimal 1.000 karakter. Hanya kamu yang dapat melihatnya.</p>
+        <div class="favorite-note-form-actions">
+            <button type="submit" class="row-action favorite-save">Simpan catatan</button>
+            <a href="{{ note_return }}" hx-get="{% url 'favorites:edit' favorite.pk %}?view=note&amp;next={{ note_return|urlencode }}" hx-target="#favorite-note-{{ favorite.pk }}" hx-swap="outerHTML" hx-push-url="false" class="row-action">Batal</a>
+        </div>
+    </form>
+</div>

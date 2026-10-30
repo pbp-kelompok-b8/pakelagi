@@ -2,7 +2,7 @@
 {% comment %}
     Susunan mengikuti Figma: kiri = menu utama, tengah = logo, kanan = cari, favorit, akun, dan tombol.
     TODO tiap modul: ganti href="#" dengan tag url setelah halamannya dibuat:
-    Penjual -> daftar penjual, Favorit -> favorites.
+    Penjual -> daftar penjual.
 {% endcomment %}
 
 {% with current=request.resolver_match.url_name app=request.resolver_match.app_name %}
@@ -12,11 +12,11 @@
         <!-- Kiri: navigasi utama (desktop) -->
         <nav class="hidden xl:flex items-center gap-8 flex-1" aria-label="Navigasi utama">
             <a href="{% url 'listings:list' %}" class="nav-link"{% if app == 'listings' %} aria-current="page"{% endif %}>Katalog</a>
-            <a href="{% url 'listings:list' %}#kategori" class="nav-link">Kategori</a>
+            <a href="{% url 'main:category_index' %}" class="nav-link"{% if app == 'main' and current == 'category_index' %} aria-current="page"{% endif %}>Kategori</a>
             <a href="{% url 'sustainableguides:list' %}" class="nav-link"{% if app == 'sustainableguides' %} aria-current="page"{% endif %}>Jurnal</a>
             <a href="#" class="nav-link">Penjual</a>
             {% if user.is_staff %}
-            <a href="{% url 'moderations:jurnal_list' %}" class="nav-link"{% if app == 'moderations' %} aria-current="page"{% endif %}>Moderasi</a>
+            <a href="{% url 'moderations:ringkasan' %}" class="nav-link"{% if app == 'moderations' %} aria-current="page"{% endif %}>Moderasi</a>
             {% endif %}
         </nav>
 
@@ -30,7 +30,7 @@
             <a href="{% url 'listings:list' %}#catalog-q" class="icon-link inline-flex items-center" aria-label="Cari pakaian">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" aria-hidden="true"><circle cx="11" cy="11" r="7"/><path d="m20 20-3.5-3.5"/></svg>
             </a>
-            <a href="#" class="icon-link inline-flex items-center" aria-label="Favorit">
+            <a href="{% url 'favorites:list' %}" class="icon-link inline-flex items-center" aria-label="Favorit"{% if app == 'favorites' %} aria-current="page"{% endif %}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" aria-hidden="true"><path d="M12 20s-7-4.4-7-10a4 4 0 0 1 7-2.6A4 4 0 0 1 19 10c0 5.6-7 10-7 10z"/></svg>
             </a>
             {% if user.is_authenticated %}
@@ -43,6 +43,7 @@
                         <p class="text-xs text-stone pb-3 border-b border-line">Masuk sebagai <strong class="font-semibold text-ink">{{ user.username }}</strong></p>
                         <a href="{% url 'profiles:profile' %}" class="nav-link block">Etalase saya</a>
                         <a href="{% url 'listings:mine' %}" class="nav-link block"{% if current == 'mine' %} aria-current="page"{% endif %}>Listing saya</a>
+                        <a href="{% url 'reports:list' %}" class="nav-link block">Laporan saya</a>
                         <a href="{% url 'profiles:profile_edit' %}" class="nav-link block">Edit profil</a>
                         <form method="post" action="{% url 'accounts:logout' %}" class="pt-3 border-t border-line">
                             {% csrf_token %}
@@ -70,7 +71,7 @@
     <nav id="mobileNav" class="mobile-nav xl:hidden" aria-label="Navigasi utama (HP)">
         <div class="container-page pb-6">
             <a href="{% url 'listings:list' %}" class="nav-link"{% if app == 'listings' %} aria-current="page"{% endif %}>Katalog</a>
-            <a href="{% url 'listings:list' %}#kategori" class="nav-link">Kategori</a>
+            <a href="{% url 'main:category_index' %}" class="nav-link"{% if app == 'main' and current == 'category_index' %} aria-current="page"{% endif %}>Kategori</a>
             <a href="{% url 'sustainableguides:list' %}" class="nav-link"{% if app == 'sustainableguides' %} aria-current="page"{% endif %}>Jurnal</a>
             <a href="#" class="nav-link">Penjual</a>
             {% if user.is_staff %}
@@ -78,7 +79,7 @@
             {% endif %}
 
             {% if user.is_authenticated %}
-                <a href="#" class="nav-link">Favorit</a>
+                <a href="{% url 'favorites:list' %}" class="nav-link"{% if app == 'favorites' %} aria-current="page"{% endif %}>Favorit</a>
                 <a href="{% url 'profiles:profile' %}" class="nav-link">Etalase saya ({{ user.username }})</a>
                 <a href="{% url 'listings:mine' %}" class="nav-link"{% if current == 'mine' %} aria-current="page"{% endif %}>Listing saya</a>
                 <a href="{% url 'profiles:profile_edit' %}" class="nav-link">Edit profil</a>
@@ -88,7 +89,7 @@
                 </form>
                 <a href="{% url 'listings:create' %}" class="btn btn-primary btn-block mt-6">Posting barang</a>
             {% else %}
-                <a href="#" class="nav-link">Favorit</a>
+                <a href="{% url 'favorites:list' %}" class="nav-link">Favorit</a>
                 <a href="{% url 'accounts:login' %}" class="nav-link">Masuk</a>
                 <a href="{% url 'accounts:register' %}" class="btn btn-primary btn-block mt-6">Daftar</a>
             {% endif %}

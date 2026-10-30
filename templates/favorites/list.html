@@ -1,0 +1,15 @@
+{% extends "base.html" %}
+{% load static %}
+
+{% block title %}Favorit{% endblock %}
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'css/listings.css' %}">
+<link rel="stylesheet" href="{% static 'css/favorites.css' %}">
+{% endblock %}
+{% block content %}
+<section class="container-page favorites-page" aria-labelledby="favorites-title" hx-history="false">
+    <div id="favorite-results" aria-live="polite">
+        {% include "favorites/components/results.html" %}
+    </div>
+</section>
+{% endblock %}

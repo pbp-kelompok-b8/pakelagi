@@ -231,7 +231,7 @@
                                 </button>
                             </form>
                             <div class="flex-1 text-zinc-900 text-base font-normal font-['Jost'] leading-6">
-                                {% if selected_guide.is_published %}Telah terbit{% else %}Belum terbit{% endif %}
+                                {% if selected_guide.is_scheduled %}Dijadwalkan {{ selected_guide.date_published|date:"j M Y H:i" }}{% elif selected_guide.is_published %}Telah terbit{% else %}Belum terbit{% endif %}
                             </div>
                             <div class="text-stone-600 text-xs font-normal font-['Jost'] leading-5 tracking-tight">is_published = {{ selected_guide.is_published|yesno:"true,false" }}</div>                     
                         

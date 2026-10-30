@@ -4,7 +4,19 @@ from django.utils import timezone
 from profiles.validators import validate_external_https_url
 # Create your models here.
 
+
+class GuideQuerySet(models.QuerySet):
+    def published(self):
+        return self.filter(
+            status='DISETUJUI',
+            is_published=True,
+            date_published__lte=timezone.now(),
+        )
+
+
 class Guide(models.Model):
+    objects = GuideQuerySet.as_manager()
+
     # Pilihan Status
     STATUS_CHOICES = (
         ('PENDING', 'Pending'),
@@ -22,6 +34,7 @@ class Guide(models.Model):
     )
     # Untuk relasi dengan User Author
     author = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.CASCADE, related_name='guides')
+    approved_by = models.ForeignKey(settings.AUTH_USER_MODEL, on_delete=models.SET_NULL, null=True, blank=True, related_name='approved_guides')
     # Bagian Content yang akan ditampilkan
     title = models.CharField("Judul", max_length=255)
     ringkasan = models.CharField("Ringkasan", max_length=300, help_text="ringkasan mengenai guides yang kamu buat")
@@ -35,6 +48,15 @@ class Guide(models.Model):
     #Penanggalan
     date_submitted = models.DateTimeField(auto_now_add=True)
     date_published = models.DateTimeField(blank=True, null=True)
+
+    @property
+    def is_scheduled(self):
+        return (
+            self.status == 'DISETUJUI'
+            and self.is_published
+            and self.date_published is not None
+            and self.date_published > timezone.now()
+        )
     
     class Meta:
         db_table = "sustainable_guide"
@@ -62,6 +84,13 @@ class Guide(models.Model):
             
         # Kontigensi jika display_name kosong
         return self.author.username
+    
+    @property
+    def moderator_name(self):
+        if hasattr(self.approved_by, 'profile') and self.approved_by.profile.display_name:
+            return self.approved_by.profile.display_name
+                
+        return "-"
     
     #untuk ubah status ketika disetujui
     def save(self, *args, **kwargs):

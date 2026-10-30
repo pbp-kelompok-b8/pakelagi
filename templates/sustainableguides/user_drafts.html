@@ -104,13 +104,15 @@
                             </div>
                         {% elif draft.status == 'DISETUJUI' %}
                             <div class="text-neutral-700 text-xs font-normal font-['Jost'] leading-5 tracking-tight">
-                                {% if draft.is_published %}
-                                    Disetujui dan telah terbit di Jurnal.
+                                {% if draft.is_scheduled %}
+                                    Dijadwalkan terbit {{ draft.date_published|date:"j M Y H:i" }}.
+                                {% elif draft.is_published %}
+                                    Disetujui oleh {{ draft.moderator_name }} dan telah terbit di Jurnal.
                                 {% else %}
-                                    Disetujui — menunggu jadwal terbit dari admin.
+                                    Disetujui oleh {{ draft.moderator_name }} — menunggu jadwal terbit dari admin.
                                 {% endif %}
                             </div>
-                            {% if draft.is_published %}
+                            {% if draft.is_published and not draft.is_scheduled %}
                             <a href="{% url 'sustainableguides:detail' draft.id %}" class="text-amber-700 text-xs font-semibold font-['Jost'] underline uppercase leading-4 tracking-wider hover:text-amber-800">Lihat Panduan</a>
                             {% endif %}
                         {% elif draft.status == 'DITOLAK' %}

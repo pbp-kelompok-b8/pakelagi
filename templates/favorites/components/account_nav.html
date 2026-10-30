@@ -1,0 +1,20 @@
+<aside class="favorites-account">
+    <nav aria-label="Akun saya" class="account-nav">
+        <p class="label-caps pb-5">Akun saya</p>
+        <a href="{% url 'profiles:profile_edit' %}">Profil</a>
+        <a href="{% url 'listings:mine' %}">Listing saya</a>
+        <a href="{% url 'listings:mine' %}?status=terjual">Penjualan</a>
+        <a href="{% url 'favorites:list' %}" aria-current="page">Favorit <span aria-hidden="true">→</span></a>
+        <a href="{% url 'sustainableguides:my_submissions' %}">Draf panduan</a>
+        <form method="post" action="{% url 'accounts:logout' %}" class="border-b border-line">{% csrf_token %}<button type="submit">Keluar</button></form>
+    </nav>
+    <details class="favorites-filters"{% if category %} open{% endif %}>
+        <summary>Filter kategori{% if category %}: {{ category }}{% endif %}</summary>
+        <nav aria-label="Kategori favorit">
+            {% for tab in tabs %}
+            <a href="{{ tab.href }}" hx-get="{{ tab.href }}" hx-target="#favorite-results" hx-swap="innerHTML" hx-push-url="true" class="my-tab"{% if tab.active %} aria-current="page"{% endif %}>{{ tab.label }}</a>
+            {% endfor %}
+        </nav>
+        <p class="favorites-filter-count">{{ favorites|length }} dari {{ total_count }} favorit</p>
+    </details>
+</aside>

@@ -1,0 +1,13 @@
+{% extends "base.html" %}
+{% load static listing_extras %}
+
+{% block title %}Edit catatan favorit{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/listings.css' %}"><link rel="stylesheet" href="{% static 'css/favorites.css' %}">{% endblock %}
+{% block content %}
+<section class="container-page favorites-page favorite-editor-page" aria-labelledby="note-title" hx-history="false">
+    <a href="{{ return_to|default:'/favorites/' }}" class="row-action">← Kembali ke favorit</a>
+    <h1 id="note-title">Edit catatan pribadi</h1>
+    <p class="favorite-editor-listing">{{ favorite.listing.title }} <span>{{ favorite.listing.price|rupiah }}</span></p>
+    {% include "favorites/components/note_form.html" %}
+</section>
+{% endblock %}

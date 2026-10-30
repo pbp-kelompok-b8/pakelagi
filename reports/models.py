@@ -74,7 +74,6 @@ class Report(models.Model):
     reason = models.CharField(max_length=20, choices=REASONS)
     description = models.TextField(blank=False, null=False, validators=[MinLengthValidator(10)])
     status = models.CharField(max_length=10, choices=STATUS, default='open')
-    moderator_note = models.TextField(blank=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(blank=True, null=True, auto_now=True)
     
@@ -128,5 +127,14 @@ class Report(models.Model):
     def is_editable(self):
         return self.status == "open"
     
-    
+class ReportModeratorNote(models.Model):
+    id = models.UUIDField(primary_key=True, default=uuid.uuid4, editable=False)
+    moderator_id = models.ForeignKey(
+        User, related_name='moderator_id', on_delete=models.CASCADE ,null=False, blank=False
+    )
+    report_id = models.ForeignKey(
+        Report, related_name='report_id', on_delete=models.CASCADE, blank=False, null=False
+    )
+    note = models.TextField(blank=False, null=False, validators=[MinLengthValidator(10)])
+    created_at = models.DateTimeField(auto_now_add=True)
     

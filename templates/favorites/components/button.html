@@ -1,0 +1,28 @@
+{% load static %}
+<div id="{{ component_id }}" class="favorite-control favorite-control--{{ slot }} relative z-10" data-listing-id="{{ listing.pk }}" data-can-save="{% if listing.status == 'Available' %}true{% else %}false{% endif %}" hx-history="false"{% if not show_button %} hidden{% endif %}>
+{% if show_button %}
+    {% if invite_url %}
+    <a href="{{ invite_url }}" class="favorite-toggle" aria-label="{{ invite_label }}">
+        <span class="favorite-toggle-icon"><img src="{% static 'images/favorites/heart.svg' %}" alt=""></span>
+        {% if slot == 'detail' %}<span>Simpan ke Favorit</span>{% else %}<span class="sr-only">{{ invite_label }}</span>{% endif %}
+    </a>
+    {% else %}
+    {% url 'favorites:add' listing.pk as add_url %}
+    {% url 'favorites:remove' listing.pk as remove_url %}
+    <form method="post" action="{% if saved %}{{ remove_url }}{% else %}{{ add_url }}{% endif %}"
+          hx-post="{% if saved %}{{ remove_url }}{% else %}{{ add_url }}{% endif %}"
+          hx-target="#{{ component_id }}" hx-swap="outerHTML" hx-push-url="false"
+          hx-sync="this:drop" hx-disabled-elt="find button" data-favorite-action
+          data-add-url="{{ add_url }}" data-remove-url="{{ remove_url }}">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ return_to }}">
+        <input type="hidden" name="slot" value="{{ slot }}">
+        <button type="submit" class="favorite-toggle" aria-pressed="{{ saved|yesno:'true,false' }}"
+                aria-label="{% if saved %}Hapus dari favorit{% else %}Simpan ke favorit{% endif %}">
+            <span class="favorite-toggle-icon"><img src="{% if saved %}{% static 'images/favorites/heart-filled.svg' %}{% else %}{% static 'images/favorites/heart.svg' %}{% endif %}" data-saved-icon="{% static 'images/favorites/heart-filled.svg' %}" data-unsaved-icon="{% static 'images/favorites/heart.svg' %}" alt=""></span>
+            {% if slot == 'detail' %}<span data-favorite-label>{% if saved %}Tersimpan di Favorit{% else %}Simpan ke Favorit{% endif %}</span>{% endif %}
+        </button>
+    </form>
+    {% endif %}
+{% endif %}
+</div>

@@ -168,22 +168,32 @@ source env/bin/activate
 # 3. Install dependencies
 pip install -r requirements.txt
 
-# 4. Jalankan migration (lokal tidak butuh file .env, langsung memakai SQLite)
+# 4. Buat SECRET_KEY dan aktifkan DEBUG lokal di .env (cukup sekali saat setup)
+python -c "from django.core.management.utils import get_random_secret_key; from dotenv import set_key; set_key('.env', 'SECRET_KEY', get_random_secret_key())"
+python -c "from dotenv import set_key; set_key('.env', 'DEBUG', 'True')"
+
+# 5. Jalankan migration (lokal memakai SQLite)
 python manage.py migrate
 
-# 5. Isi data contoh: 5 penjual contoh dengan 50 listing tersedia + 10 terjual (lihat bagian "Seed data")
+# 6. Isi data contoh: 5 penjual contoh dengan 50 listing tersedia + 10 terjual (lihat bagian "Seed data")
 python manage.py seed_listings
 
-# 6. (Opsional) buat superuser untuk akses admin/moderasi
+# 7. (Opsional) buat superuser untuk akses admin/moderasi
 python manage.py createsuperuser
 
-# 7. Jalankan development server
+# 8. Jalankan development server
 python manage.py runserver
 ```
 
 Aplikasi berjalan di `http://127.0.0.1:8000/`.
 
-Secara default (`PRODUCTION` tidak diset atau `false`), project memakai **SQLite** (`db.sqlite3`) agar mudah dijalankan lokal tanpa setup PostgreSQL. Di production/PWS, buat file `.env` (dibaca otomatis oleh `settings.py` lewat `python-dotenv`; file ini tidak ikut Git) yang berisi `PRODUCTION=true` beserta `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` agar aplikasi memakai **PostgreSQL**.
+`SECRET_KEY` wajib diatur melalui environment server atau file `.env` di root proyek. Environment server diprioritaskan atas `.env`. Gunakan key berbeda untuk lokal dan production, simpan tetap antar-restart, dan jangan commit nilainya. File `.env*` sudah diabaikan Git. Jika `SECRET_KEY` belum diatur, aplikasi akan gagal startup.
+
+`DEBUG` dibaca dari environment dengan default `False`. Gunakan `DEBUG=True` untuk development lokal dan `DEBUG=False` di PWS. Nilai `true` tidak membedakan huruf besar-kecil; nilai lainnya menonaktifkan debug.
+
+Saat `PRODUCTION=true`, cookie session dan CSRF otomatis memakai atribut `Secure`, sehingga browser hanya mengirimkannya melalui HTTPS. Akses PWS lewat HTTPS; development lokal dengan `PRODUCTION=false` tetap mendukung HTTP.
+
+Secara default (`PRODUCTION` tidak diset atau `false`), project memakai **SQLite** (`db.sqlite3`) agar mudah dijalankan lokal tanpa setup PostgreSQL. Di production/PWS, atur `SECRET_KEY` baru sebelum deploy, lalu `PRODUCTION=true` beserta `DB_NAME`, `DB_USER`, `DB_PASSWORD`, `DB_HOST`, `DB_PORT` agar aplikasi memakai **PostgreSQL**. File `.env.prod` tidak otomatis dibaca; gunakan environment server atau file bernama `.env`.
 
 ### Seed data
 

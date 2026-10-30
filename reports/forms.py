@@ -1,5 +1,5 @@
 from reports.models import Report
-from django.forms import ModelForm, RadioSelect, Textarea
+from django.forms import ModelForm, RadioSelect, Textarea, CharField
 
 REASON_HINTS = {
     "Counterfeit": "Barang palsu atau tiruan.",
@@ -8,32 +8,6 @@ REASON_HINTS = {
     "Prohibited Item": "Barang yang dilarang.",
     "Other": "Alasan lain.",
 }
-
-class ReportModerationForm(ModelForm):
-    class Meta:
-        model = Report
-        fields = [
-            'status',
-            'moderator_note'
-        ]
-        labels = {
-            'status': 'status laporan',
-            'moderator_note': 'catatan moderator',
-        }
-        widgets = {
-            'status': RadioSelect(
-                attrs={
-                    "required" : True,
-                    "class": "status-select",
-                }
-            ),
-            'moderator_note': Textarea(
-                attrs={
-                    "placeholder": "Tuliskan alasan keputusan untuk tim..",
-                    "rows": 4,
-                }
-            )
-        }
         
 class ReportForm(ModelForm):
     class Meta:

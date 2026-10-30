@@ -1,0 +1,62 @@
+{% load static listing_extras i18n %}
+<div class="favorites-heading">
+    <h1 id="favorites-title">Favorit</h1>
+    <p class="favorites-summary">{{ total_count }} pakaian tersimpan{% if sold_count %} <span aria-hidden="true">·</span> {{ sold_count }} sudah terjual{% endif %}</p>
+</div>
+<div class="favorites-layout">
+    {% include "favorites/components/account_nav.html" %}
+    <div class="favorites-content">
+        {% if favorites %}
+        <ul class="favorites-rows">
+            {% for favorite in favorites %}
+            <li id="favorite-{{ favorite.pk }}" class="favorite-row">
+                <a href="{% url 'listings:detail' favorite.listing_id %}" class="favorite-photo{% if favorite.listing.status == 'Sold' %} favorite-photo--sold{% endif %}" tabindex="-1" aria-hidden="true">
+                    <span class="favorite-photo-fallback">Foto tidak tersedia</span>
+                    <img src="{{ favorite.listing.image_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">
+                    {% if favorite.listing.status == 'Sold' %}<span class="tag tag-sold">Terjual</span>{% endif %}
+                </a>
+                <div class="favorite-info">
+                    {% if favorite.listing.brand %}<p class="label-caps">{{ favorite.listing.brand }}</p>{% endif %}
+                    <h2><a href="{% url 'listings:detail' favorite.listing_id %}">{{ favorite.listing.title }}</a></h2>
+                    <p class="favorite-price">{{ favorite.listing.price|rupiah }}</p>
+                    <p class="favorite-condition">
+                        <span class="cond-bar" data-level="{% if favorite.listing.condition == 'Like New' %}4{% elif favorite.listing.condition == 'Good' %}3{% elif favorite.listing.condition == 'Fair' %}2{% else %}1{% endif %}" aria-hidden="true"><i></i><i></i><i></i><i></i></span>
+                        {{ favorite.listing.condition }}
+                    </p>
+                    <p class="favorite-location">{{ favorite.listing.city }} <span aria-hidden="true">·</span> {{ favorite.listing.size }}</p>
+                </div>
+                {% include "favorites/components/note.html" %}
+                <div class="favorite-actions">
+                    {% if favorite.listing.status == 'Sold' %}
+                    <p class="favorite-sold-date">Terjual{% if favorite.listing.sold_at %} {% language 'id' %}{{ favorite.listing.sold_at|date:"j M Y" }}{% endlanguage %}{% endif %}</p>
+                    {% else %}
+                    <a href="{% url 'listings:detail' favorite.listing_id %}" class="row-action favorite-view">Lihat listing <span class="favorite-icon favorite-icon--arrow"><img src="{% static 'images/favorites/arrow-right.svg' %}" alt=""></span></a>
+                    {% endif %}
+                    <form method="post" action="{% url 'favorites:remove' favorite.listing_id %}"
+                          hx-post="{% url 'favorites:remove' favorite.listing_id %}" hx-target="#favorite-results"
+                          hx-swap="innerHTML" hx-push-url="false" hx-sync="this:drop" hx-disabled-elt="find button" data-favorite-action>
+                        {% csrf_token %}
+                        <input type="hidden" name="next" value="{{ favorites_return_to }}">
+                        <input type="hidden" name="surface" value="list">
+                        <input type="hidden" name="category" value="{{ category }}">
+                        <button type="submit" class="row-action favorite-remove" aria-label="Hapus favorit"><span class="favorite-icon favorite-icon--heart"><img src="{% static 'images/favorites/heart-filled.svg' %}" alt=""></span> Hapus</button>
+                    </form>
+                </div>
+            </li>
+            {% endfor %}
+        </ul>
+        {% elif total_count %}
+        <div class="favorites-empty">
+            <h2>Belum ada favorit di kategori ini</h2>
+            <a href="{% url 'favorites:list' %}" hx-get="{% url 'favorites:list' %}" hx-target="#favorite-results" hx-push-url="true" class="btn btn-secondary">Lihat semua favorit</a>
+        </div>
+        {% else %}
+        <div class="favorites-empty">
+            <h2>Belum ada favorit</h2>
+            <p>Simpan pakaian pilihanmu dari katalog.</p>
+            <a href="{% url 'listings:list' %}" class="btn btn-primary">Jelajahi katalog</a>
+        </div>
+        {% endif %}
+        <p class="favorites-privacy">Simpanan dan catatan ini hanya terlihat olehmu. Bukan pesanan atau reservasi.</p>
+    </div>
+</div>
