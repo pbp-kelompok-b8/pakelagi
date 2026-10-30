@@ -1,0 +1,24 @@
+{% extends "base.html" %}
+{% block title %}Hapus akun · Pakelagi{% endblock %}
+{% block content %}
+<section class="container-page py-16 space-y-8" aria-labelledby="delete-title">
+    <h1 id="delete-title" class="text-4xl">Hapus akun</h1>
+    <div class="border border-error p-6 space-y-4">
+        <p class="text-error font-bold">Penghapusan ini permanen dan tidak dapat dibatalkan.</p>
+        <p>Akun, profil, semua listing, favorit, dan panduan yang kamu tulis akan dihapus. Favorit pengguna lain pada listing yang dihapus juga dihapus. Username akan tersedia kembali untuk akun baru, tanpa memulihkan data lama.</p>
+        <p>Laporan moderasi dipertahankan tanpa identitas pelapor terstruktur dan diputus dari listing yang dihapus. Informasi pribadi yang kamu tulis dalam isi laporan mungkin tetap tersimpan.</p>
+        <p>File gambar di layanan eksternal tidak ikut terhapus; Pakelagi hanya menghapus referensi URL-nya. Semua sesi login akan berakhir.</p>
+    </div>
+    <form method="post" class="space-y-6">
+        {% csrf_token %}
+        {% if form.non_field_errors %}<div role="alert" class="text-error">{{ form.non_field_errors }}</div>{% endif %}
+        {% for field in form %}
+        <div class="space-y-2">{{ field.label_tag }} {{ field }}{% if field.errors %}<div role="alert">{{ field.errors }}</div>{% endif %}</div>
+        {% endfor %}
+        <div class="flex flex-wrap gap-6 items-center">
+            <button type="submit" class="btn border border-error text-error">Hapus akun secara permanen</button>
+            <a href="{% url 'main:show_main' %}" class="underline">Batal</a>
+        </div>
+    </form>
+</section>
+{% endblock %}
