@@ -4,6 +4,7 @@ from django.contrib.auth import get_user_model
 from django.utils import timezone
 from .models import Guide
 from .forms import GuideForm
+from profiles.models import Profile
 
 User = get_user_model()
 
@@ -182,6 +183,8 @@ class GuideMemberCRUDAndAuthTests(TestCase):
     def setUp(self):
         self.user_a = User.objects.create_user(username='usera', password='password123')
         self.user_b = User.objects.create_user(username='userb', password='password123')
+        Profile.objects.create(user=self.user_a, display_name='User A')
+        Profile.objects.create(user=self.user_b, display_name='User B')
 
         self.draft_a = Guide.objects.create(
             author=self.user_a,
