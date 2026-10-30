@@ -486,6 +486,19 @@ h2 em {
 }
 
 /* Aksesibilitas */
+/* Favorites controls: quiet icon on photos, full-width action below seller contact. */
+.favorite-toggle { display: inline-flex; align-items: center; justify-content: center; gap: 12px; padding: 0; border: 0; background: transparent; color: var(--ink); cursor: pointer; }
+.favorite-toggle:hover { color: var(--terracotta); }
+.favorite-toggle-icon { position: relative; display: inline-block; flex: 0 0 auto; width: 24px; height: 24px; }
+.favorite-toggle-icon img { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%); max-width: none; }
+.favorite-control--card .favorite-toggle { width: 32px; height: 32px; }
+.favorite-control--detail .favorite-toggle { width: 100%; min-height: 54px; padding: 16px 24px; border: 1px solid var(--ink); font-size: 12px; font-weight: 600; line-height: 16px; letter-spacing: .14em; text-transform: uppercase; }
+.favorite-control--detail .favorite-toggle-icon { width: 18px; height: 18px; }
+.favorite-control--detail .favorite-toggle-icon img { transform: translate(-50%, -50%) scale(.75); }
+.favorite-control [data-favorite-error] { max-width: 26rem; padding: 12px; background: var(--ivory); border: 1px solid var(--line); }
+.favorite-control--card [data-favorite-error] { position: absolute; right: 0; min-width: 14rem; }
+.favorite-control .htmx-request .favorite-toggle { opacity: .5; cursor: wait; }
+
 a:focus-visible,
 button:focus-visible,
 .btn:focus-visible {
