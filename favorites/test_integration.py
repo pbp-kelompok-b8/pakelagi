@@ -35,6 +35,28 @@ class FormParser(HTMLParser):
 
 
 class FavoriteIntegrationTests(FavoriteTestCase):
+    def test_favorites_sidebar_links_to_guide_submissions(self):
+        self.save_favorite()
+        submissions_url = reverse("sustainableguides:my_submissions")
+        cases = (
+            ("full page", {}, {}),
+            ("partial", {}, {"HTTP_HX_REQUEST": "true"}),
+            ("category filter", {"category": "Top"}, {"HTTP_HX_REQUEST": "true"}),
+            ("history restore", {}, {
+                "HTTP_HX_REQUEST": "true", "HTTP_HX_HISTORY_RESTORE_REQUEST": "true",
+            }),
+        )
+        for surface, params, headers in cases:
+            with self.subTest(surface=surface):
+                response = self.client.get(self.list_url, params, **headers)
+                self.assertContains(response, f'href="{submissions_url}"')
+
+        response = self.client.post(
+            self.action_url("remove"), {"surface": "list"}, HTTP_HX_REQUEST="true",
+        )
+        self.assertContains(response, f'href="{submissions_url}"')
+        self.assertContains(response, "Belum ada favorit")
+
     def test_catalog_has_separate_csrf_protected_favorite_forms(self):
         response = self.client.get(reverse("listings:list"), {"category": "Top"})
         parser = FormParser(response.content.decode())
