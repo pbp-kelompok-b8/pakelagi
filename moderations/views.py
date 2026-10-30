@@ -172,7 +172,7 @@ def delete_jurnal_action(request, id):
         messages.success(request, f"Panduan '{title}' berhasil dihapus secara permanen.")
         
     next_tab = request.GET.get('tab', 'pending')
-    return redirect(f"/moderation/jurnal/?tab={next_tab}")
+    return redirect(f"{reverse('moderations:jurnal_list')}?tab={next_tab}")
 
 # Fungsi untuk publishing
 @user_passes_test(is_admin, login_url='accounts:login')
