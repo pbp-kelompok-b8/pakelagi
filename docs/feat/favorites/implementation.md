@@ -10,6 +10,27 @@
 - Branch dan PR tetap terpisah. Implementasi ini belum di-push atau dibuatkan PR;
   tidak ada merge otomatis ke `dev`.
 
+## AI disclosure
+
+Pengembangan pada branch `feat/favorites` menggunakan bantuan **OpenAI Codex**
+untuk menyusun dan menyesuaikan kode, pengujian, serta dokumentasi.
+
+Cakupan bantuan AI meliputi:
+
+- Implementasi model dan migration `Favorite`, form catatan, views, URL,
+  serta aturan autentikasi, kepemilikan, dan privasi favorit.
+- Integrasi tombol simpan pada katalog, detail listing, dan etalase profil;
+  filter kategori dan editor catatan melalui HTMX.
+- Penyesuaian template dan CSS terhadap referensi Figma, termasuk layout
+  responsif dan pemakaian aset ikon yang diekspor dari Figma.
+- Penyusunan dan pelaksanaan test Django, pemeriksaan browser dengan
+  Playwright, serta pencatatan hasil verifikasi.
+
+Referensi desain dan ikon berasal dari file Figma proyek yang dicatat pada
+bagian penyesuaian desain. Anggota penanggung jawab branch tetap bertanggung
+jawab memahami, meninjau, dan memvalidasi kode serta hasil pengujian sebelum
+pengumpulan. Disclosure ini berlaku untuk kontribusi pada `feat/favorites`.
+
 ## Aturan domain
 
 Mengikuti `CONTEXT.md` dan kebijakan `profiles.access.member_required`:
