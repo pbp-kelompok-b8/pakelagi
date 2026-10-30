@@ -529,7 +529,7 @@ class NavigationLinkTests(TestCase):
 
     def test_header_main_menu_matches_the_design_in_desktop_and_mobile_menus(self):
         html = self.client.get("/").content.decode().split("</header>")[0]  # footer punya tautan serupa
-        for href in ('href="/listings/#kategori"', 'href="/guides/"'):
+        for href in ('href="/categories/"', 'href="/guides/"'):
             with self.subTest(href=href):
                 self.assertEqual(html.count(href), 2)  # menu desktop + menu HP
         for label in (">Katalog<", ">Kategori<", ">Jurnal<", ">Penjual<"):
@@ -548,7 +548,7 @@ class NavigationLinkTests(TestCase):
         self.assertContains(self.client.get("/listings/"), 'class="nav-link" aria-current="page">Katalog<', count=2)
         self.assertNotContains(self.client.get("/"), 'aria-current="page">Katalog<')
 
-    def test_catalog_has_the_category_anchor_used_by_the_header(self):
+    def test_catalog_keeps_its_existing_category_tabs_anchor(self):
         self.assertContains(self.client.get("/listings/"), 'id="kategori"')
 
     def test_guest_homepage_cta_points_to_register(self):

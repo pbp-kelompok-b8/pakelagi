@@ -1,0 +1,18 @@
+<svg preserveAspectRatio="none" overflow="visible" style="display: block;" width="256" height="320" viewBox="0 0 256 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+<g id="Image/Dress &#226;&#128;&#148; Ink" clip-path="url(#clip0_0_198)">
+<path id="Vector" d="M256 0H0V320H256V0Z" fill="#E2DED7"/>
+<path id="Vector_2" d="M128 66.56V58.88C129.519 58.88 131.004 58.4296 132.267 57.5857C133.53 56.7418 134.514 55.5423 135.095 54.139C135.677 52.7357 135.829 51.1915 135.532 49.7017C135.236 48.2119 134.505 46.8435 133.431 45.7694C132.357 44.6954 130.988 43.9639 129.498 43.6676C128.009 43.3712 126.464 43.5233 125.061 44.1046C123.658 44.6859 122.458 45.6703 121.614 46.9332C120.77 48.1962 120.32 49.681 120.32 51.2" stroke-width="2.5" stroke-linecap="round" stroke="#1A1C1A" stroke-opacity="0.35"/>
+<path id="Vector_3" d="M81.92 79.36L128 64L174.08 79.36" stroke-width="2.5" stroke-linecap="round" stroke="#1A1C1A" stroke-opacity="0.35"/>
+<path id="Vector_4" d="M107.52 71.68L97.28 76.8L101.12 131.2L64 272H192L154.88 131.2L158.72 76.8L148.48 71.68C134.827 82.7733 121.173 82.7733 107.52 71.68Z" fill="#1F201E"/>
+<g id="Vector_5">
+<path d="M101.12 131.2H154.88Z" fill="black"/>
+<path d="M101.12 131.2H154.88" stroke-width="2" stroke="black" stroke-opacity="0.14"/>
+</g>
+<path id="Vector_6" d="M128 305.92C170.415 305.92 204.8 304.201 204.8 302.08C204.8 299.959 170.415 298.24 128 298.24C85.5845 298.24 51.2 299.959 51.2 302.08C51.2 304.201 85.5845 305.92 128 305.92Z" fill="black" fill-opacity="0.05"/>
+</g>
+<defs>
+<clipPath id="clip0_0_198">
+<rect width="256" height="320" fill="white"/>
+</clipPath>
+</defs>
+</svg>
