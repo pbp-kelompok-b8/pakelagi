@@ -134,6 +134,7 @@ def review_jurnal_action(request, id):
         
         if action == 'approve':
             guide.status = 'DISETUJUI'
+            guide.approved_by = request.user
             if direct_publish:
                 guide.is_published = True
                 guide.date_published = timezone.now()
