@@ -1,5 +1,27 @@
 # Halaman Kategori dan verifikasi katalog
 
+## AI disclosure
+
+Pengembangan pada branch `feat/category` menggunakan bantuan **OpenAI Codex**
+untuk menyusun dan menyesuaikan kode, pengujian, serta dokumentasi.
+
+Cakupan bantuan AI meliputi:
+
+- Implementasi halaman kategori, route dan view publik, hitungan listing
+  Available dari database, serta tautan kategori menuju katalog.
+- Integrasi navigasi header/footer dan penyesuaian template, CSS, serta
+  layout responsif terhadap referensi Figma.
+- Pengambilan dan integrasi aset SVG desktop/mobile dari file Figma proyek.
+- Penyusunan dan pelaksanaan test regresi katalog, test halaman kategori,
+  pemeriksaan browser dengan Playwright, serta pencatatan hasil verifikasi.
+
+Referensi desain dan sumber artwork dicatat pada bagian desain dan sumber
+artwork di bawah. Filter katalog dan partial HTMX yang sudah ada pada baseline
+tetap diatribusikan sebagai implementasi existing. Anggota penanggung jawab
+branch tetap bertanggung jawab memahami, meninjau, dan memvalidasi kode serta
+hasil pengujian sebelum pengumpulan. Disclosure ini berlaku untuk kontribusi
+pada `feat/category`.
+
 ## Implementasi baru
 
 - Route publik `main:category_index` di `/categories/`, hanya menerima GET.

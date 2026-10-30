@@ -10,6 +10,27 @@
 - Branch dan PR tetap terpisah. Implementasi ini belum di-push atau dibuatkan PR;
   tidak ada merge otomatis ke `dev`.
 
+## AI disclosure
+
+Pengembangan pada branch `feat/favorites` menggunakan bantuan **OpenAI Codex**
+untuk menyusun dan menyesuaikan kode, pengujian, serta dokumentasi.
+
+Cakupan bantuan AI meliputi:
+
+- Implementasi model dan migration `Favorite`, form catatan, views, URL,
+  serta aturan autentikasi, kepemilikan, dan privasi favorit.
+- Integrasi tombol simpan pada katalog, detail listing, dan etalase profil;
+  filter kategori dan editor catatan melalui HTMX.
+- Penyesuaian template dan CSS terhadap referensi Figma, termasuk layout
+  responsif dan pemakaian aset ikon yang diekspor dari Figma.
+- Penyusunan dan pelaksanaan test Django, pemeriksaan browser dengan
+  Playwright, serta pencatatan hasil verifikasi.
+
+Referensi desain dan ikon berasal dari file Figma proyek yang dicatat pada
+bagian penyesuaian desain. Anggota penanggung jawab branch tetap bertanggung
+jawab memahami, meninjau, dan memvalidasi kode serta hasil pengujian sebelum
+pengumpulan. Disclosure ini berlaku untuk kontribusi pada `feat/favorites`.
+
 ## Aturan domain
 
 Mengikuti `CONTEXT.md` dan kebijakan `profiles.access.member_required`:
@@ -121,6 +142,39 @@ memasukkan paket browser ke `requirements.txt` runtime.
 Pemeriksaan ini bukan audit aksesibilitas menyeluruh atau pengujian lintas
 browser. Warning direktori `staticfiles/` yang belum dibuat juga muncul pada
 baseline test; bukan kegagalan Favorites.
+
+## Penyesuaian desain Figma — 30 Oktober 2026
+
+Acuan halaman Favorit adalah [Favorites, node 82:7283](https://www.figma.com/design/dCekkdFnlpwdcTY6vaXyrX/Web-Design?node-id=82-7283),
+di halaman **4 - User Flow (FIXED UI)**. Kedua tautan awal mengarah ke
+Home/Katalog/Detail dan Kategori; setelah klarifikasi, pekerjaan dibatasi pada
+Favorites di file yang sama.
+
+- Grid kartu diganti baris: foto 144 × 180 px, informasi listing, catatan privat,
+  dan aksi di kanan. Sidebar akun memakai pola `account-nav` yang sudah ada.
+- Tipografi, hairline, jarak 32 px antarkolom, jarak sidebar 80 px, dan judul
+  72 px mengikuti layar desktop. Layout menyesuaikan sampai lebar 320 px.
+- Ringkasan total dan jumlah Terjual dihitung dari data milik member, termasuk
+  saat respons hapus HTMX. Hidden tetap tidak dihitung.
+- Filter kategori tetap tersedia sebagai disclosure di bawah navigasi akun.
+- Catatan ditampilkan italic; editor inline menyediakan Simpan dan Batal.
+  Batal mengambil catatan tersimpan tanpa menulis perubahan dan tanpa mengubah URL.
+- Ikon hati, panah, gembok, dan plus diekspor dari Figma ke
+  `static/images/favorites/`. Foto listing tetap berasal dari data penjual.
+- Tombol favorit kartu memakai ikon ringkas; tombol detail selebar panel berada
+  di bawah kontak penjual dan menampilkan status simpan yang tersinkronisasi.
+- Tautan Penjualan menuju tab Terjual pada Listing saya. Laporan saya belum
+  memiliki route di proyek sehingga tidak dibuatkan tautan kosong. Header dan
+  footer bersama tetap memakai implementasi proyek yang ada.
+
+Verifikasi tambahan mencakup pembatalan editor dan privasi, ringkasan Terjual,
+aset ikon lokal, tampilan lima baris, filter sidebar, lebar 320/390/768/1024/1280/1440,
+serta screenshot desktop, mobile, dan editor. Jalankan browser suite dengan
+perintah pada bagian Browser opsional di atas; tooling browser tidak ditambahkan
+ke dependency runtime.
+
+Hasil setelah penyesuaian: **429 test Django dan 7 skenario Chromium lulus**;
+tidak ada perubahan migration. Screenshot disimpan di luar repository.
 
 ## Sebelum PR
 

@@ -26,4 +26,5 @@ urlpatterns = [
     path('guides/', include('sustainableguides.urls')),
     path('moderation/', include('moderations.urls')),
     path("", include("main.urls")),
+    path('reports/', include('reports.urls')),
 ]

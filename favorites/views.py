@@ -1,6 +1,7 @@
 import json
 from urllib.parse import urlencode
 
+from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
 from django.views.decorators.http import require_GET, require_http_methods, require_POST
@@ -23,7 +24,8 @@ def list_context(request, params=None):
     favorites = Favorite.objects.filter(
         user=request.user, listing__status__in=[Listing.Status.AVAILABLE, Listing.Status.SOLD],
     ).select_related("listing")
-    total_count = favorites.count()
+    counts = favorites.aggregate(total=Count("pk"), sold=Count("pk", filter=Q(listing__status=Listing.Status.SOLD)))
+    total_count = counts["total"]
     if category:
         favorites = favorites.filter(listing__category=category)
     url = reverse("favorites:list")
@@ -34,6 +36,7 @@ def list_context(request, params=None):
     } for value, label in [("", "Semua"), *Listing.Category.choices]]
     return {
         "favorites": favorites, "category": category, "tabs": tabs, "total_count": total_count,
+        "sold_count": counts["sold"],
         "favorites_return_to": url + "?" + urlencode({"category": category}) if category else url,
     }
 
@@ -98,6 +101,8 @@ def favorite_edit(request, pk):
         request.POST if request.method == "POST" else None, instance=favorite, auto_id=f"favorite-{favorite.pk}-%s",
     )
     target = safe_profile_next(request, request.POST.get("next") or request.GET.get("next"))
+    if request.method == "GET" and is_partial(request) and request.GET.get("view") == "note":
+        return render(request, "favorites/components/note.html", {"favorite": favorite, "return_to": target})
     if request.method == "POST" and form.is_valid():
         favorite.note = form.cleaned_data["note"]
         favorite.save(update_fields=["note", "updated_at"])

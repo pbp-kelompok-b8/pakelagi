@@ -165,6 +165,63 @@ class FavoriteBrowserChecks(StaticLiveServerTestCase):
         expect(self.heart()).to_have_attribute("aria-pressed", "true")
         expect(self.heart("detail")).to_have_attribute("aria-pressed", "true")
         self.assertEqual(Favorite.objects.filter(user=self.member, listing=self.listing).count(), 1)
+        self.screenshot("favorites-catalog-control.png")
+
+    def test_favorites_responsive_layout_cancel_and_live_summary(self):
+        from listings.seed_data import AVAILABLE
+
+        examples = [
+            ("Wool-blend oversized coat", "COS", 285000, "Tanya panjang lengan. Cocok buat ke Bromo bulan depan."),
+            ("Black slip dress", "Cotton Ink", 110000, "Bandingkan dengan yang di Depok sebelum menghubungi penjual."),
+            ("Embroidered kaftan", "Wearing Klamby", 180000, ""),
+            ("Relaxed linen shirt", "Zara", 95000, "Sudah keduluan. Cari yang mirip."),
+            ("Chunky knit sweater", "Sejauh Mata Memandang", 240000, "Ada sedikit pilling di lengan — masih oke."),
+        ]
+        for index in reversed(range(len(examples))):
+            title, brand, price, note = examples[index]
+            listing = create_listing(
+                self.seller, title=title, brand=brand, price=price,
+                image_url=AVAILABLE[index * 10]["image_url"], city="Kota Bandung",
+                status=Listing.Status.SOLD if index == 3 else Listing.Status.AVAILABLE,
+            )
+            Favorite.objects.create(user=self.member, listing=listing, note=note)
+
+        self.open("/favorites/")
+        expect(self.page.locator(".favorites-summary")).to_have_text("5 pakaian tersimpan · 1 sudah terjual")
+        expect(self.page.locator(".favorite-row")).to_have_count(5)
+        # Every exported icon must load locally and keep its designed proportions.
+        self.page.wait_for_function("""() => [...document.querySelectorAll('.favorite-icon img')]
+            .every(image => image.complete && image.naturalWidth > 0)""")
+        first = self.page.locator(".favorite-row").first
+        expect(first.locator(".favorite-photo")).to_have_css("width", "144px")
+        expect(first.locator(".favorite-photo")).to_have_css("height", "180px")
+        self.page.locator(".favorite-row").last.scroll_into_view_if_needed()
+        self.page.evaluate("window.scrollTo(0, 0)")
+        self.page.wait_for_function("""() => [...document.querySelectorAll('.favorite-photo > img')]
+            .every(image => image.complete)""")
+        self.screenshot("favorites-design-desktop.png")
+        first.get_by_role("link", name="Edit catatan").click()
+        first.locator("textarea").fill("Perubahan yang dibatalkan")
+        self.screenshot("favorites-design-editor.png")
+        first.get_by_role("link", name="Batal", exact=True).click()
+        expect(first.locator("textarea")).to_have_count(0)
+        expect(first.get_by_text(examples[0][3], exact=True)).to_be_visible()
+        expect(self.page).to_have_url(self.live_server_url + "/favorites/")
+        for width in (1280, 1024, 768, 390, 320):
+            self.page.set_viewport_size({"width": width, "height": 900})
+            self.assertLessEqual(self.page.evaluate("document.documentElement.scrollWidth"), width)
+        self.page.set_viewport_size({"width": 390, "height": 844})
+        self.screenshot("favorites-design-mobile.png")
+        sold_row = self.page.locator(".favorite-row").filter(has_text="Relaxed linen shirt")
+        sold_row.get_by_role("button", name="Hapus favorit", exact=True).click()
+        expect(self.page.locator(".favorites-summary")).to_have_text("4 pakaian tersimpan")
+        expect(self.page.locator(".favorite-row")).to_have_count(4)
+
+        # Category navigation still works from the new account sidebar.
+        self.page.locator(".favorites-filters summary").click()
+        self.page.get_by_role("navigation", name="Kategori favorit").get_by_role("link", name="Dress", exact=True).click()
+        expect(self.page.get_by_text("Belum ada favorit di kategori ini")).to_be_visible()
+        expect(self.page).to_have_url(self.live_server_url + "/favorites/?category=Dress")
 
     def test_html_fallback_and_mobile_keyboard(self):
         context = self.make_context(javascript=False, mobile=True)
@@ -217,6 +274,8 @@ class FavoriteBrowserChecks(StaticLiveServerTestCase):
         Listing.objects.filter(pk=self.listing.pk).update(status=Listing.Status.SOLD)
         self.open(f"/listings/{self.listing.pk}/")
         expect(self.heart("detail")).to_have_attribute("aria-pressed", "true")
+        expect(self.page.locator("[data-favorite-label]")).to_have_text("Tersimpan di Favorit")
+        self.screenshot("favorites-detail-control.png")
         self.page.evaluate("""id => {
             const clone = document.getElementById('favorite-detail-' + id).cloneNode(true);
             clone.id = 'favorite-card-' + id;

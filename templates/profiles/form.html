@@ -65,6 +65,13 @@
                 <button type="submit" class="btn btn-primary">{% if form.instance.pk %}Simpan perubahan{% else %}Simpan profil{% endif %}</button>
                 <a href="{% if form.instance.pk %}{% url 'profiles:profile' %}{% else %}{% url 'main:show_main' %}{% endif %}" class="profile-text-link">Batal</a>
             </div>
+            {% if not user.is_staff and not user.is_superuser %}
+            <section class="border-t border-error pt-8 space-y-4" aria-labelledby="danger-title">
+                <h2 id="danger-title" class="text-2xl text-error">Zona berbahaya</h2>
+                <p>Penghapusan akun bersifat permanen dan tidak dapat dibatalkan. Ini berbeda dari menghapus profil saja.</p>
+                <a href="{% url 'accounts:delete' %}" class="btn border border-error text-error">Hapus akun</a>
+            </section>
+            {% endif %}
         </form>
         <aside aria-label="Pratinjau profil publik" class="min-w-0">
             <p class="label-caps mb-5">Pratinjau · dilihat pengunjung</p>
