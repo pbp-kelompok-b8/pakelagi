@@ -58,7 +58,8 @@ INSTALLED_APPS = [
     'sustainableguides',
     'moderations',
     'reports',
-    'main',
+    'main', 
+    'rest_framework',
 ]
 
 MIDDLEWARE = [
