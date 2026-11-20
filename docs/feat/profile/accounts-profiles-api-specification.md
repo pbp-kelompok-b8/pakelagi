@@ -4,9 +4,9 @@
 
 Dokumen ini mendefinisikan **kontrak API JSON** untuk perilaku akun dan profil di aplikasi Django. Dokumen ini menjadi acuan spesifikasi; status implementasi Accounts dan Profiles dibedakan di bawah.
 
-Status implementasi: API Accounts (§4.1–4.3 dan §6) sudah tersedia menggunakan DRF dan session authentication, berdampingan dengan views/forms/template HTML yang tetap dipertahankan. API Profiles (§4.4–4.6) masih berupa kontrak yang belum diimplementasikan. Endpoint Accounts menggunakan kembali validasi form Django dan layanan penghapusan akun yang ada; tidak menambahkan API Profiles maupun OpenAPI.
+Status implementasi: API Accounts (§4.1–4.3 dan §6) dan Profiles (§4.4–4.6) sudah tersedia menggunakan DRF dan session authentication, berdampingan dengan views/forms/template HTML yang tetap dipertahankan. Accounts menggunakan kembali validasi form Django dan layanan penghapusan akun; Profiles menggunakan kembali `ProfileForm`, validator, dan helper kontak yang ada. OpenAPI belum tersedia.
 
-Klien browser dapat memperoleh cookie CSRF dari halaman HTML `/accounts/login/`, lalu mengirim `X-CSRFToken` bersama cookie pada POST JSON. Setelah registrasi/login, gunakan nilai cookie CSRF terbaru karena Django merotasi token saat login. Tujuan `next` ke API Profiles adalah kontrak navigasi; endpoint tersebut belum tersedia.
+Klien browser dapat memperoleh cookie CSRF dari halaman HTML `/accounts/login/`, lalu mengirim `X-CSRFToken` bersama cookie pada POST JSON. Setelah registrasi/login, gunakan nilai cookie CSRF terbaru karena Django merotasi token saat login. Tujuan `next` ke API Profiles mengarah ke endpoint onboarding atau profil sendiri yang sudah tersedia.
 
 Spesifikasi ini dibatasi pada fungsi yang ada di `accounts/` dan `profiles/`: registrasi, login/logout, penghapusan akun, onboarding profil, pengelolaan profil sendiri, dan data profil publik. Perilaku HTML yang ada tetap dipertahankan.
 
@@ -78,7 +78,7 @@ Status error utama:
 | `429` | Batas konfirmasi penghapusan akun tercapai. |
 | `500` | Kegagalan server/database yang tidak dapat dipulihkan; respons tidak membocorkan detail internal. |
 
-Perbedaan dari HTML saat ini: sejumlah validasi form HTML dirender ulang dengan status `200`, dan kegagalan `DatabaseError` saat hapus akun juga dirender dengan `200`. API Accounts menggunakan status JSON di atas; kontrak status API Profiles belum diterapkan.
+Perbedaan dari HTML saat ini: sejumlah validasi form HTML dirender ulang dengan status `200`, dan kegagalan `DatabaseError` saat hapus akun juga dirender dengan `200`. API Accounts dan Profiles menggunakan status JSON di atas.
 
 ## 4. Endpoint
 
@@ -396,7 +396,7 @@ API dan halaman HTML hidup berdampingan; menambah API tidak mengubah URL HTML at
 
 ## 9. Di luar cakupan / belum diimplementasikan
 
-- API Profiles (serializer/views/routes dan tes kontrak), serta OpenAPI. Dependency dan registrasi DRF, routes/views Accounts, dan tes kontrak Accounts sudah tersedia.
+- OpenAPI. Dependency dan registrasi DRF, routes/views Accounts dan Profiles, serta tes kontrak HTTP kedua modul sudah tersedia. Validasi request memakai kembali form Django; tidak ada serializer model yang mengubah kontrak HTML.
 - Endpoint `DELETE /profiles/me/` atau penghapusan profil. Tidak ada route penghapusan profil pada modul saat ini meskipun konsep penghapusan profil disebut dokumen produk.
 - Endpoint listing/storefront JSON; field kartu listing, filter API, pagination response API, dan endpoint listing.
 - Token/JWT, OAuth, verifikasi email/telepon, OTP, CAPTCHA, registrasi social, perubahan/reset password.
@@ -406,7 +406,7 @@ API dan halaman HTML hidup berdampingan; menambah API tidak mengubah URL HTML at
 
 ## 10. Checklist penerimaan per modul
 
-Checklist berikut adalah kriteria penerimaan API. Modul Accounts sudah diimplementasikan; checklist Profiles tetap belum dicentang karena API Profiles belum tersedia. Kriteria lintas modul berlaku pada endpoint Accounts yang tersedia.
+Checklist berikut adalah kriteria penerimaan API. Modul Accounts dan Profiles sudah diimplementasikan; kriteria lintas modul berlaku pada endpoint kedua modul yang tersedia.
 
 ### 10.1 Modul Accounts
 
@@ -426,17 +426,19 @@ Status: implementasi Accounts tersedia. Tes kontrak HTTP tersedia di `accounts/t
 
 ### 10.2 Modul Profiles
 
-- [ ] `POST /api/v1/profiles/` hanya dapat digunakan oleh user login untuk membuat profil atau melengkapi profil yang belum lengkap; `display_name` nonblank diperlukan agar user menjadi Member.
-- [ ] Pembuatan profil oleh akun yang profilnya sudah lengkap ditolak dengan `409`; pengeditan profil lengkap dilakukan melalui endpoint `PATCH /api/v1/profiles/me/`.
-- [ ] Onboarding menerapkan batas field dan validasi yang didokumentasikan; kegagalan validasi tidak meninggalkan perubahan parsial pada profil atau email akun.
-- [ ] `GET /api/v1/profiles/me/` dan `PATCH /api/v1/profiles/me/` hanya mengakses profil user dari sesi aktif; akun tanpa profil lengkap menerima respons API `profile_incomplete`, bukan redirect HTML.
-- [ ] PATCH bersifat parsial: field yang tidak dikirim tetap, nilai kosong mengosongkan field opsional, dan `remove_avatar`/`remove_cover` menghapus gambar secara independen.
-- [ ] Perubahan email akun melalui onboarding/edit profil tersimpan atomik bersama perubahan profil; email akun hanya dikembalikan pada endpoint profil sendiri, tidak pada profil publik.
-- [ ] Profil publik mengembalikan `404` generik bila profil tidak ada atau `display_name` kosong dan tidak menyediakan operasi edit profil pengguna lain.
-- [ ] Guest dan user login dengan profil belum lengkap menerima `contact: null`; hanya pemilik atau Member lengkap yang dapat menerima kontak penjual dan nomor telepon.
-- [ ] Normalisasi Instagram dan nomor telepon, validasi email kontak, pasangan `contact_type`/`contact_value`, penolakan pola alamat, serta validasi URL gambar/kontak mengikuti aturan yang didokumentasikan.
-- [ ] Respons profil publik memakai `Cache-Control: private, no-store` dan tidak pernah memuat email akun.
-- [ ] Tidak ada klaim bahwa modul Profiles menyediakan endpoint JSON listing/storefront atau penghapusan profil; perilaku storefront yang disebut dalam dokumen tetap konteks HTML/HTMX.
+Status: implementasi Profiles tersedia. Tes kontrak HTTP berada di `profiles/test_api.py`; tes HTML yang ada tetap dipertahankan. Kotak berikut disediakan untuk verifikasi penerimaan reviewer.
+
+- [x] `POST /api/v1/profiles/` hanya dapat digunakan oleh user login untuk membuat profil atau melengkapi profil yang belum lengkap; `display_name` nonblank diperlukan agar user menjadi Member.
+- [x] Pembuatan profil oleh akun yang profilnya sudah lengkap ditolak dengan `409`; pengeditan profil lengkap dilakukan melalui endpoint `PATCH /api/v1/profiles/me/`.
+- [x] Onboarding menerapkan batas field dan validasi yang didokumentasikan; kegagalan validasi tidak meninggalkan perubahan parsial pada profil atau email akun.
+- [x] `GET /api/v1/profiles/me/` dan `PATCH /api/v1/profiles/me/` hanya mengakses profil user dari sesi aktif; akun tanpa profil lengkap menerima respons API `profile_incomplete`, bukan redirect HTML.
+- [x] PATCH bersifat parsial: field yang tidak dikirim tetap, nilai kosong mengosongkan field opsional, dan `remove_avatar`/`remove_cover` menghapus gambar secara independen.
+- [x] Perubahan email akun melalui onboarding/edit profil tersimpan atomik bersama perubahan profil; email akun hanya dikembalikan pada endpoint profil sendiri, tidak pada profil publik.
+- [x] Profil publik mengembalikan `404` generik bila profil tidak ada atau `display_name` kosong dan tidak menyediakan operasi edit profil pengguna lain.
+- [x] Guest dan user login dengan profil belum lengkap menerima `contact: null`; hanya pemilik atau Member lengkap yang dapat menerima kontak penjual dan nomor telepon.
+- [x] Normalisasi Instagram dan nomor telepon, validasi email kontak, pasangan `contact_type`/`contact_value`, penolakan pola alamat, serta validasi URL gambar/kontak mengikuti aturan yang didokumentasikan.
+- [x] Respons profil publik memakai `Cache-Control: private, no-store` dan tidak pernah memuat email akun.
+- [x] Tidak ada klaim bahwa modul Profiles menyediakan endpoint JSON listing/storefront atau penghapusan profil; perilaku storefront yang disebut dalam dokumen tetap konteks HTML/HTMX.
 
 ### 10.3 Kriteria lintas modul
 
