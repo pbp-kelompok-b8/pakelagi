@@ -1,6 +1,7 @@
 import json
 from urllib.parse import urlencode
 
+from django.db import transaction
 from django.db.models import Count, Q
 from django.shortcuts import get_object_or_404, redirect, render
 from django.urls import reverse
@@ -10,6 +11,8 @@ from favorites.access import favorite_member_required
 from favorites.forms import FavoriteNoteForm
 from favorites.models import Favorite
 from favorites.presentation import button_context
+from favorites.querysets import editable_favorites, visible_favorites
+from favorites.services import save_favorite, save_favorite_note
 from listings.filters import get_catalog_filter
 from listings.models import Listing
 from profiles.access import safe_profile_next
@@ -21,9 +24,7 @@ def is_partial(request):
 
 def list_context(request, params=None):
     category = get_catalog_filter(request.GET if params is None else params)["category"]
-    favorites = Favorite.objects.filter(
-        user=request.user, listing__status__in=[Listing.Status.AVAILABLE, Listing.Status.SOLD],
-    ).select_related("listing")
+    favorites = visible_favorites(request.user)
     counts = favorites.aggregate(total=Count("pk"), sold=Count("pk", filter=Q(listing__status=Listing.Status.SOLD)))
     total_count = counts["total"]
     if category:
@@ -68,10 +69,8 @@ def mutation_response(request, listing_id, saved, listing=None):
 @favorite_member_required
 @require_POST
 def favorite_add(request, listing_id):
-    listing = get_object_or_404(
-        Listing.objects.filter(status=Listing.Status.AVAILABLE).exclude(seller=request.user), pk=listing_id,
-    )
-    Favorite.objects.get_or_create(user=request.user, listing=listing)
+    favorite, _ = save_favorite(request.user, listing_id)
+    listing = favorite.listing
     if is_partial(request):
         return mutation_response(request, listing.pk, True, listing)
     target = safe_profile_next(request, request.POST.get("next"))
@@ -91,12 +90,10 @@ def favorite_remove(request, listing_id):
 
 @favorite_member_required
 @require_http_methods(["GET", "POST"])
+@transaction.atomic
 def favorite_edit(request, pk):
-    favorite = get_object_or_404(
-        Favorite.objects.select_related("listing").filter(
-            user=request.user, listing__status__in=[Listing.Status.AVAILABLE, Listing.Status.SOLD],
-        ), pk=pk,
-    )
+    favorites = editable_favorites(request.user) if request.method == "POST" else visible_favorites(request.user)
+    favorite = get_object_or_404(favorites, pk=pk)
     form = FavoriteNoteForm(
         request.POST if request.method == "POST" else None, instance=favorite, auto_id=f"favorite-{favorite.pk}-%s",
     )
@@ -104,8 +101,7 @@ def favorite_edit(request, pk):
     if request.method == "GET" and is_partial(request) and request.GET.get("view") == "note":
         return render(request, "favorites/components/note.html", {"favorite": favorite, "return_to": target})
     if request.method == "POST" and form.is_valid():
-        favorite.note = form.cleaned_data["note"]
-        favorite.save(update_fields=["note", "updated_at"])
+        save_favorite_note(favorite, form.cleaned_data["note"])
         if is_partial(request):
             return render(request, "favorites/components/note.html", {
                 "favorite": favorite, "saved": True, "return_to": target,
