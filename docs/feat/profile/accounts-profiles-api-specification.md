@@ -442,8 +442,8 @@ Status: implementasi Profiles tersedia. Tes kontrak HTTP berada di `profiles/tes
 
 ### 10.3 Kriteria lintas modul
 
-- [ ] API memakai prefix `/api/v1/`, request/response JSON, dan tidak mengubah route atau perilaku HTML yang ada.
-- [ ] Operasi perubahan state, termasuk login anonim dan registrasi, dilindungi CSRF; kegagalan autentikasi tidak diarahkan ke halaman HTML.
+- [x] API memakai prefix `/api/v1/`, request/response JSON, dan tidak mengubah route atau perilaku HTML yang ada.
+- [x] Operasi perubahan state, termasuk login anonim dan registrasi, dilindungi CSRF; kegagalan autentikasi tidak diarahkan ke halaman HTML.
 - [ ] Error memakai bentuk JSON konsisten dan tidak membocorkan password, password hash, token, atau detail internal.
-- [ ] Method yang tidak didukung mengembalikan `405`; status sukses/gagal mengikuti kontrak pada spesifikasi endpoint.
-- [ ] Dokumentasi dan implementasi membedakan endpoint API yang direncanakan dari fitur yang belum tersedia, termasuk DRF, OpenAPI, listing JSON, dan penghapusan profil.
+- [x] Method yang tidak didukung mengembalikan `405`; status sukses/gagal mengikuti kontrak pada spesifikasi endpoint.
+- [x] Dokumentasi dan implementasi membedakan endpoint API yang direncanakan dari fitur yang belum tersedia, termasuk DRF, OpenAPI, listing JSON, dan penghapusan profil.
