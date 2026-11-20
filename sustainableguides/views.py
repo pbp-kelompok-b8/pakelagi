@@ -1,9 +1,15 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from profiles.access import member_required
+from profiles.access import has_complete_profile, member_required
 from django.contrib import messages
 from .models import Guide
 from .forms import GuideForm
 from .rendering import render_guide_markdown
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import BasePermission, SAFE_METHODS
+from .serializers import GuideSerializer
 
 # Create your views here.
 
@@ -119,5 +125,131 @@ def delete_draft(request, id):
             messages.success(request, f"Draf '{title}' berhasil dibatalkan dan dihapus.")
         else:
             messages.error(request, "Draf yang sudah ditinjau admin tidak dapat dihapus.")
-            
+
     return user_drafts(request)
+
+#=x=x=x=x=x=x=x=x=x=x=x==x=x=x=x=x=x=x
+# REST API Views (Django REST Framework)
+#=x=x=x=x=x=x=x=x=x==x=x=x=x=x=x=x=x=x
+
+class HasCompleteProfile(BasePermission):
+    message = 'Lengkapi profil untuk mengelola panduan.'
+
+    def has_permission(self, request, view):
+        return has_complete_profile(request.user)
+
+
+class HasCompleteProfileOrReadOnly(HasCompleteProfile):
+    def has_permission(self, request, view):
+        return request.method in SAFE_METHODS or super().has_permission(request, view)
+
+
+class GuideAPIView(APIView):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [HasCompleteProfileOrReadOnly]
+
+
+class GuideListCreateAPIView(GuideAPIView):
+    """
+    GET: Menampilkan daftar panduan yang telah terbit (publik, bisa difilter ?category=...).
+    POST: Membuat draf panduan baru dengan status PENDING (profil lengkap).
+    """
+
+    def get(self, request):
+        guides = Guide.objects.published().order_by('-date_published')
+        category = request.query_params.get('category')
+        if category:
+            guides = guides.filter(category=category)
+        serializer = GuideSerializer(guides, many=True)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def post(self, request):
+        serializer = GuideSerializer(data=request.data)
+        if serializer.is_valid():
+            serializer.save(author=request.user, status='PENDING')
+            return Response(serializer.data, status=status.HTTP_201_CREATED)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+class MyGuideSubmissionsAPIView(GuideAPIView):
+    """
+    GET: Menampilkan riwayat panduan sendiri (profil lengkap).
+    """
+    permission_classes = [HasCompleteProfile]
+
+    def get(self, request):
+        drafts = Guide.objects.filter(author=request.user).order_by('-date_submitted')
+        serializer = GuideSerializer(drafts, many=True)
+        return Response({
+            'count': drafts.count(),
+            'pending_count': drafts.filter(status='PENDING').count(),
+            'results': serializer.data,
+        }, status=status.HTTP_200_OK)
+
+
+class GuideDetailAPIView(GuideAPIView):
+    """
+    GET: Publik jika sudah terbit; selain itu, hanya pemilik berprofil lengkap atau superuser.
+    PUT / PATCH: Memperbarui draf panduan (hanya pemilik dan wajib masih berstatus PENDING).
+    DELETE: Menghapus draf panduan (hanya pemilik dan wajib masih berstatus PENDING).
+    """
+
+    def get_object(self, id):
+        return get_object_or_404(Guide, id=id)
+
+    def get(self, request, id):
+        user = request.user
+        guides = Guide.objects.published()
+        if user.is_authenticated and user.is_superuser:
+            guides = Guide.objects.all()
+        elif has_complete_profile(user):
+            guides = guides | Guide.objects.filter(author=user)
+        guide = get_object_or_404(guides, id=id)
+        serializer = GuideSerializer(guide)
+        return Response(serializer.data, status=status.HTTP_200_OK)
+
+    def _check_modify_permission(self, request, guide):
+        if guide.author != request.user:
+            return Response(
+                {"detail": "Anda tidak memiliki izin untuk mengubah atau menghapus draf milik pengguna lain."},
+                status=status.HTTP_403_FORBIDDEN
+            )
+        if guide.status != 'PENDING':
+            return Response(
+                {"detail": "Draf yang sudah disetujui atau ditolak tidak dapat diubah atau dihapus lagi."},
+                status=status.HTTP_400_BAD_REQUEST
+            )
+        return None
+
+    def put(self, request, id):
+        guide = self.get_object(id)
+        error_response = self._check_modify_permission(request, guide)
+        if error_response:
+            return error_response
+
+        serializer = GuideSerializer(guide, data=request.data)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def patch(self, request, id):
+        guide = self.get_object(id)
+        error_response = self._check_modify_permission(request, guide)
+        if error_response:
+            return error_response
+
+        serializer = GuideSerializer(guide, data=request.data, partial=True)
+        if serializer.is_valid():
+            serializer.save()
+            return Response(serializer.data, status=status.HTTP_200_OK)
+        return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+    def delete(self, request, id):
+        guide = self.get_object(id)
+        error_response = self._check_modify_permission(request, guide)
+        if error_response:
+            return error_response
+
+        guide.delete()
+        return Response(status=status.HTTP_204_NO_CONTENT)
