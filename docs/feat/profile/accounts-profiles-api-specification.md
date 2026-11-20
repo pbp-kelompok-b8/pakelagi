@@ -2,9 +2,11 @@
 
 ## 1. Tujuan dan status
 
-Dokumen ini mendefinisikan **kontrak API JSON yang diusulkan** untuk perilaku akun dan profil yang saat ini sudah diimplementasikan di aplikasi Django. Dokumen ini menjadi acuan spesifikasi, bukan pernyataan bahwa API DRF sudah tersedia.
+Dokumen ini mendefinisikan **kontrak API JSON** untuk perilaku akun dan profil di aplikasi Django. Dokumen ini menjadi acuan spesifikasi; status implementasi Accounts dan Profiles dibedakan di bawah.
 
-Saat dokumen dibuat, `accounts/` dan `profiles/` masih memakai Django views, forms, session authentication, dan template HTML. Django REST Framework belum terpasang/terdaftar di konfigurasi proyek dan belum ada serializer maupun endpoint JSON untuk modul-modul ini. Rute API di bawah adalah kontrak baru yang perlu diimplementasikan terpisah.
+Status implementasi: API Accounts (§4.1–4.3 dan §6) sudah tersedia menggunakan DRF dan session authentication, berdampingan dengan views/forms/template HTML yang tetap dipertahankan. API Profiles (§4.4–4.6) masih berupa kontrak yang belum diimplementasikan. Endpoint Accounts menggunakan kembali validasi form Django dan layanan penghapusan akun yang ada; tidak menambahkan API Profiles maupun OpenAPI.
+
+Klien browser dapat memperoleh cookie CSRF dari halaman HTML `/accounts/login/`, lalu mengirim `X-CSRFToken` bersama cookie pada POST JSON. Setelah registrasi/login, gunakan nilai cookie CSRF terbaru karena Django merotasi token saat login. Tujuan `next` ke API Profiles adalah kontrak navigasi; endpoint tersebut belum tersedia.
 
 Spesifikasi ini dibatasi pada fungsi yang ada di `accounts/` dan `profiles/`: registrasi, login/logout, penghapusan akun, onboarding profil, pengelolaan profil sendiri, dan data profil publik. Perilaku HTML yang ada tetap dipertahankan.
 
@@ -76,7 +78,7 @@ Status error utama:
 | `429` | Batas konfirmasi penghapusan akun tercapai. |
 | `500` | Kegagalan server/database yang tidak dapat dipulihkan; respons tidak membocorkan detail internal. |
 
-Perbedaan dari HTML saat ini: sejumlah validasi form HTML dirender ulang dengan status `200`, dan kegagalan `DatabaseError` saat hapus akun juga dirender dengan `200`. API menggunakan status JSON di atas; kontrak status API ini belum diterapkan.
+Perbedaan dari HTML saat ini: sejumlah validasi form HTML dirender ulang dengan status `200`, dan kegagalan `DatabaseError` saat hapus akun juga dirender dengan `200`. API Accounts menggunakan status JSON di atas; kontrak status API Profiles belum diterapkan.
 
 ## 4. Endpoint
 
@@ -394,7 +396,7 @@ API dan halaman HTML hidup berdampingan; menambah API tidak mengubah URL HTML at
 
 ## 9. Di luar cakupan / belum diimplementasikan
 
-- DRF dependency, konfigurasi, serializer, views, routes, OpenAPI, dan tes kontrak API.
+- API Profiles (serializer/views/routes dan tes kontrak), serta OpenAPI. Dependency dan registrasi DRF, routes/views Accounts, dan tes kontrak Accounts sudah tersedia.
 - Endpoint `DELETE /profiles/me/` atau penghapusan profil. Tidak ada route penghapusan profil pada modul saat ini meskipun konsep penghapusan profil disebut dokumen produk.
 - Endpoint listing/storefront JSON; field kartu listing, filter API, pagination response API, dan endpoint listing.
 - Token/JWT, OAuth, verifikasi email/telepon, OTP, CAPTCHA, registrasi social, perubahan/reset password.
@@ -404,21 +406,23 @@ API dan halaman HTML hidup berdampingan; menambah API tidak mengubah URL HTML at
 
 ## 10. Checklist penerimaan per modul
 
-Checklist berikut adalah kriteria penerimaan untuk implementasi API yang direncanakan. Kotak yang belum dicentang bukan penanda status implementasi saat ini; endpoint DRF belum tersedia.
+Checklist berikut adalah kriteria penerimaan API. Modul Accounts sudah diimplementasikan; checklist Profiles tetap belum dicentang karena API Profiles belum tersedia. Kriteria lintas modul berlaku pada endpoint Accounts yang tersedia.
 
 ### 10.1 Modul Accounts
 
-- [ ] `POST /api/v1/accounts/register/` hanya menerima Guest; memvalidasi username unik, email opsional, konfirmasi password, dan seluruh password validator Django.
-- [ ] Registrasi berhasil membuat akun dengan password ter-hash, memulai session login, menetapkan status profil belum lengkap, dan tidak memberikan hak staff/superuser.
-- [ ] Respons registrasi tidak memuat password atau password hash; error username duplikat dan validasi lain dikembalikan dalam format JSON.
-- [ ] `POST /api/v1/accounts/login/` membuat session Django untuk kredensial valid dan mengembalikan status kelengkapan profil serta tujuan API lokal yang sesuai.
-- [ ] Login gagal dan akun nonaktif menghasilkan status/pesan generik yang sama; respons tidak mengungkap apakah username terdaftar.
-- [ ] `POST /api/v1/accounts/logout/` mengakhiri sesi saat ini, berhasil pula untuk Guest, dan tidak menghapus akun atau sesi perangkat lain.
-- [ ] `POST /api/v1/accounts/delete/` hanya menghapus akun dari sesi aktif setelah konfirmasi username dan password saat ini valid; tidak menerima ID target dari klien.
-- [ ] Akun staff/superuser ditolak dari penghapusan mandiri; akun yang belum menyelesaikan profil tetap dapat menghapus akunnya sendiri.
-- [ ] Lima konfirmasi gagal per akun dalam jendela 15 menit menyebabkan `429`; penghitung berlaku lintas sesi dan percobaan malformed/kosong juga dihitung.
-- [ ] Penghapusan sukses menghapus akun dan profil terkait serta mencabut sesi aktif akun di semua perangkat; kegagalan database membatalkan operasi secara atomik.
-- [ ] Penghapusan tidak mengklaim menghapus listing, favorite, report, guide, atau file gambar eksternal.
+Status: implementasi Accounts tersedia. Tes kontrak HTTP tersedia di `accounts/test_api.py`; tes layanan/HTML yang sudah ada tetap dipertahankan. Kotak berikut tetap disediakan untuk verifikasi penerimaan oleh reviewer.
+
+- [x] `POST /api/v1/accounts/register/` hanya menerima Guest; memvalidasi username unik, email opsional, konfirmasi password, dan seluruh password validator Django.
+- [x] Registrasi berhasil membuat akun dengan password ter-hash, memulai session login, menetapkan status profil belum lengkap, dan tidak memberikan hak staff/superuser.
+- [x] Respons registrasi tidak memuat password atau password hash; error username duplikat dan validasi lain dikembalikan dalam format JSON.
+- [x] `POST /api/v1/accounts/login/` membuat session Django untuk kredensial valid dan mengembalikan status kelengkapan profil serta tujuan API lokal yang sesuai.
+- [x] Login gagal dan akun nonaktif menghasilkan status/pesan generik yang sama; respons tidak mengungkap apakah username terdaftar.
+- [x] `POST /api/v1/accounts/logout/` mengakhiri sesi saat ini, berhasil pula untuk Guest, dan tidak menghapus akun atau sesi perangkat lain.
+- [x] `POST /api/v1/accounts/delete/` hanya menghapus akun dari sesi aktif setelah konfirmasi username dan password saat ini valid; tidak menerima ID target dari klien.
+- [x] Akun staff/superuser ditolak dari penghapusan mandiri; akun yang belum menyelesaikan profil tetap dapat menghapus akunnya sendiri.
+- [x] Lima konfirmasi gagal per akun dalam jendela 15 menit menyebabkan `429`; penghitung berlaku lintas sesi dan percobaan malformed/kosong juga dihitung.
+- [x] Penghapusan sukses menghapus akun dan profil terkait serta mencabut sesi aktif akun di semua perangkat; kegagalan database membatalkan operasi secara atomik.
+- [x] Penghapusan tidak mengklaim menghapus listing, favorite, report, guide, atau file gambar eksternal.
 
 ### 10.2 Modul Profiles
 
