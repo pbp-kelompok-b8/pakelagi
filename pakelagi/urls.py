@@ -23,6 +23,7 @@ urlpatterns = [
     path("profile/", include("profiles.urls")),
     path("listings/", include("listings.urls")),
     path("favorites/", include("favorites.urls")),
+    path("api/v1/favorites/", include("favorites.api_urls")),
     path('guides/', include('sustainableguides.urls')),
     path('moderation/', include('moderations.urls')),
     path("", include("main.urls")),
