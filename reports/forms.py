@@ -1,5 +1,8 @@
-from reports.models import Report
-from django.forms import ModelForm, RadioSelect, Textarea, CharField
+from django.core.validators import MaxLengthValidator
+from django.db import IntegrityError, transaction
+from django.forms import ModelForm, RadioSelect, Textarea
+
+from reports.models import DUPLICATE_REPORT_CONSTRAINT, DUPLICATE_REPORT_MESSAGE, Report
 
 REASON_HINTS = {
     "Counterfeit": "Barang palsu atau tiruan.",
@@ -41,7 +44,26 @@ class ReportForm(ModelForm):
         super().__init__(*args, **kwargs)
         # Drop the blank "---------" option so only the real reasons are shown
         self.fields["reason"].choices = [c for c in self.fields["reason"].choices if c[0] != ""]
-        
+
+    def clean_description(self):
+        description = self.cleaned_data["description"]
+        MaxLengthValidator(1000)(description)
+        return description
+
+    def save_new(self):
+        try:
+            with transaction.atomic():
+                return self.save()
+        except IntegrityError as exc:
+            # PostgreSQL reports the constraint name; SQLite does not.
+            constraint = getattr(getattr(exc.__cause__, "diag", None), "constraint_name", None)
+            duplicate = (constraint == DUPLICATE_REPORT_CONSTRAINT if constraint
+                         else self.instance.has_active_duplicate())
+            if not duplicate:
+                raise
+            self.add_error(None, DUPLICATE_REPORT_MESSAGE)
+            return None
+
     @property
     def reason_options(self):
         # (nilai, keterangan, apakah terpilih) untuk daftar radio di template.

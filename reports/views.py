@@ -4,7 +4,6 @@ from django.http import Http404
 from django.shortcuts import get_object_or_404, redirect, render
 from django.db.models import Count, Q
 from django.views.decorators.http import require_GET, require_http_methods
-from django.db import IntegrityError, transaction
 
 from listings.models import Listing
 from profiles.access import member_required
@@ -60,15 +59,9 @@ def report_create(request, listing_id):
         request.POST if request.method == "POST" else None,
         instance=Report(reporter=request.user, listing=listing),
     )
-    if request.method == "POST" and form.is_valid():
-        try:
-            with transaction.atomic():
-                form.save()
-        except IntegrityError:
-            form.add_error(None, "Kamu sudah melaporkan listing ini dan laporannya masih diproses.")
-        else:
-            messages.success(request, "Laporan terkirim. Moderator akan meninjaunya.")
-            return redirect("reports:list")
+    if request.method == "POST" and form.is_valid() and form.save_new() is not None:
+        messages.success(request, "Laporan terkirim. Moderator akan meninjaunya.")
+        return redirect("reports:list")
     return render_reports(request, form=form, listing=listing)
 
 
