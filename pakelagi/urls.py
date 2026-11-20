@@ -17,12 +17,19 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from main.category_api import CategoryList
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/v1/categories/', CategoryList.as_view(), name='api-category-list'),
     path("accounts/", include("accounts.urls")),
+    path("api/v1/accounts/", include("accounts.api_urls")),
+    path("api/v1/profiles/", include("profiles.api_urls")),
     path("profile/", include("profiles.urls")),
     path("listings/", include("listings.urls")),
+    path("api/v1/listings/", include("listings.api_urls")),
     path("favorites/", include("favorites.urls")),
+    path("api/v1/favorites/", include("favorites.api_urls")),
     path('guides/', include('sustainableguides.urls')),
     path('moderation/', include('moderations.urls')),
     path("", include("main.urls")),

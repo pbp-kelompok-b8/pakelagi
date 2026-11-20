@@ -203,6 +203,12 @@ class CreateViewTests(ReportViewBase):
         self.assertIn("description", response.context["form"].errors)
         self.assertContains(response, "pendek")
 
+    def test_description_longer_than_1000_characters_is_rejected(self):
+        response = self.client.post(self.create_url, valid_data(description="a" * 1001))
+        self.assertEqual(response.status_code, 200)
+        self.assertIn("description", response.context["form"].errors)
+        self.assertFalse(Report.objects.exists())
+
     def test_missing_or_unknown_reason_is_rejected(self):
         for reason in ("", "ngawur"):
             with self.subTest(reason=reason):

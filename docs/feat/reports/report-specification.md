@@ -7,6 +7,7 @@
 | Model utama | `Report` |
 | Django app | `reports` (model, form, view, template, test milik modul ini) |
 | Acuan | `docs/pakelagi-specification.md` §4.8, §6.6, §8, §9, §12, §13 |
+| Kontrak REST | [API laporan](api.md) |
 
 > Dokumen ini merinci spesifikasi induk untuk modul Report. Jika ada pertentangan, spesifikasi induk menang. Poin bertanda **[Usulan]** adalah keputusan desain yang belum ditetapkan di spesifikasi induk dan perlu disepakati kelompok.
 
