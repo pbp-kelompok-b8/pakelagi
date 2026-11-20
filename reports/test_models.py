@@ -136,6 +136,14 @@ class ReportDuplicateRuleTests(TestCase):
         create_report(self.reporter, self.listing)
         make_report(self.reporter, create_listing(self.seller, title="Barang kedua yang berbeda")).full_clean()
 
+    def test_model_clean_rejects_an_existing_active_report(self):
+        for status in ("open", "reviewing"):
+            with self.subTest(status=status):
+                Report.objects.all().delete()
+                create_report(self.reporter, self.listing, status=status)
+                with self.assertRaisesMessage(ValidationError, "laporannya masih diproses"):
+                    make_report(self.reporter, self.listing).clean()
+
     def test_finished_reports_do_not_block_a_new_one(self):
         for status in ("resolved", "rejected"):
             with self.subTest(status=status):

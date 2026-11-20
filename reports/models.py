@@ -8,6 +8,8 @@ import uuid
 # Create your models here.
 
 ACTIVE_STATUS = ("open", "reviewing")
+DUPLICATE_REPORT_CONSTRAINT = "unique_active_report_per_reporter_listing"
+DUPLICATE_REPORT_MESSAGE = "Kamu sudah melaporkan listing ini dan laporannya masih diproses."
 
 class Report(models.Model):
     """
@@ -87,7 +89,7 @@ class Report(models.Model):
             models.UniqueConstraint(
                 fields=["reporter", "listing"],
                 condition=Q(status__in=["open", "reviewing"]),
-                name="unique_active_report_per_reporter_listing",
+                name=DUPLICATE_REPORT_CONSTRAINT,
             ),
         ]
         
@@ -109,13 +111,13 @@ class Report(models.Model):
             if self.listing.status == Listing.Status.HIDDEN:
                 raise ValidationError("Listing ini sudah tidak tampil di katalog.")
 
-        
-        if self.listing_id and self.status in ACTIVE_STATUS:
-            duplicate = Report.objects.filter(
-                reporter_id=self.reporter_id, listing_id=self.listing_id, status__in=self.STATUS,
-            ).exclude(pk=self.pk)
-            if duplicate.exists():
-                raise ValidationError("Kamu sudah melaporkan listing ini dan laporannya masih diproses.")
+        if self.has_active_duplicate():
+            raise ValidationError(DUPLICATE_REPORT_MESSAGE)
+
+    def has_active_duplicate(self):
+        return bool(self.listing_id and self.status in ACTIVE_STATUS and Report.objects.filter(
+            reporter_id=self.reporter_id, listing_id=self.listing_id, status__in=ACTIVE_STATUS,
+        ).exclude(pk=self.pk).exists())
 
 
     def save(self, *args, **kwargs):
