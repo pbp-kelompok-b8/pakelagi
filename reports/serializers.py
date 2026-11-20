@@ -11,10 +11,4 @@ class ReportSerializer(serializers.ModelSerializer):
         fields = [
             "id", "reporter", "listing", "listing_title", "reason", "description", "status", "created_at", "updated_at",
         ]
-        read_only_fields = ["id"]
-
-    def validate_title(self, value):
-        value = strip_tags(value).strip()
-        if not value:
-            raise serializers.ValidationError("Title cannot be empty.")
-        return value
+        read_only_fields = ["id", "reporter", "status"]
