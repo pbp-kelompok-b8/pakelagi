@@ -232,6 +232,39 @@ coverage report --include="listings/*,profiles/*,accounts/*" --omit="*/test_*.py
 
 ---
 
+## 9. API Pakelagi (Django REST Framework)
+
+API JSON untuk klien mobile tersedia di bawah prefix `/api/v1/`. Gunakan garis miring di akhir URL, `Accept: application/json`, dan `Content-Type: application/json` saat mengirim body JSON.
+
+Setelah server lokal berjalan, coba endpoint publik tanpa login:
+
+```bash
+curl -H 'Accept: application/json' 'http://127.0.0.1:8000/api/v1/categories/'
+```
+
+### Endpoint per modul
+
+Path di tabel relatif terhadap `/api/v1/`. Lihat dokumentasi tiap modul untuk payload, filter, bentuk respons, dan aturan akses.
+
+| Modul | Metode dan path | Dokumentasi |
+| --- | --- | --- |
+| Akun | `POST` ke `accounts/register/`, `accounts/login/`, `accounts/logout/`, atau `accounts/delete/` | [Akun dan profil](docs/feat/profile/accounts-profiles-api-specification.md) |
+| Profil | `POST profiles/`; `GET` dan `PATCH profiles/me/`; `GET profiles/<user_id>/` | [Akun dan profil](docs/feat/profile/accounts-profiles-api-specification.md) |
+| Kategori | `GET categories/` | [Kategori](docs/feat/category/api.md) |
+| Listing | `GET` dan `POST listings/`; `GET`, `PATCH`, dan `DELETE listings/<id>/`; `POST listings/<id>/status/`; `GET listings/mine/` dan `GET listings/locations/` | [Listing](docs/feat/listings/api.md) |
+| Favorit | `GET` dan `POST favorites/`; `GET`, `PATCH`, dan `DELETE favorites/<id>/` | [Favorit](docs/feat/favorites/api.md) |
+| Panduan | `GET` dan `POST guides/`; `GET guides/my-submissions/`; `GET`, `PUT`, `PATCH`, dan `DELETE guides/<id>/` | [Panduan](docs/feat/sustainable-guides/api.md) |
+| Laporan | `GET` dan `POST reports/`; `GET`, `PUT`, `PATCH`, dan `DELETE reports/<uuid>/` | [Laporan](docs/feat/reports/api.md) |
+
+### Login dan CSRF
+
+1. Panggil `GET /accounts/login/` (halaman web, di luar prefix API) untuk memperoleh cookie `csrftoken`.
+2. Kirim `POST /api/v1/accounts/login/` dengan JSON berisi `username` dan `password`, cookie `csrftoken`, serta header `X-CSRFToken` dengan nilai cookie tersebut. Saat memakai HTTPS, kirim `Origin` atau `Referer` dari origin yang sama dengan server untuk request yang mengubah data, termasuk login.
+3. Simpan `sessionid` dan **`csrftoken` terbaru** dari respons login. Kirim cookie sesi untuk request privat. Untuk `POST`, `PUT`, `PATCH`, dan `DELETE`, kirim juga cookie CSRF dan header `X-CSRFToken` dengan nilai token terbaru.
+4. Jika respons login berisi `profile_complete: false`, lengkapi profil lewat `POST /api/v1/profiles/` dengan `display_name` yang tidak kosong sebelum memakai endpoint khusus member.
+
+---
+
 ## Informasi Tambahan
 
 - **Repository Git:** [github.com/pbp-kelompok-b8/pakelagi](https://github.com/pbp-kelompok-b8/pakelagi)
