@@ -166,5 +166,13 @@ class ModerationWorkflowAndSecurityTests(TestCase):
         self.assertNotIn('href="javascript:', response.context['selected_content_html'].lower())
     
     def testAdminDelete(self):
-        self.client.post(reverse('moderations:jurnal_delete', args=[self.pending_guide.id]))
+        response = self.client.post(reverse('moderations:jurnal_delete', args=[self.pending_guide.id]))
         self.assertFalse(Guide.objects.filter(id=self.pending_guide.id).exists())
+        self.assertRedirects(response, reverse('moderations:jurnal_list') + '?tab=pending')
+
+    def testAdminDeletePreservesTab(self):
+        response = self.client.post(
+            reverse('moderations:jurnal_delete', args=[self.waiting_publish_guide.id]) + '?tab=approved'
+        )
+        self.assertFalse(Guide.objects.filter(id=self.waiting_publish_guide.id).exists())
+        self.assertRedirects(response, reverse('moderations:jurnal_list') + '?tab=approved')

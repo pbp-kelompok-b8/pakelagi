@@ -121,6 +121,13 @@
                 <p class="label-caps !text-[10px] mb-3">Deskripsi</p>
                 <p class="text-sm leading-7 whitespace-pre-line break-words">{{ listing.description }}</p>
             </div>
+
+            <!-- Buat Report -->
+            {% if user.is_authenticated and not is_owner and listing.status != 'Hidden' %}
+            <div class="border-t border-line pt-6">
+                <a href="{% url 'reports:create' listing.pk %}" class="btn btn-text">Laporkan listing ini</a>
+            </div>
+            {% endif %}
         </div>
     </div>
 </section>

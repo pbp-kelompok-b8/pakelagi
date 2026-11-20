@@ -1,0 +1,192 @@
+{% extends "moderations/base_moderation.html" %}
+{% load static i18n listing_extras %}
+
+{% block title %}Moderasi Laporan{% endblock %}
+{% block extra_css %}<link rel="stylesheet" href="{% static 'css/moderation-reports.css' %}">{% endblock %}
+
+{% block content %}
+<section class="container-page mod-reports bg-stone-100" aria-labelledby="mr-title">
+
+    <div class="mr-head">
+        <h1 id="mr-title" class="text-6xl md:text-8xl">Laporan</h1>
+        <p class="mr-head__note">Setiap keputusan tercatat.</p>
+    </div>
+
+    {# Ringkasan: juga menjadi navigasi tab #}
+    <nav class="mr-stats" aria-label="Ringkasan laporan">
+        <a href="?tab=open" class="mr-stat"{% if active_tab == 'open' %} aria-current="page"{% endif %}><span class="mr-stat__num">{{ count_open }}</span><span class="label-caps">Terbuka</span></a>
+        <a href="?tab=reviewing" class="mr-stat"{% if active_tab == 'reviewing' %} aria-current="page"{% endif %}><span class="mr-stat__num">{{ count_reviewing }}</span><span class="label-caps">Sedang ditinjau</span></a>
+        <a href="?tab=resolved" class="mr-stat"{% if active_tab == 'resolved' %} aria-current="page"{% endif %}><span class="mr-stat__num">{{ count_resolved }}</span><span class="label-caps">Selesai</span></a>
+        <a href="?tab=rejected" class="mr-stat"{% if active_tab == 'rejected' %} aria-current="page"{% endif %}><span class="mr-stat__num">{{ count_rejected }}</span><span class="label-caps">Ditolak</span></a>
+    </nav>
+
+    <div class="mr-layout">
+
+        {# ===== Kolom kiri: tab + daftar ===== #}
+        <div class="min-w-0">
+            <nav class="mr-tabs" aria-label="Status laporan">
+                <a href="?tab=open" class="mr-tab"{% if active_tab == 'open' %} aria-current="page"{% endif %}>Terbuka <small>{{ count_open }}</small></a>
+                <a href="?tab=reviewing" class="mr-tab"{% if active_tab == 'reviewing' %} aria-current="page"{% endif %}>Ditinjau <small>{{ count_reviewing }}</small></a>
+                <a href="?tab=resolved" class="mr-tab"{% if active_tab == 'resolved' %} aria-current="page"{% endif %}>Selesai <small>{{ count_resolved }}</small></a>
+                <a href="?tab=rejected" class="mr-tab"{% if active_tab == 'rejected' %} aria-current="page"{% endif %}>Ditolak <small>{{ count_rejected }}</small></a>
+            </nav>
+
+            {% if page.object_list %}
+            <div class="mr-table-wrap">
+                <table class="mr-table">
+                    <caption class="sr-only">Daftar laporan dengan status {{ tab_label }}</caption>
+                    <thead>
+                        <tr>
+                            <th scope="col">Listing dilaporkan</th>
+                            <th scope="col" class="mr-hide-sm">Alasan</th>
+                            <th scope="col">Status</th>
+                            <th scope="col" class="mr-hide-sm">Tanggal</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {% for r in page.object_list %}
+                        <tr{% if selected_report and selected_report.pk == r.pk %} class="is-selected"{% endif %}>
+                            <td>
+                                <div class="mr-item">
+                                    <div class="mr-thumb" aria-hidden="true">
+                                        {% if r.listing %}<img src="{{ r.listing.image_url }}" alt="" loading="lazy" referrerpolicy="no-referrer" onerror="this.remove()">{% endif %}
+                                    </div>
+                                    <a href="?tab={{ active_tab }}&amp;page={{ page.number }}&amp;id={{ r.pk }}"{% if selected_report and selected_report.pk == r.pk %} aria-current="true"{% endif %}>
+                                        <span class="mr-item__title block">{{ r.listing.title|default:r.listing_title|default:"Listing dihapus" }}</span>
+                                        <span class="mr-item__by block">oleh {{ r.reporter.profile.display_name|default:r.reporter.username }}</span>
+                                    </a>
+                                </div>
+                            </td>
+                            <td class="mr-hide-sm">{{ r.get_reason_display }}</td>
+                            <td><span class="mr-status mr-status--{{ r.status }}">{{ r.get_status_display }}</span></td>
+                            <td class="mr-date mr-hide-sm">{% language 'id' %}{{ r.created_at|date:"j M Y" }}{% endlanguage %}</td>
+                        </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            </div>
+
+            <div class="mr-foot">
+                <p>Menampilkan {{ page.start_index }}–{{ page.end_index }} dari {{ page.paginator.count }} laporan {{ tab_label }}</p>
+                {% if page.paginator.num_pages > 1 %}
+                <nav class="mr-pages" aria-label="Halaman">
+                    {% for number in page.paginator.page_range %}
+                    <a href="?tab={{ active_tab }}&amp;page={{ number }}"{% if number == page.number %} aria-current="page"{% endif %}>{{ number }}</a>
+                    {% endfor %}
+                    {% if page.has_next %}<a href="?tab={{ active_tab }}&amp;page={{ page.next_page_number }}" aria-label="Halaman berikutnya">&rarr;</a>{% endif %}
+                </nav>
+                {% endif %}
+            </div>
+            {% else %}
+            <div class="mr-empty">
+                <p class="font-display text-3xl text-ink">Tidak ada laporan {{ tab_label }}</p>
+                <p class="text-sm mt-2">Laporan dengan status ini akan muncul di sini.</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {# ===== Kolom kanan: panel tinjauan ===== #}
+        <aside class="mr-panel" aria-label="Tinjauan laporan">
+            {% if selected_report %}
+            {% with r=selected_report %}
+            <div class="mr-panel__head">
+                <p class="label-caps">Laporan #RPT-{{ r.pk|stringformat:"s"|slice:":4"|upper }}</p>
+                <span class="mr-status mr-status--{{ r.status }}">{{ r.get_status_display }}</span>
+            </div>
+
+            <div class="mr-target">
+                <div class="mr-thumb" aria-hidden="true">
+                    {% if r.listing %}<img src="{{ r.listing.image_url }}" alt="" referrerpolicy="no-referrer" onerror="this.remove()">{% endif %}
+                </div>
+                <div class="min-w-0 space-y-1.5">
+                    {% if r.listing.brand %}<p class="label-caps !text-[10px]">{{ r.listing.brand }}</p>{% endif %}
+                    <h2 class="mr-target__title">{{ r.listing.title|default:r.listing_title|default:"Listing dihapus" }}</h2>
+                    {% if r.listing %}
+                    <p class="text-base">{{ r.listing.price|rupiah }}</p>
+                    <p class="mr-target__meta">Dijual oleh {{ r.listing.seller.profile.display_name|default:r.listing.seller.username }} · {{ r.listing.city }}</p>
+                    <a href="{% url 'listings:detail' r.listing.pk %}" class="mr-link" target="_blank" rel="noopener">Buka listing</a>
+                    {% else %}
+                    <p class="mr-target__meta">Listing sudah dihapus penjual.</p>
+                    {% endif %}
+                    
+                </div>
+            </div>
+
+            <div class="pt-7">
+                <p class="label-caps mr-reason-label">Alasan · {{ r.get_reason_display }}</p>
+                <p class="mr-desc">{{ r.description }}</p>
+                <p class="mr-target__meta mt-3">Dilaporkan oleh {{ r.reporter.profile.display_name|default:r.reporter.username }} · {% language 'id' %}{{ r.created_at|date:"j M Y" }}{% endlanguage %}</p>
+            </div>
+
+            <button 
+            class="btn-link text-xs underline"
+            hx-get="{% url 'moderations:report_notes_popover' r.pk %}"
+            hx-target="#popover-target-{{ r.pk }}"
+            hx-trigger="click">
+            Lihat Catatan
+            </button>
+
+            <!-- Container Popover -->
+            <div id="popover-target-{{ r.pk }}"></div>
+
+            <form method="post" action="{% url 'moderations:report_review' r.pk %}?tab={{ active_tab }}&amp;page={{ page.number }}" class="space-y-7 pt-9">
+                {% csrf_token %}
+                <fieldset class="mr-status-set">
+                    <legend class="label-caps pb-3">Ubah status</legend>
+                    <div class="flex flex-wrap gap-2">
+                        {% if r.status in 'resolved rejected' %}
+                            {% for value, label in status_editable %}
+                            <label class="mr-status-opt mr-status-blocked"><span>{{ label }}</span></label>
+                            {% endfor %}
+                            {% for value, label in status_closed %}
+                            <label class="mr-status-opt"><input type="radio" name="status" value="{{ value }}"{% if r.status == value %} checked{% endif %} required><span>{{ label }}</span></label>
+                            {% endfor %}
+                        {% else %}
+                            {% for value, label in status_choices %}
+                            <label class="mr-status-opt"><input type="radio" name="status" value="{{ value }}"{% if r.status == value %} checked{% endif %} required><span>{{ label }}</span></label>
+                            {% endfor %}
+                        {% endif %}
+                    </div>
+                </fieldset>
+
+                <div>
+                    <label for="moderator_note" class="label-caps block pb-3">Catatan moderator · privat</label>
+                    <textarea id="moderator_note" name="moderator_note" maxlength="1000" placeholder="Tuliskan alasan keputusan untuk tim…"></textarea>
+                    <p class="text-xs text-stone mt-3">Tidak terlihat oleh pelapor maupun penjual. Wajib diisi bila status Rejected.</p>
+                </div>
+
+                <button type="submit" class="btn btn-primary btn-block" onclick="this.disabled=true; this.form.submit();">Simpan keputusan</button>
+            </form>
+
+            {% if r.listing %}
+            <form method="post" action="{% url 'moderations:report_listing_action' r.pk %}?tab={{ active_tab }}&amp;page={{ page.number }}" class="mt-7" onsubmit="return confirm('{% if r.listing.status == 'Hidden' %}Pulihkan listing ini ke katalog?{% else %}Sembunyikan listing ini dari katalog?{% endif %}');">
+                {% csrf_token %}
+                <div class="mr-hide">
+                    <div class="min-w-0 flex-1 basis-48">
+                        {% if r.listing.status == 'Hidden' %}
+                        <p class="mr-hide__title">Listing sedang disembunyikan</p>
+                        <p class="mr-hide__text">Status Hidden. Pulihkan bila laporan tidak terbukti.</p>
+                        {% else %}
+                        <p class="mr-hide__title">Sembunyikan listing dari katalog</p>
+                        <p class="mr-hide__text">Status menjadi Hidden. Penjual melihat alasannya.</p>
+                        {% endif %}
+                    </div>
+                    {% if r.listing.status == 'Hidden' %}
+                    <button type="submit" name="action" value="restore">Pulihkan</button>
+                    {% else %}
+                    <button type="submit" name="action" value="hide">Sembunyikan</button>
+                    {% endif %}
+                </div>
+            </form>
+            {% endif %}
+            {% endwith %}
+            {% else %}
+            <div class="py-16 text-center">
+                <p class="font-display text-2xl">Belum ada laporan dipilih</p>
+                <p class="text-sm text-stone mt-2">Pilih laporan di sebelah kiri untuk meninjaunya di sini.</p>
+            </div>
+            {% endif %}
+        </aside>
+    </div>
+</section>
+{% endblock %}

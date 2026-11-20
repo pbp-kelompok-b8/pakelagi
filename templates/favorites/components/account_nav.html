@@ -5,7 +5,7 @@
         <a href="{% url 'listings:mine' %}">Listing saya</a>
         <a href="{% url 'listings:mine' %}?status=terjual">Penjualan</a>
         <a href="{% url 'favorites:list' %}" aria-current="page">Favorit <span aria-hidden="true">→</span></a>
-        <a href="{% url 'sustainableguides:drafts' %}">Draf panduan</a>
+        <a href="{% url 'sustainableguides:my_submissions' %}">Draf panduan</a>
         <form method="post" action="{% url 'accounts:logout' %}" class="border-b border-line">{% csrf_token %}<button type="submit">Keluar</button></form>
     </nav>
     <details class="favorites-filters"{% if category %} open{% endif %}>

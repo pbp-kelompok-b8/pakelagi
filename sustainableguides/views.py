@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from django.contrib.auth.decorators import login_required, user_passes_test
+from profiles.access import member_required
 from django.contrib import messages
 from .models import Guide
 from .forms import GuideForm
@@ -48,7 +48,7 @@ def guide_detail(request, id):
 # Member Access
 #=x=x=x=x=x=x=x=x=x==x=x=x=x=x=x=x=x=x
 
-@login_required(login_url='accounts:login')
+@member_required
 def user_drafts(request, form=None):
     # Ambil draft User berdasarkan tanggal submit dan menghitung yang pending
     drafts = Guide.objects.filter(author=request.user).order_by('-date_submitted')
@@ -65,7 +65,7 @@ def user_drafts(request, form=None):
     }
     return render(request, 'sustainableguides/user_drafts.html', context)
 
-@login_required(login_url='accounts:login')
+@member_required
 def submit_draft(request):
     if request.method == 'POST':
         form = GuideForm(request.POST)
@@ -83,7 +83,7 @@ def submit_draft(request):
             
     return user_drafts(request)
     
-@login_required(login_url='accounts:login')
+@member_required
 def edit_draft(request, id):
     guide = get_object_or_404(Guide, id=id, author=request.user)
     
@@ -107,7 +107,7 @@ def edit_draft(request, id):
     }
     return render(request, 'sustainableguides/edit_draft.html', context)
 
-@login_required(login_url='accounts:login')
+@member_required
 def delete_draft(request, id):
     guide = get_object_or_404(Guide, id=id, author=request.user)
     

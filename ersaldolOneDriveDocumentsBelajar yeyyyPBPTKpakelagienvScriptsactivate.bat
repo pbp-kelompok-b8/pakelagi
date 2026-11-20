@@ -1,0 +1,438 @@
+[33mcommit 391d4b083120f46ba5594303da8898cb8b858d83[m[33m ([m[1;36mHEAD[m[33m -> [m[1;32mfeat/reports[m[33m, [m[1;31morigin/feat/reports[m[33m)[m
+Author: ClevraldoLimuel <clevraldo.limuel@ui.ac.id>
+Date:   Thu Oct 29 10:32:53 2026 +0700
+
+    feat:moderation/reports Frontend
+    
+    feat:Added and changes context sent by moderation/views.report_moderation to fulfill frontend needs
+    
+    fix:Fixed routing issues regarding moderation/reports
+
+[33mcommit aeb2ee92e741419c1dda8bf890e2e9b9a9338f2b[m[33m ([m[1;32mpr-test[m[33m)[m
+Author: ClevraldoLimuel <clevraldo.limuel@ui.ac.id>
+Date:   Thu Oct 29 08:08:04 2026 +0700
+
+    refactor:Split report action in moderation in accordance with its corresponding model interaction
+    
+    refactor:Simplify(n't) report action funct
+    
+    feat:Added function to support moderator notes-popover regarding reports
+    
+    fix:applying constraint regarding report moderation as stated in specification
+
+[33mcommit cd30c8298c0ed7aaa4cf103d18e7d5f6cb3373b3[m
+Merge: 15dd412 4c35b90
+Author: ClevraldoLimuel <clevraldo.limuel@ui.ac.id>
+Date:   Wed Oct 28 19:35:03 2026 +0700
+
+    Merge branch 'dev' into feat/reports
+
+[33mcommit 15dd41279756d192d35de0d8030655e1460be548[m
+Author: ClevraldoLimuel <clevraldo.limuel@ui.ac.id>
+Date:   Wed Oct 28 14:33:57 2026 +0700
+
+    feat:Added main logic of moderation.report in moderation.views
+    
+    feat:Added ReportModeratorNote model to contain moderator nodes instead of single atribute in report
+
+[33mcommit 4c35b90d4e681009737d35e47c5ff6161f267f5f[m
+Merge: 00ab8f5 d353be6
+Author: David Liman <78479601+depelemon@users.noreply.github.com>
+Date:   Wed Oct 28 14:18:47 2026 +0700
+
+    Merge pull request #13 from pbp-kelompok-b8/feat/profile
+    
+    Fix : Accounts view from class based view (CBV) into (FBV)
+
+[33mcommit d353be6ba43ac4970cf36f6dd7e3fbe555a04298[m
+Author: victorimans <victorianoimans123@gmail.com>
+Date:   Wed Oct 28 13:54:37 2026 +0700
+
+    Fix : Accounts view from class based view (CBV) into (FBV)
+
+[33mcommit 00ab8f58a976bc46890a4440c415d85af4e8e99c[m
+Merge: ab0929a bc5bab7
+Author: David Liman <78479601+depelemon@users.noreply.github.com>
+Date:   Wed Oct 28 13:49:51 2026 +0700
+
+    Merge pull request #12 from pbp-kelompok-b8/feat/category
+    
+    Feat/category
+
+[33mcommit ab0929ab6cdca9466c9353a8125d20a5a47ba5b0[m
+Merge: 3355666 7a8fb2d
+Author: David Liman <78479601+depelemon@users.noreply.github.com>
+Date:   Wed Oct 28 13:49:02 2026 +0700
+
+    Merge pull request #10 from pbp-kelompok-b8/feat/sustainable-guides
+    
+    feat: Implementasi Jurnal Panduan, Dashboard Moderasi HTMX, dan Keamanan XSS berlapis
+
+[33mcommit 335566642b6834741abd297322f842db652a5b2d[m
+Merge: 8d76bdf b3d0483
+Author: David Liman <78479601+depelemon@users.noreply.github.com>
+Date:   Wed Oct 28 13:48:08 2026 +0700
+
+    Merge pull request #11 from pbp-kelompok-b8/feat/favorites
+    
+    Feat/favorites
+
+[33mcommit 7a8fb2d509d3979e31324d7c780c557bd4d73f08[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Wed Oct 28 13:40:53 2026 +0700
+
+    fix: secure guide markdown, scheduled publication, and modal reopening
+
+[33mcommit 5c5170e219a3163586a04c6ee03ab0bfc4de8245[m
+Author: ErzaProxy <130387681+ErzaProxy@users.noreply.github.com>
+Date:   Wed Oct 28 13:21:41 2026 +0700
+
+    fix: memperbaiki test.py, sebelumnya ada func yang tidak diawali dengan test
+
+[33mcommit bc5bab7f36a34d49729e04fa95018c663ec76284[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Wed Oct 28 11:13:01 2026 +0700
+
+    docs: record full category verification after Figma alignment
+
+[33mcommit 75e8ea73be1d6386a25c1053713602b23336c74f[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Wed Oct 28 11:12:40 2026 +0700
+
+    test: verify Figma category artwork and responsive geometry
+
+[33mcommit 82e1b35733c27fea442f66d7321a27d0d68e728c[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Wed Oct 28 11:10:47 2026 +0700
+
+    style: align category page with Figma desktop and mobile designs
+
+[33mcommit 759ef04c5d5bec910bd2d82c4b2ba11884b84d5d[m
+Author: ErzaProxy <sekarungmicin@gmail.com>
+Date:   Wed Oct 28 11:05:49 2026 +0700
+
+    docs: add comprehensive PRD and technical specifications for sustainableguides
+
+[33mcommit 876059399ff2c5203e4a557b80116ab405ee2c84[m
+Author: ErzaProxy <sekarungmicin@gmail.com>
+Date:   Wed Oct 28 10:57:41 2026 +0700
+
+    test: tambahkan unit test menyeluruh untuk guides dan moderations
+    
+    - Uji validasi GuideForm dan sanitasi input dari XSS
+    - Uji hak akses CRUD member dan tampilan publik
+    - Uji alur kerja moderasi (setujui, tolak, terbit instan, hapus)
+    - Pastikan tag HTML berbahaya ter-escape saat render Markdown
+
+[33mcommit fc925eb0e4b7e0307a056cca6e9be063f0713c24[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Wed Oct 28 10:57:17 2026 +0700
+
+    test: verify dedicated category navigation and responsive layout
+
+[33mcommit f7cf363d9eafd95e08b78b1d66de1e9746d2839f[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Wed Oct 28 10:50:29 2026 +0700
+
+    feat: link category navigation to dedicated page
+
+[33mcommit b09e3de8e83a30a1c94371891ef46f8d8d05030f[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Wed Oct 28 10:49:26 2026 +0700
+
+    feat: add category artwork cards and available listing counts
+
+[33mcommit 502b16f0e79415b6dee93b0c15dffcca4ce89e53[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Wed Oct 28 10:47:08 2026 +0700
+
+    feat: add dedicated public category page route
+
+[33mcommit a0544706fd76dc8699e0835326883723bdfa2d0f[m
+Author: ClevraldoLimuel <clevraldo.limuel@ui.ac.id>
+Date:   Wed Oct 28 06:13:44 2026 +0700
+
+    fix:fixed Reason description unrendered
+    
+    fix:fixed report.updated_at atribute behavior
+
+[33mcommit 2dfd3bbfffd4500938ead9981050299d00891ea1[m
+Author: ErzaProxy <sekarungmicin@gmail.com>
+Date:   Wed Oct 28 02:42:08 2026 +0700
+
+    fix: membenarkan redirect yang awalnya masih ke draft menjadi my_submission
+
+[33mcommit f2e4fd3bd7db3c96a2bd96d51c3982909aa9b64e[m
+Author: ErzaProxy <sekarungmicin@gmail.com>
+Date:   Wed Oct 28 02:34:45 2026 +0700
+
+    security: implement XSS protection and input sanitization for guides
+
+[33mcommit 170fe5f4fc3666e25477cf26b706734312d65ada[m
+Author: ErzaProxy <sekarungmicin@gmail.com>
+Date:   Wed Oct 28 02:08:50 2026 +0700
+
+    feat: 1. Pemisahan sistem Published dan Disetujui 2. Membuat Sistem Publishing mulai dari Publish Langsung, Publish dengan Switch, Publish Terjadwal 3. FIX bagian draf terkirim sehingga juga memunculkan yang belum dipublish tapi sudah disetujui
+
+[33mcommit b3d0483bdfb931074a2ebacbbf38cb6a512afa0a[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Wed Oct 28 01:03:08 2026 +0700
+
+    test: add favorites browser checks and verification notes
+
+[33mcommit 49c42999bbbd78451cc100e21faf503f374351bc[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Wed Oct 28 01:03:02 2026 +0700
+
+    fix: keep sold favorite controls consistent after removal
+
+[33mcommit d64ddba4663224f167e7f1d92954ddeeb1ccdbae[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Wed Oct 28 00:58:36 2026 +0700
+
+    feat: integrate favorite hearts with catalog and storefront
+
+[33mcommit 337db6aa0c25744510cbc9600cc1f3e95109ae49[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Wed Oct 28 00:44:00 2026 +0700
+
+    feat: add HTMX favorites filters and inline note editing
+
+[33mcommit 262c388b7b682fe8a7cef6bd74197d7f4aa0e731[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Wed Oct 28 00:42:08 2026 +0700
+
+    feat: implement member-only favorites CRUD and private notes
+
+[33mcommit 7e0a748109271979151f03b5e198d01bd4edaf08[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Wed Oct 28 00:40:35 2026 +0700
+
+    feat: add private favorites model and migration
+
+[33mcommit 84dbed3a84ca9a5fc0e9e927cadb977fd7b95982[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Wed Oct 28 00:39:03 2026 +0700
+
+    test: cover catalog category navigation and HTMX fallback
+
+[33mcommit 8d76bdf54ceaf8d4f1c4160f328f50a5d89062b6[m
+Merge: 512fdea 3ba4c30
+Author: David Liman <78479601+depelemon@users.noreply.github.com>
+Date:   Tue Oct 27 12:14:46 2026 +0700
+
+    Merge pull request #9 from pbp-kelompok-b8/test-ai-review
+    
+    Test AI Review in PR
+
+[33mcommit 3ba4c30241a1f731bc310cfebe4b15a8478be007[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Tue Oct 27 12:10:15 2026 +0700
+
+    feat: add AI review workflow to GitHub Actions
+
+[33mcommit f0d2833cad6e5a81fcddd2e258ea3577c561ed5d[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Tue Oct 27 11:55:13 2026 +0700
+
+    .
+
+[33mcommit 512fdeaafc5a392badc49c2c313c16dd1168de73[m
+Author: depelemon <david.liman07@gmail.com>
+Date:   Tue Oct 27 11:21:30 2026 +0700
+
+    feat: add AI review workflow and script for PR
+
+[33mcommit 8160abd279824bd74ff707afc1859d7894163b2e[m
+Merge: 5b92896 d88fac6
+Author: ClevraldoLimuel <clevraldo.limuel@ui.ac.id>
+Date:   Tue Oct 27 09:44:36 2026 +0700
+
+    feat:Added contents of report's views and urls for member side purposes
+    
+    feat:Frontend for member side
+    
+    fix:Reconfig models and forms in accordance to constraints stated in specs
+    
+    test:Added testings for models and views
+
+[33mcommit 8e671b725f76d9c12af20647b01667741e7b1803[m[33m ([m[1;31morigin/feat/sustainable-guides[m[33m)[m
+Author: ErzaProxy <sekarungmicin@gmail.com>
+Date:   Mon Oct 26 16:05:03 2026 +0700
+
+    refactor: Implementasikan HTMX kepada CRUD module
+
+[33mcommit 121e8d6591acc6f4314dc51cbcb9fc35fb3b4368[m[33m ([m[1;31morigin/dev[m[33m)[m
+Merge: 4fe6d2b 7bb0c0d
+Author: Nugraha Kautsarrizqi Caksana <125811415+LVNAx@users.noreply.github.com>
+Date:   Mon Oct 26 16:00:30 2026 +0700
+
+    Merge pull request #7 from pbp-kelompok-b8/feat/listings
+    
+    Feat/listings
+
+[33mcommit 7bb0c0d22a8e5101fc30600de24c6d24e0529e45[m[33m ([m[1;31morigin/feat/listings[m[33m)[m
+Author: Nugraha Kautsarrizqi Caksana <125811415+LVNAx@users.noreply.github.com>
+Date:   Mon Oct 26 15:58:53 2026 +0700
+
+    feat : clearer location suggestions and add seed data command
+
+[33mcommit 99a529a2c9da1f53df44230669f3b81cd4db0f51[m
+Author: Nugraha Kautsarrizqi Caksana <125811415+LVNAx@users.noreply.github.com>
+Date:   Mon Oct 26 15:14:49 2026 +0700
+
+    feat : connect listings to the profile storefront
+
+[33mcommit f95c9f308fc7647edf6db47c075ba363f393e106[m
+Author: Nugraha Kautsarrizqi Caksana <125811415+LVNAx@users.noreply.github.com>
+Date:   Mon Oct 26 14:34:30 2026 +0700
+
+    feat : add nominatim city suggestions, tidy header and simplify listings code
+    
+    - add nominatim client with cache, 1 request per second throttle and cooldown after 403 or 429
+    - add member-only location search endpoint and city suggestions in the listing form
+    - store validated coordinates rounded to about 1 km, drop invalid ones silently
+    - show openstreetmap attribution in the form and footer
+    - make header text smaller and align the account icon with its label
+    - rewrite catalog filter, nominatim and form code with plain functions and dictionaries
+    - add location tests with mocked responses
+
+[33mcommit 4fe6d2b8d77ac9906f38a92f046dab16e022a289[m
+Merge: b649014 95b4bb9
+Author: David Liman <78479601+depelemon@users.noreply.github.com>
+Date:   Mon Oct 26 14:15:09 2026 +0700
+
+    Merge pull request #6 from pbp-kelompok-b8/feat/profile
+    
+    Feat/profile
+
+[33mcommit 6891f38bf4e02bd5c14a51380c5a8623b9ea55cf[m
+Author: Nugraha Kautsarrizqi Caksana <125811415+LVNAx@users.noreply.github.com>
+Date:   Mon Oct 26 13:57:56 2026 +0700
+
+    feat : add catalog search, filters, sorting, pagination with htmx and update header
+
+[33mcommit 5b92896e53432db44e0eb097c5a5b180bd369e5d[m
+Author: ClevraldoLimuel <clevraldo.limuel@ui.ac.id>
+Date:   Mon Oct 26 13:43:51 2026 +0700
+
+    docs:Tambah spesifikasi reports dan hubungannya dalam moderasi
+
+[33mcommit d88fac638604de949e0802c3160bd31848331532[m[33m ([m[1;32mfeat/listings[m[33m)[m
+Merge: 36aba51 300b4c9
+Author: Nugraha Kautsarrizqi Caksana <125811415+LVNAx@users.noreply.github.com>
+Date:   Mon Oct 26 13:33:05 2026 +0700
+
+    Merge remote-tracking branch 'origin/feat/sustainable-guides' into feat/listings
+    
+    # Conflicts:
+    #       templates/components/header.html
+
+[33mcommit af6875cc3697b1c96fc6d3b92dd2013bdd697083[m
+Author: ClevraldoLimuel <clevraldo.limuel@ui.ac.id>
+Date:   Mon Oct 26 13:30:10 2026 +0700
+
+    feat:Add reports app, model, and forms
+
+[33mcommit 36aba511016f20a83835463fe3dd13de548a90fc[m
+Author: Nugraha Kautsarrizqi Caksana <125811415+LVNAx@users.noreply.github.com>
+Date:   Mon Oct 26 13:22:51 2026 +0700
+
+    feat : add create, edit, delete, status change and my listings pages
+
+[33mcommit 300b4c982a8c4db6f255780037ff7ecf894b0e8d[m
+Author: ErzaProxy <sekarungmicin@gmail.com>
+Date:   Mon Oct 26 13:18:49 2026 +0700
+
+    refactor: Membuat aplikasi sendiri untuk moderasi. WARNING  WIP: Implementasi Ajax, Front End belum tahap akhir, masih menentukan bagaimana implementasi dari Published dan DISETUJUI (saat ini Jika disetujui otomatis publish), belum menentukan landing page dari moderasi, menunggu kebijakan tentang icon, apakah svg dll
+
+[33mcommit 6c325964668b69284ce5811aa1fb5d0d5a92a1c8[m
+Author: Nugraha Kautsarrizqi Caksana <125811415+LVNAx@users.noreply.github.com>
+Date:   Mon Oct 26 13:05:11 2026 +0700
+
+    feat : add listing detail page and clickable listing card
+
+[33mcommit 8e5c7ac1e30c9d8bb88f35c61c8d12895eff175c[m
+Author: Nugraha Kautsarrizqi Caksana <125811415+LVNAx@users.noreply.github.com>
+Date:   Mon Oct 26 11:00:16 2026 +0700
+
+    feat : add listing catalog page and listing card
+    
+    - add listings:list view at /listings/ (available only, GET only)
+    - add listing card and results partials following the figma catalog
+    - add rupiah template filter
+    - link katalog in header and homepage cta to the catalog
+    - add catalog tests
+
+[33mcommit 1f6123dabd10341b1cd23136e1a235def9aa0992[m
+Merge: a044ea4 d4ac933
+Author: Nugraha Kautsarrizqi Caksana <125811415+LVNAx@users.noreply.github.com>
+Date:   Mon Oct 26 07:18:48 2026 +0700
+
+    Merge remote-tracking branch 'origin/feat/sustainable-guides' into feat/listings
+
+[33mcommit a044ea4063a31412ee11bcf5867cd8e7978bc60f[m
+Author: Nugraha Kautsarrizqi Caksana <125811415+LVNAx@users.noreply.github.com>
+Date:   Mon Oct 26 07:05:24 2026 +0700
+
+    Feat : Add Listing model, migration, admin, and model tests
+
+[33mcommit d4ac93373998f5646cc8eb0fcc786d8bd0eaa01f[m
+Author: ErzaProxy <sekarungmicin@gmail.com>
+Date:   Sun Oct 25 23:21:17 2026 +0700
+
+    feat: Backend untuk SustainableGuides + card
+
+[33mcommit 95b4bb9577f4318f478e4dcbcd3e961c7d8ad38b[m[33m ([m[1;31morigin/feat/profile[m[33m)[m
+Author: victorimans <victorianoimans123@gmail.com>
+Date:   Sun Oct 25 21:30:28 2026 +0700
+
+    Feat : Add static photo untuk login & register
+
+[33mcommit b1e27d728a6e73c7f380c81f82b068e2323052ea[m[33m ([m[1;32mfeat/profile[m[33m)[m
+Author: victorimans <victorianoimans123@gmail.com>
+Date:   Sun Oct 18 14:27:39 2026 +0700
+
+    Refactor : Memisahkan bagian accounts & profile dari main
+
+[33mcommit ab51fd0a6b8dcdecdd5fd32a33af2d644054806d[m
+Author: victorimans <victorianoimans123@gmail.com>
+Date:   Sun Oct 18 14:14:46 2026 +0700
+
+    Docs : Prepare Refactoring update for profile and account
+
+[33mcommit e303a7c8344a1b88f0775caf08494a4fa574b95a[m
+Author: victorimans <victorianoimans123@gmail.com>
+Date:   Sun Oct 18 13:49:33 2026 +0700
+
+    Docs : Update Progress and how listing integration is implemented
+
+[33mcommit 8f7a7bc6b95f7c72c341daeac00a94a7ed7e4045[m
+Author: victorimans <victorianoimans123@gmail.com>
+Date:   Sun Oct 18 13:44:42 2026 +0700
+
+    Test : Profile_edit, profile_fields, store_front and upd profile
+
+[33mcommit 1a319030032119d9d81a382b4b010d30ec5519bb[m
+Author: victorimans <victorianoimans123@gmail.com>
+Date:   Sun Oct 18 13:43:19 2026 +0700
+
+    Feat : Profile Edit UIUX Update and Etalase Profile
+
+[33mcommit 3d3a7181c1efc757dcc7f3e06235f2f1f78c9589[m
+Author: victorimans <victorianoimans123@gmail.com>
+Date:   Sat Oct 17 16:52:55 2026 +0700
+
+    Docs : Update Progress untuk 404 Web Page
+
+[33mcommit 40fe881b1a71da7f9fd2c65bbc125b8fdfa52925[m
+Author: victorimans <victorianoimans123@gmail.com>
+Date:   Sat Oct 17 16:51:02 2026 +0700
+
+    Test : Add test for not found page
+
+[33mcommit 87095af6b1178de2c63cc22857c4efa26fd1e1aa[m
+Author: victorimans <victorianoimans123@gmail.com>
+Date:   Sat Oct 17 16:50:17 2026 +0700
+
+    Feat : 404 Web Page

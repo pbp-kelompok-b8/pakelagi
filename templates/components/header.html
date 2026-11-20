@@ -1,8 +1,6 @@
 {# Header bersama. Isinya menyesuaikan peran: guest (belum login), member (sudah login), admin (is_staff). #}
 {% comment %}
     Susunan mengikuti Figma: kiri = menu utama, tengah = logo, kanan = cari, favorit, akun, dan tombol.
-    TODO tiap modul: ganti href="#" dengan tag url setelah halamannya dibuat:
-    Penjual -> daftar penjual.
 {% endcomment %}
 
 {% with current=request.resolver_match.url_name app=request.resolver_match.app_name %}
@@ -14,9 +12,8 @@
             <a href="{% url 'listings:list' %}" class="nav-link"{% if app == 'listings' %} aria-current="page"{% endif %}>Katalog</a>
             <a href="{% url 'main:category_index' %}" class="nav-link"{% if app == 'main' and current == 'category_index' %} aria-current="page"{% endif %}>Kategori</a>
             <a href="{% url 'sustainableguides:list' %}" class="nav-link"{% if app == 'sustainableguides' %} aria-current="page"{% endif %}>Jurnal</a>
-            <a href="#" class="nav-link">Penjual</a>
             {% if user.is_staff %}
-            <a href="{% url 'moderations:jurnal_list' %}" class="nav-link"{% if app == 'moderations' %} aria-current="page"{% endif %}>Moderasi</a>
+            <a href="{% url 'moderations:ringkasan' %}" class="nav-link"{% if app == 'moderations' %} aria-current="page"{% endif %}>Moderasi</a>
             {% endif %}
         </nav>
 
@@ -43,6 +40,7 @@
                         <p class="text-xs text-stone pb-3 border-b border-line">Masuk sebagai <strong class="font-semibold text-ink">{{ user.username }}</strong></p>
                         <a href="{% url 'profiles:profile' %}" class="nav-link block">Etalase saya</a>
                         <a href="{% url 'listings:mine' %}" class="nav-link block"{% if current == 'mine' %} aria-current="page"{% endif %}>Listing saya</a>
+                        <a href="{% url 'reports:list' %}" class="nav-link block">Laporan saya</a>
                         <a href="{% url 'profiles:profile_edit' %}" class="nav-link block">Edit profil</a>
                         <form method="post" action="{% url 'accounts:logout' %}" class="pt-3 border-t border-line">
                             {% csrf_token %}
@@ -72,7 +70,6 @@
             <a href="{% url 'listings:list' %}" class="nav-link"{% if app == 'listings' %} aria-current="page"{% endif %}>Katalog</a>
             <a href="{% url 'main:category_index' %}" class="nav-link"{% if app == 'main' and current == 'category_index' %} aria-current="page"{% endif %}>Kategori</a>
             <a href="{% url 'sustainableguides:list' %}" class="nav-link"{% if app == 'sustainableguides' %} aria-current="page"{% endif %}>Jurnal</a>
-            <a href="#" class="nav-link">Penjual</a>
             {% if user.is_staff %}
             <a href="{% url 'moderations:ringkasan' %}" class="nav-link"{% if app == 'moderations' %} aria-current="page"{% endif %}>Moderasi</a>
             {% endif %}

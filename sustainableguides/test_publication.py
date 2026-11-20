@@ -7,12 +7,14 @@ from django.urls import reverse
 from django.utils import timezone
 
 from .models import Guide
+from profiles.models import Profile
 
 
 class GuidePublicationTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.member = get_user_model().objects.create_user(username='publication-author')
+        Profile.objects.create(user=cls.member, display_name='Publication Author')
         cls.admin = get_user_model().objects.create_superuser(
             username='publication-admin', email='publication@example.com'
         )
