@@ -34,9 +34,9 @@ def report_list(request):
 @api_view(["GET", "HEAD", "PUT", "PATCH", "DELETE"])
 @authentication_classes([SessionAuthentication])
 @permission_classes([IsSuperOrAdminOrReadOnly])
-def report_detail(request, project_id):
+def report_detail(request, report_id):
     report = get_object_or_404(
-        Report.objects.select_related("reporter", "listing"), pk=project_id,
+        Report.objects.select_related("reporter", "listing"), pk=report_id,
     )
     if request.method in ("GET", "HEAD"):
         serializer = ReportSerializer(report, context={"request": request})
