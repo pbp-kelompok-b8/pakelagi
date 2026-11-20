@@ -12,7 +12,8 @@ class GuideSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source='get_status_display', read_only=True)
     content_html = serializers.SerializerMethodField()
     table_of_contents = serializers.SerializerMethodField()
-    
+    rejected_notes = serializers.SerializerMethodField()
+
     class Meta:
         model = Guide
         fields = [
@@ -44,7 +45,6 @@ class GuideSerializer(serializers.ModelSerializer):
             'approved_by',
             'status',
             'is_published',
-            'rejected_notes',
             'date_submitted',
             'date_published',
         ]
@@ -61,6 +61,9 @@ class GuideSerializer(serializers.ModelSerializer):
     def get_table_of_contents(self, obj):
         _, toc = self._get_rendered_markdown(obj)
         return toc
+
+    def get_rejected_notes(self, obj):
+        return obj.rejected_notes if obj.status == 'DITOLAK' else None
 
     def validate_title(self, value):
         cleaned = strip_tags(value).strip()

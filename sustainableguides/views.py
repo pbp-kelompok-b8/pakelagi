@@ -1,5 +1,5 @@
 from django.shortcuts import render, redirect, get_object_or_404
-from profiles.access import member_required
+from profiles.access import has_complete_profile, member_required
 from django.contrib import messages
 from .models import Guide
 from .forms import GuideForm
@@ -7,7 +7,8 @@ from .rendering import render_guide_markdown
 from rest_framework.views import APIView
 from rest_framework.response import Response
 from rest_framework import status
-from rest_framework.permissions import IsAuthenticated, IsAuthenticatedOrReadOnly
+from rest_framework.authentication import SessionAuthentication
+from rest_framework.permissions import BasePermission, SAFE_METHODS
 from .serializers import GuideSerializer
 
 # Create your views here.
@@ -124,20 +125,35 @@ def delete_draft(request, id):
             messages.success(request, f"Draf '{title}' berhasil dibatalkan dan dihapus.")
         else:
             messages.error(request, "Draf yang sudah ditinjau admin tidak dapat dihapus.")
-            
-            
+
     return user_drafts(request)
 
 #=x=x=x=x=x=x=x=x=x=x=x==x=x=x=x=x=x=x
 # REST API Views (Django REST Framework)
 #=x=x=x=x=x=x=x=x=x==x=x=x=x=x=x=x=x=x
 
-class GuideListCreateAPIView(APIView):
+class HasCompleteProfile(BasePermission):
+    message = 'Lengkapi profil untuk mengelola panduan.'
+
+    def has_permission(self, request, view):
+        return has_complete_profile(request.user)
+
+
+class HasCompleteProfileOrReadOnly(HasCompleteProfile):
+    def has_permission(self, request, view):
+        return request.method in SAFE_METHODS or super().has_permission(request, view)
+
+
+class GuideAPIView(APIView):
+    authentication_classes = [SessionAuthentication]
+    permission_classes = [HasCompleteProfileOrReadOnly]
+
+
+class GuideListCreateAPIView(GuideAPIView):
     """
     GET: Menampilkan daftar panduan yang telah terbit (publik, bisa difilter ?category=...).
-    POST: Membuat draf panduan baru dengan status PENDING (wajib login).
+    POST: Membuat draf panduan baru dengan status PENDING (profil lengkap).
     """
-    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get(self, request):
         guides = Guide.objects.published().order_by('-date_published')
@@ -155,11 +171,11 @@ class GuideListCreateAPIView(APIView):
         return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 
-class MyGuideSubmissionsAPIView(APIView):
+class MyGuideSubmissionsAPIView(GuideAPIView):
     """
-    GET: Menampilkan seluruh riwayat draf panduan milik pengguna yang sedang login.
+    GET: Menampilkan riwayat panduan sendiri (profil lengkap).
     """
-    permission_classes = [IsAuthenticated]
+    permission_classes = [HasCompleteProfile]
 
     def get(self, request):
         drafts = Guide.objects.filter(author=request.user).order_by('-date_submitted')
@@ -171,28 +187,24 @@ class MyGuideSubmissionsAPIView(APIView):
         }, status=status.HTTP_200_OK)
 
 
-class GuideDetailAPIView(APIView):
+class GuideDetailAPIView(GuideAPIView):
     """
-    GET: Menampilkan detail satu panduan (publik jika sudah terbit, atau khusus pemilik/admin jika masih draf).
+    GET: Publik jika sudah terbit; selain itu, hanya pemilik berprofil lengkap atau superuser.
     PUT / PATCH: Memperbarui draf panduan (hanya pemilik dan wajib masih berstatus PENDING).
     DELETE: Menghapus draf panduan (hanya pemilik dan wajib masih berstatus PENDING).
     """
-    permission_classes = [IsAuthenticatedOrReadOnly]
 
     def get_object(self, id):
         return get_object_or_404(Guide, id=id)
 
     def get(self, request, id):
-        guide = self.get_object(id)
-        is_published = Guide.objects.published().filter(id=guide.id).exists()
-
-        if not is_published:
-            if not request.user.is_authenticated or (guide.author != request.user and not request.user.is_superuser):
-                return Response(
-                    {"detail": "Panduan tidak ditemukan atau belum diterbitkan."},
-                    status=status.HTTP_404_NOT_FOUND
-                )
-
+        user = request.user
+        guides = Guide.objects.published()
+        if user.is_authenticated and user.is_superuser:
+            guides = Guide.objects.all()
+        elif has_complete_profile(user):
+            guides = guides | Guide.objects.filter(author=user)
+        guide = get_object_or_404(guides, id=id)
         serializer = GuideSerializer(guide)
         return Response(serializer.data, status=status.HTTP_200_OK)
 
