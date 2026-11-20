@@ -28,3 +28,8 @@ urlpatterns = [
     path("", include("main.urls")),
     path('reports/', include('reports.urls')),
 ]
+
+urlpatterns += [
+    path("api/v1/reports/", include("reports.api_urls")),
+    path("api-auth/", include("rest_framework.urls")),
+]
