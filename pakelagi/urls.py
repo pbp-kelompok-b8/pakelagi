@@ -17,8 +17,11 @@ Including another URLconf
 from django.contrib import admin
 from django.urls import include, path
 
+from main.category_api import CategoryList
+
 urlpatterns = [
     path('admin/', admin.site.urls),
+    path('api/v1/categories/', CategoryList.as_view(), name='api-category-list'),
     path("accounts/", include("accounts.urls")),
     path("profile/", include("profiles.urls")),
     path("listings/", include("listings.urls")),
